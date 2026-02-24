@@ -305,6 +305,10 @@ button:disabled {
   line-height: 1.2;
 }
 
+.preview-body-top {
+  margin-bottom: 0.45rem;
+}
+
 .source-badge {
   display: inline-block;
   margin-bottom: 0.45rem;

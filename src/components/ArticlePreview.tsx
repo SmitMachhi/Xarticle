@@ -25,6 +25,7 @@ export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaSty
   const coverMeta = coverMetaStyle === 'minimal'
     ? `@${article.authorHandle}`
     : `@${article.authorHandle}${article.publishedAt ? ` • ${new Date(article.publishedAt).toLocaleString()}` : ''}`
+  const showBodyHeader = coverPageMode !== 'always'
 
   return (
     <div className={`preview-stack ${themeMode === 'bw' ? 'preview-bw' : 'preview-color'}`}>
@@ -62,39 +63,47 @@ export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaSty
       ) : null}
 
       <article className="preview-card">
-        <header className="preview-header">
-          <div className="source-badge">{providerLabel[article.providerUsed]}</div>
-          <h1>{article.title}</h1>
-          <div className="author-row">
-            {article.authorAvatarUrl ? (
-              <img className="avatar" src={article.authorAvatarUrl} alt={`${article.authorName} avatar`} />
-            ) : (
-              <div className="avatar-fallback">@</div>
-            )}
-            <div>
-              <div className="author-name">{article.authorName}</div>
-              <div className="author-meta">
-                @{article.authorHandle}
-                {article.publishedAt ? ` • ${new Date(article.publishedAt).toLocaleString()}` : ''}
+        {showBodyHeader ? (
+          <header className="preview-header">
+            <div className="source-badge">{providerLabel[article.providerUsed]}</div>
+            <h1>{article.title}</h1>
+            <div className="author-row">
+              {article.authorAvatarUrl ? (
+                <img className="avatar" src={article.authorAvatarUrl} alt={`${article.authorName} avatar`} />
+              ) : (
+                <div className="avatar-fallback">@</div>
+              )}
+              <div>
+                <div className="author-name">{article.authorName}</div>
+                <div className="author-meta">
+                  @{article.authorHandle}
+                  {article.publishedAt ? ` • ${new Date(article.publishedAt).toLocaleString()}` : ''}
+                </div>
               </div>
             </div>
+            <a href={article.canonicalUrl} target="_blank" rel="noreferrer" className="source-link">
+              {article.canonicalUrl}
+            </a>
+          </header>
+        ) : (
+          <div className="preview-body-top">
+            <div className="source-badge">{providerLabel[article.providerUsed]}</div>
           </div>
-          <a href={article.canonicalUrl} target="_blank" rel="noreferrer" className="source-link">
-            {article.canonicalUrl}
-          </a>
-        </header>
+        )}
 
-        <section className="metric-grid" aria-label="article metrics">
-          {metricRows.map((metric) => (
-            <div className="metric-card" key={metric.key}>
-              <span>{metric.label}</span>
-              <strong>
-                {article.metrics[metric.key] === null ? 'N/A' : article.metrics[metric.key]?.toLocaleString()}
-              </strong>
-              {article.metricNotes?.[metric.key] ? <em>{article.metricNotes[metric.key]}</em> : null}
-            </div>
-          ))}
-        </section>
+        {showBodyHeader ? (
+          <section className="metric-grid" aria-label="article metrics">
+            {metricRows.map((metric) => (
+              <div className="metric-card" key={metric.key}>
+                <span>{metric.label}</span>
+                <strong>
+                  {article.metrics[metric.key] === null ? 'N/A' : article.metrics[metric.key]?.toLocaleString()}
+                </strong>
+                {article.metricNotes?.[metric.key] ? <em>{article.metricNotes[metric.key]}</em> : null}
+              </div>
+            ))}
+          </section>
+        ) : null}
 
         {article.warnings.length > 0 ? (
           <section className="warning-box" aria-label="extraction warnings">

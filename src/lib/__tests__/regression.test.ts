@@ -12,6 +12,22 @@ const loadFixture = (name: string): unknown => {
   return JSON.parse(raw)
 }
 
+const collectTexts = (value: unknown): string[] => {
+  if (typeof value === 'string') {
+    return [value]
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => collectTexts(item))
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.values(value).flatMap((item) => collectTexts(item))
+  }
+
+  return []
+}
+
 const baseOpts: PdfExportOptions = {
   paperSize: 'A4',
   marginPreset: 'default',
@@ -32,6 +48,10 @@ describe('status regression parsing', () => {
     expect(article.blocks.some((block) => block.type === 'list')).toBe(true)
     expect(article.blocks.some((block) => block.type === 'quote')).toBe(true)
     expect(article.blocks.some((block) => block.type === 'code')).toBe(true)
+    const duplicateIntro = article.blocks.filter(
+      (block) => block.type === 'paragraph' && block.text === "I don't use Codex or Claude Code directly anymore.",
+    )
+    expect(duplicateIntro).toHaveLength(1)
   })
 })
 
@@ -45,6 +65,8 @@ describe('pdf definition regression', () => {
 
     const first = (doc.content as Array<{ pageBreak?: string }>)[0]
     expect(first.pageBreak).toBe('after')
+    const titleCount = collectTexts(doc.content).filter((text) => text === article.title).length
+    expect(titleCount).toBe(1)
   })
 
   it('skips the cover page when disabled', async () => {
@@ -60,8 +82,9 @@ describe('pdf definition regression', () => {
       async () => null,
     )
 
-    const first = (doc.content as Array<{ pageBreak?: string; text?: string }>)[0]
+    const first = (doc.content as Array<{ pageBreak?: string }>)[0]
     expect(first.pageBreak).toBeUndefined()
-    expect(first.text).toBe(article.title)
+    const titleCount = collectTexts(doc.content).filter((text) => text === article.title).length
+    expect(titleCount).toBe(1)
   })
 })

@@ -171,6 +171,46 @@ const articleBlocksFromTweet = (tweet: FxTweet): ArticleBlock[] => {
   return []
 }
 
+const dedupeAdjacentParagraphs = (blocks: ArticleBlock[]): ArticleBlock[] => {
+  const deduped: ArticleBlock[] = []
+  const overlapThreshold = 48
+
+  for (const block of blocks) {
+    if (block.type !== 'paragraph') {
+      deduped.push(block)
+      continue
+    }
+
+    const normalizedCurrent = normalizeText(block.text)
+    if (!normalizedCurrent) {
+      continue
+    }
+
+    const previous = deduped[deduped.length - 1]
+    if (previous?.type === 'paragraph') {
+      const normalizedPrevious = normalizeText(previous.text)
+      if (normalizedPrevious === normalizedCurrent) {
+        continue
+      }
+
+      if (normalizedCurrent.length >= overlapThreshold && normalizedPrevious.length >= overlapThreshold) {
+        if (normalizedCurrent.includes(normalizedPrevious)) {
+          previous.text = block.text.trim()
+          continue
+        }
+
+        if (normalizedPrevious.includes(normalizedCurrent)) {
+          continue
+        }
+      }
+    }
+
+    deduped.push({ type: 'paragraph', text: block.text.trim() })
+  }
+
+  return deduped
+}
+
 export const parseFxTweetResponse = (payload: unknown, sourceUrl: string): ExtractedArticle => {
   const data = payload as FxTweetResponse
 
@@ -187,12 +227,13 @@ export const parseFxTweetResponse = (payload: unknown, sourceUrl: string): Extra
 
   const title = tweet.article?.title?.trim() || `${authorName} on X`
 
-  const blocks: ArticleBlock[] = []
-  if (tweet.article?.preview_text) {
-    blocks.push({ type: 'paragraph', text: normalizeText(tweet.article.preview_text) })
+  const rawBlocks: ArticleBlock[] = []
+  if (contentBlocks.length === 0 && tweet.article?.preview_text) {
+    rawBlocks.push({ type: 'paragraph', text: normalizeText(tweet.article.preview_text) })
   }
-  blocks.push(...contentBlocks)
-  blocks.push(...mediaBlocks)
+  rawBlocks.push(...contentBlocks)
+  rawBlocks.push(...mediaBlocks)
+  const blocks = dedupeAdjacentParagraphs(rawBlocks)
 
   if (blocks.length === 0) {
     throw new Error('No printable content found for this status URL.')

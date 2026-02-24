@@ -378,24 +378,32 @@ export const buildArticlePdfDefinition = async (
   }
 
   const content: Content[] = []
+  const showBodyHeader = opts.coverPageMode !== 'always'
+  const bodyHeaderContent: Content[] = showBodyHeader
+    ? [
+        { text: article.title, style: 'h1', margin: [0, 0, 0, 8] },
+        { text: `${article.authorName} • ${metadataParts.join(' • ')}`, style: 'meta', margin: [0, 0, 0, 6] },
+        {
+          columns: metricColumns.map((metricCell) => ({
+            table: {
+              widths: ['*'],
+              body: [[{ ...metricCell, fillColor: opts.themeMode === 'bw' ? '#ffffff' : '#f8faf8' }]],
+            },
+            layout: metricCardLayout(opts.themeMode),
+          })),
+          columnGap: 8,
+          margin: [0, 0, 0, 12],
+        },
+      ]
+    : []
+
   if (opts.coverPageMode === 'always') {
     content.push(coverPage)
   }
+
   content.push(
     boxedBadge(providerLabelMap[article.providerUsed], opts.themeMode),
-    { text: article.title, style: 'h1', margin: [0, 0, 0, 8] },
-    { text: `${article.authorName} • ${metadataParts.join(' • ')}`, style: 'meta', margin: [0, 0, 0, 6] },
-    {
-      columns: metricColumns.map((metricCell) => ({
-        table: {
-          widths: ['*'],
-          body: [[{ ...metricCell, fillColor: opts.themeMode === 'bw' ? '#ffffff' : '#f8faf8' }]],
-        },
-        layout: metricCardLayout(opts.themeMode),
-      })),
-      columnGap: 8,
-      margin: [0, 0, 0, 12],
-    },
+    ...bodyHeaderContent,
     ...(article.warnings.length > 0 ? [warningBox(article.warnings, opts.themeMode)] : []),
     ...bodyContent,
   )
