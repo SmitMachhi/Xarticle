@@ -395,6 +395,8 @@ export const parseJinaMarkdown = (raw: string, sourceUrl: string): ExtractedArti
     warnings: ['Fallback extraction mode used. Some metrics or embeds may be missing.'],
     extractedAt: new Date().toISOString(),
     mode: 'fallback',
+    providerUsed: 'jina',
+    providerAttempts: [],
   }
 
   return article
@@ -426,6 +428,8 @@ export const parseXHtmlDocument = (html: string, sourceUrl: string): ExtractedAr
     warnings: [],
     extractedAt: new Date().toISOString(),
     mode: 'companion',
+    providerUsed: 'companion',
+    providerAttempts: [],
   }
 
   if (article.metrics.bookmarks === null) {

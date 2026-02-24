@@ -195,5 +195,7 @@ export const parseFxTweetResponse = (payload: unknown, sourceUrl: string): Extra
     warnings: ['Extracted via public status parser.'],
     extractedAt: new Date().toISOString(),
     mode: 'fallback',
+    providerUsed: 'fxtwitter',
+    providerAttempts: [],
   }
 }

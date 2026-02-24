@@ -1,4 +1,4 @@
-import type { ExtractRequestResult } from '../types/article'
+import type { ExtractRequestResult, ProviderAttempt } from '../types/article'
 import { parseJinaMarkdown, parseXHtmlDocument } from './articleParser'
 import { requestCompanionHtml } from './companionBridge'
 import { parseFxTweetResponse } from './fxTweetParser'
@@ -69,35 +69,75 @@ export const extractArticleFromUrl = async (rawUrl: string): Promise<ExtractRequ
   const parsedUrl = validateArticleUrl(rawUrl)
   const sourceUrl = parsedUrl.toString()
   const warnings: string[] = []
+  const attempts: ProviderAttempt[] = []
 
   if (extractStatusId(parsedUrl)) {
     try {
       const payload = await fetchFxTweet(sourceUrl)
       const article = parseFxTweetResponse(payload, sourceUrl)
+      attempts.push({
+        provider: 'fxtwitter',
+        ok: true,
+        message: 'Public status parser succeeded.',
+      })
+      article.providerAttempts = [...attempts]
       return { article }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Status parser failed.'
-      warnings.push(`Status parser failed: ${message}`)
+      attempts.push({
+        provider: 'fxtwitter',
+        ok: false,
+        message,
+      })
+      warnings.push(`fxtwitter failed: ${message}`)
     }
   }
 
   try {
     const companionResult = await requestCompanionHtml(sourceUrl)
     const article = parseXHtmlDocument(companionResult.html, companionResult.finalUrl || sourceUrl)
+    attempts.push({
+      provider: 'companion',
+      ok: true,
+      message: 'Companion extension extraction succeeded.',
+    })
     article.warnings.push(...warnings)
+    article.providerAttempts = [...attempts]
     return { article }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Companion extension unavailable.'
-    warnings.push(`Companion extractor unavailable: ${message}`)
+    attempts.push({
+      provider: 'companion',
+      ok: false,
+      message,
+    })
+    warnings.push(`companion failed: ${message}`)
   }
 
-  const raw = await fetchJinaMarkdown(sourceUrl)
-  const article = parseJinaMarkdown(raw, sourceUrl)
-  article.warnings = [...warnings, ...article.warnings]
+  try {
+    const raw = await fetchJinaMarkdown(sourceUrl)
+    const article = parseJinaMarkdown(raw, sourceUrl)
+    if (article.blocks.length < 3) {
+      throw new Error('Could not extract enough content from this page.')
+    }
 
-  if (article.blocks.length < 3) {
-    throw new Error('Could not extract enough content from this page. Try again with the companion extension enabled.')
+    attempts.push({
+      provider: 'jina',
+      ok: true,
+      message: 'Jina fallback extraction succeeded.',
+    })
+    article.warnings = [...warnings, ...article.warnings]
+    article.providerAttempts = [...attempts]
+
+    return { article }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Jina fallback failed.'
+    attempts.push({
+      provider: 'jina',
+      ok: false,
+      message,
+    })
+    const debugLines = attempts.map((attempt) => `${attempt.provider}: ${attempt.ok ? 'ok' : `failed (${attempt.message})`}`).join(' | ')
+    throw new Error(`All extraction providers failed. ${debugLines}`)
   }
-
-  return { article }
 }

@@ -31,6 +31,13 @@ export type ArticleBlock =
     }
 
 export type ExtractionMode = 'companion' | 'fallback'
+export type ExtractionProvider = 'fxtwitter' | 'companion' | 'jina'
+
+export interface ProviderAttempt {
+  provider: ExtractionProvider
+  ok: boolean
+  message: string
+}
 
 export interface ExtractedArticle {
   sourceUrl: string
@@ -45,6 +52,8 @@ export interface ExtractedArticle {
   warnings: string[]
   extractedAt: string
   mode: ExtractionMode
+  providerUsed: ExtractionProvider
+  providerAttempts: ProviderAttempt[]
 }
 
 export interface ExtractRequestResult {
