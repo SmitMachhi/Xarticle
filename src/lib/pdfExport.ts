@@ -62,6 +62,14 @@ const loadImageDataUrl = async (url: string): Promise<string | null> => {
   }
 }
 
+export interface PdfExportOptions {
+  paperSize: PaperSize
+  marginPreset: MarginPreset
+  themeMode: ThemeMode
+  coverPageMode: CoverPageMode
+  coverMetaStyle: CoverMetaStyle
+}
+
 const asMetricCell = (label: string, value: number | null): Content => {
   return {
     stack: [
@@ -128,7 +136,7 @@ const asCoverMetricCell = (label: string, value: number | null): Content => {
   }
 }
 
-const blockToContent = async (block: ArticleBlock): Promise<Content[]> => {
+const blockToContent = async (block: ArticleBlock, imageResolver: (url: string) => Promise<string | null>): Promise<Content[]> => {
   if (block.type === 'heading') {
     const style = block.level === 1 ? 'h1' : block.level === 2 ? 'h2' : 'h3'
     return [{ text: block.text, style, margin: [0, 8, 0, 8] }]
@@ -194,7 +202,7 @@ const blockToContent = async (block: ArticleBlock): Promise<Content[]> => {
   }
 
   if (block.type === 'media') {
-    const imageDataUrl = await loadImageDataUrl(block.url)
+    const imageDataUrl = await imageResolver(block.url)
     if (!imageDataUrl) {
       return [
         { text: `Media: ${block.url}`, style: 'embed', link: block.url, margin: [0, 0, 0, 4] },
@@ -228,21 +236,16 @@ const blockToContent = async (block: ArticleBlock): Promise<Content[]> => {
   return []
 }
 
-export const downloadArticlePdf = async (
+export const buildArticlePdfDefinition = async (
   article: ExtractedArticle,
-  opts: {
-    paperSize: PaperSize
-    marginPreset: MarginPreset
-    themeMode: ThemeMode
-    coverPageMode: CoverPageMode
-    coverMetaStyle: CoverMetaStyle
-  },
-): Promise<void> => {
-  const avatarDataUrl = article.authorAvatarUrl ? await loadImageDataUrl(article.authorAvatarUrl) : null
+  opts: PdfExportOptions,
+  imageResolver: (url: string) => Promise<string | null> = loadImageDataUrl,
+): Promise<TDocumentDefinitions> => {
+  const avatarDataUrl = article.authorAvatarUrl ? await imageResolver(article.authorAvatarUrl) : null
   const bodyContent: Content[] = []
 
   for (const block of article.blocks) {
-    const contentItems = await blockToContent(block)
+    const contentItems = await blockToContent(block, imageResolver)
     bodyContent.push(...contentItems)
   }
 
@@ -324,7 +327,7 @@ export const downloadArticlePdf = async (
     ...bodyContent,
   )
 
-  const docDefinition: TDocumentDefinitions = {
+  return {
     pageSize: opts.paperSize,
     pageMargins: marginMap[opts.marginPreset],
     content,
@@ -340,6 +343,9 @@ export const downloadArticlePdf = async (
       producer: 'X Article Printer',
     },
   }
+}
 
+export const downloadArticlePdf = async (article: ExtractedArticle, opts: PdfExportOptions): Promise<void> => {
+  const docDefinition = await buildArticlePdfDefinition(article, opts)
   pdfMake.createPdf(docDefinition).download(fileNameFor(article, opts.themeMode))
 }

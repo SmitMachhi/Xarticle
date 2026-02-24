@@ -1,0 +1,45 @@
+{
+  "code": 200,
+  "message": "OK",
+  "tweet": {
+    "url": "https://x.com/elvissun/status/2025920521871716562",
+    "id": "2025920521871716562",
+    "author": {
+      "name": "Elvis",
+      "screen_name": "elvissun",
+      "avatar_url": "https://pbs.twimg.com/profile_images/1886389973236011008/7EZHFw9k_200x200.jpg"
+    },
+    "replies": 203,
+    "retweets": 742,
+    "likes": 6574,
+    "bookmarks": 20125,
+    "views": 2287254,
+    "created_at": "Mon Feb 23 13:07:46 +0000 2026",
+    "article": {
+      "title": "OpenClaw + Codex/ClaudeCode Agent Swarm: The One-Person Dev Team [Full Setup]",
+      "preview_text": "I don't use Codex or Claude Code directly anymore.",
+      "cover_media": {
+        "media_info": {
+          "original_img_url": "https://pbs.twimg.com/media/HB0Qm-HWMAAoBAz.jpg"
+        }
+      },
+      "content": {
+        "blocks": [
+          { "type": "unstyled", "text": "I don't use Codex or Claude Code directly anymore." },
+          { "type": "header-two", "text": "The Full 8-step Workflow" },
+          { "type": "ordered-list-item", "text": "Step 1: Customer Request" },
+          { "type": "unordered-list-item", "text": "Step 2: Spawn agent" },
+          { "type": "blockquote", "text": "Codex and Claude Code have very little context." },
+          { "type": "unstyled", "text": "```bash\ncodex --model gpt-5.3-codex\n```" }
+        ]
+      }
+    },
+    "media_entities": [
+      {
+        "media_info": {
+          "original_img_url": "https://pbs.twimg.com/media/HByXnBmW8AANOl9.jpg"
+        }
+      }
+    ]
+  }
+}
