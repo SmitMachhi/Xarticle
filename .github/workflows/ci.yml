@@ -1,0 +1,39 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: install dependencies
+        run: npm ci
+
+      - name: install playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: lint
+        run: npm run lint
+
+      - name: regression tests
+        run: npm run test:run
+
+      - name: build
+        run: npm run build
+
+      - name: playwright smoke
+        run: npm run test:e2e

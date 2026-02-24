@@ -1,6 +1,7 @@
 import type { Column, Content, StyleDictionary, TDocumentDefinitions } from 'pdfmake/interfaces'
 import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
+import { recordPlannedDownload } from './downloadTelemetry'
 import type {
   ArticleBlock,
   CoverMetaStyle,
@@ -347,5 +348,7 @@ export const buildArticlePdfDefinition = async (
 
 export const downloadArticlePdf = async (article: ExtractedArticle, opts: PdfExportOptions): Promise<void> => {
   const docDefinition = await buildArticlePdfDefinition(article, opts)
-  pdfMake.createPdf(docDefinition).download(fileNameFor(article, opts.themeMode))
+  const filename = fileNameFor(article, opts.themeMode)
+  recordPlannedDownload(filename)
+  pdfMake.createPdf(docDefinition).download(filename)
 }
