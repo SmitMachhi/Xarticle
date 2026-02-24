@@ -229,7 +229,12 @@ function App() {
             {error ? <section className="error-box">{error}</section> : null}
             {article ? (
               <section className="preview-wrap">
-                <ArticlePreview article={article} themeMode={previewTheme} />
+                <ArticlePreview
+                  article={article}
+                  themeMode={previewTheme}
+                  coverPageMode={coverPageMode}
+                  coverMetaStyle={coverMetaStyle}
+                />
               </section>
             ) : (
               <section className="empty-state">Paste a link and click &quot;Load Article&quot; to preview.</section>

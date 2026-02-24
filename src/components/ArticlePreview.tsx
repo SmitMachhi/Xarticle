@@ -1,4 +1,4 @@
-import type { ExtractedArticle, ThemeMode } from '../types/article'
+import type { CoverMetaStyle, CoverPageMode, ExtractedArticle, ThemeMode } from '../types/article'
 
 const metricRows = [
   { key: 'likes', label: 'Likes' },
@@ -11,6 +11,8 @@ const metricRows = [
 interface ArticlePreviewProps {
   article: ExtractedArticle
   themeMode: ThemeMode
+  coverPageMode: CoverPageMode
+  coverMetaStyle: CoverMetaStyle
 }
 
 const providerLabel: Record<ExtractedArticle['providerUsed'], string> = {
@@ -19,57 +21,95 @@ const providerLabel: Record<ExtractedArticle['providerUsed'], string> = {
   jina: 'source: fallback parser',
 }
 
-export const ArticlePreview = ({ article, themeMode }: ArticlePreviewProps) => {
+export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaStyle }: ArticlePreviewProps) => {
+  const coverMeta = coverMetaStyle === 'minimal'
+    ? `@${article.authorHandle}`
+    : `@${article.authorHandle}${article.publishedAt ? ` • ${new Date(article.publishedAt).toLocaleString()}` : ''}`
+
   return (
-    <article className={`preview-card ${themeMode === 'bw' ? 'preview-bw' : 'preview-color'}`}>
-      <header className="preview-header">
-        <div className="source-badge">{providerLabel[article.providerUsed]}</div>
-        <h1>{article.title}</h1>
-        <div className="author-row">
-          {article.authorAvatarUrl ? (
-            <img className="avatar" src={article.authorAvatarUrl} alt={`${article.authorName} avatar`} />
-          ) : (
-            <div className="avatar-fallback">@</div>
-          )}
-          <div>
-            <div className="author-name">{article.authorName}</div>
-            <div className="author-meta">
-              @{article.authorHandle}
-              {article.publishedAt ? ` • ${new Date(article.publishedAt).toLocaleString()}` : ''}
+    <div className={`preview-stack ${themeMode === 'bw' ? 'preview-bw' : 'preview-color'}`}>
+      {coverPageMode === 'always' ? (
+        <article className="preview-card preview-cover">
+          <header className="preview-header">
+            <div className="source-badge">x article export</div>
+            <h1>{article.title}</h1>
+            <div className="author-row">
+              {article.authorAvatarUrl ? (
+                <img className="avatar" src={article.authorAvatarUrl} alt={`${article.authorName} avatar`} />
+              ) : (
+                <div className="avatar-fallback">@</div>
+              )}
+              <div>
+                <div className="author-name">{article.authorName}</div>
+                <div className="author-meta">{coverMeta}</div>
+              </div>
             </div>
-          </div>
-        </div>
-        <a href={article.canonicalUrl} target="_blank" rel="noreferrer" className="source-link">
-          {article.canonicalUrl}
-        </a>
-      </header>
+            <a href={article.canonicalUrl} target="_blank" rel="noreferrer" className="source-link">
+              {article.canonicalUrl}
+            </a>
+          </header>
 
-      <section className="metric-grid" aria-label="article metrics">
-        {metricRows.map((metric) => (
-          <div className="metric-card" key={metric.key}>
-            <span>{metric.label}</span>
-            <strong>
-              {article.metrics[metric.key] === null ? 'N/A' : article.metrics[metric.key]?.toLocaleString()}
-            </strong>
-            {article.metricNotes?.[metric.key] ? <em>{article.metricNotes[metric.key]}</em> : null}
-          </div>
-        ))}
-      </section>
-
-      {article.warnings.length > 0 ? (
-        <section className="warning-box" aria-label="extraction warnings">
-          <strong>Extraction Notes</strong>
-          <ul>
-            {article.warnings.map((warning) => (
-              <li key={warning}>{warning}</li>
+          <section className="metric-grid" aria-label="cover metrics">
+            {metricRows.map((metric) => (
+              <div className="metric-card" key={`cover-${metric.key}`}>
+                <span>{metric.label}</span>
+                <strong>{article.metrics[metric.key] === null ? 'N/A' : article.metrics[metric.key]?.toLocaleString()}</strong>
+                {article.metricNotes?.[metric.key] ? <em>{article.metricNotes[metric.key]}</em> : null}
+              </div>
             ))}
-          </ul>
-        </section>
+          </section>
+        </article>
       ) : null}
 
-      <section className="article-body">
-        {article.blocks.map((block, idx) => {
-          const blockKey = `${block.type}-${idx}`
+      <article className="preview-card">
+        <header className="preview-header">
+          <div className="source-badge">{providerLabel[article.providerUsed]}</div>
+          <h1>{article.title}</h1>
+          <div className="author-row">
+            {article.authorAvatarUrl ? (
+              <img className="avatar" src={article.authorAvatarUrl} alt={`${article.authorName} avatar`} />
+            ) : (
+              <div className="avatar-fallback">@</div>
+            )}
+            <div>
+              <div className="author-name">{article.authorName}</div>
+              <div className="author-meta">
+                @{article.authorHandle}
+                {article.publishedAt ? ` • ${new Date(article.publishedAt).toLocaleString()}` : ''}
+              </div>
+            </div>
+          </div>
+          <a href={article.canonicalUrl} target="_blank" rel="noreferrer" className="source-link">
+            {article.canonicalUrl}
+          </a>
+        </header>
+
+        <section className="metric-grid" aria-label="article metrics">
+          {metricRows.map((metric) => (
+            <div className="metric-card" key={metric.key}>
+              <span>{metric.label}</span>
+              <strong>
+                {article.metrics[metric.key] === null ? 'N/A' : article.metrics[metric.key]?.toLocaleString()}
+              </strong>
+              {article.metricNotes?.[metric.key] ? <em>{article.metricNotes[metric.key]}</em> : null}
+            </div>
+          ))}
+        </section>
+
+        {article.warnings.length > 0 ? (
+          <section className="warning-box" aria-label="extraction warnings">
+            <strong>Extraction Notes</strong>
+            <ul>
+              {article.warnings.map((warning) => (
+                <li key={warning}>{warning}</li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
+        <section className="article-body">
+          {article.blocks.map((block, idx) => {
+            const blockKey = `${block.type}-${idx}`
 
           if (block.type === 'heading') {
             if (block.level === 1) {
@@ -130,9 +170,10 @@ export const ArticlePreview = ({ article, themeMode }: ArticlePreviewProps) => {
             )
           }
 
-          return null
-        })}
-      </section>
-    </article>
+            return null
+          })}
+        </section>
+      </article>
+    </div>
   )
 }

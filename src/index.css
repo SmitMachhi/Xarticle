@@ -282,11 +282,21 @@ button:disabled {
   width: 100%;
 }
 
+.preview-stack {
+  display: grid;
+  gap: 0.9rem;
+}
+
 .preview-card {
   max-width: 860px;
   margin: 0 auto;
   box-shadow: 0 10px 20px rgba(14, 28, 19, 0.12);
   padding: 1.05rem 1.2rem;
+}
+
+.preview-cover .source-badge {
+  background: #eefbf3;
+  border-color: #9fd3b4;
 }
 
 .preview-header h1 {
