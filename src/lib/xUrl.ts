@@ -9,6 +9,14 @@ const STATUS_PATH_PATTERNS = [
   /\/i\/status\/(\d+)/i,
 ]
 
+export type UrlClassificationKind = 'status' | 'article' | 'unsupported' | 'invalid' | 'empty'
+
+export interface UrlClassificationResult {
+  kind: UrlClassificationKind
+  reason: string
+  normalizedUrl?: string
+}
+
 export const isXDomain = (url: URL): boolean => {
   const host = url.hostname.toLowerCase()
   return host === 'x.com' || host === 'www.x.com' || host === 'twitter.com' || host === 'www.twitter.com'
@@ -60,4 +68,54 @@ export const getHandleFromUrl = (url: URL): string => {
     return 'unknown'
   }
   return parts[0].replace(/^@/, '')
+}
+
+export const classifyInputUrl = (raw: string): UrlClassificationResult => {
+  const trimmed = raw.trim()
+  if (!trimmed) {
+    return {
+      kind: 'empty',
+      reason: 'Paste an X URL to begin.',
+    }
+  }
+
+  let parsed: URL
+  try {
+    parsed = normalizeInputUrl(trimmed)
+  } catch {
+    return {
+      kind: 'invalid',
+      reason: 'Invalid URL format.',
+    }
+  }
+
+  if (!isXDomain(parsed)) {
+    return {
+      kind: 'unsupported',
+      reason: 'Only x.com and twitter.com links are supported.',
+      normalizedUrl: parsed.toString(),
+    }
+  }
+
+  if (extractArticleId(parsed)) {
+    return {
+      kind: 'article',
+      reason: 'Detected long-form article URL.',
+      normalizedUrl: parsed.toString(),
+    }
+  }
+
+  if (extractStatusId(parsed)) {
+    return {
+      kind: 'status',
+      reason: 'Detected status URL.',
+      normalizedUrl: parsed.toString(),
+    }
+  }
+
+  return {
+    kind: 'unsupported',
+    reason: 'This X URL does not point to a status or article.',
+    normalizedUrl: parsed.toString(),
+  }
 }

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ArticlePreview } from './components/ArticlePreview'
 import { extractArticleFromUrl } from './lib/extractArticle'
 import { downloadArticlePdf } from './lib/pdfExport'
+import { classifyInputUrl } from './lib/xUrl'
 import type { ExtractedArticle, MarginPreset, PaperSize, ThemeMode } from './types/article'
 
 const APP_NAME = 'X Article Printer'
@@ -25,6 +26,8 @@ function App() {
   }, [])
 
   const canDownload = useMemo(() => Boolean(article) && downloadState === 'idle', [article, downloadState])
+  const urlClassification = useMemo(() => classifyInputUrl(urlInput), [urlInput])
+  const canLoad = !loading && (urlClassification.kind === 'status' || urlClassification.kind === 'article')
 
   const loadArticle = async () => {
     setLoading(true)
@@ -32,7 +35,7 @@ function App() {
     setArticle(null)
 
     try {
-      const result = await extractArticleFromUrl(urlInput)
+      const result = await extractArticleFromUrl(urlClassification.normalizedUrl || urlInput)
       setArticle(result.article)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown extraction error.'
@@ -81,10 +84,11 @@ function App() {
             value={urlInput}
             onChange={(event) => setUrlInput(event.target.value)}
           />
-          <button onClick={loadArticle} disabled={loading || urlInput.trim().length === 0}>
+          <button onClick={loadArticle} disabled={!canLoad}>
             {loading ? 'Loading...' : 'Load Article'}
           </button>
         </div>
+        <p className={`url-status url-status-${urlClassification.kind}`}>{urlClassification.reason}</p>
 
         <div className="option-grid">
           <label>

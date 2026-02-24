@@ -130,6 +130,25 @@ button:disabled {
   font-size: 0.82rem;
 }
 
+.url-status {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.url-status-empty {
+  color: #6b7280;
+}
+
+.url-status-status,
+.url-status-article {
+  color: #155e2d;
+}
+
+.url-status-unsupported,
+.url-status-invalid {
+  color: #8a1f2e;
+}
+
 .error-box {
   padding: 0.85rem 1rem;
   border-color: #f0b0b7;
