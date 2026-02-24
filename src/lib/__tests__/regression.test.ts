@@ -64,9 +64,15 @@ describe('pdf definition regression', () => {
     expect(Array.isArray(doc.content)).toBe(true)
 
     const first = (doc.content as Array<{ pageBreak?: string }>)[0]
-    expect(first.pageBreak).toBe('after')
+    expect(first.pageBreak).toBeUndefined()
     const titleCount = collectTexts(doc.content).filter((text) => text === article.title).length
     expect(titleCount).toBe(1)
+    expect(collectTexts(doc.content)).not.toContain('source: public status parser')
+    expect(collectTexts(doc.content)).not.toContain('Extraction Notes')
+    expect(collectTexts(doc.content)).not.toContain('Extracted via public status parser.')
+
+    const footerText = typeof doc.footer === 'function' ? collectTexts(doc.footer(1, 2, {} as never)) : []
+    expect(footerText).toContain('Xarticle.app')
   })
 
   it('promotes the cover image to the cover page top when enabled', async () => {
@@ -81,7 +87,7 @@ describe('pdf definition regression', () => {
     })
 
     const firstPage = (doc.content as Array<{ stack?: Array<{ image?: string }>; pageBreak?: string }>)[0]
-    expect(firstPage.pageBreak).toBe('after')
+    expect(firstPage.pageBreak).toBeUndefined()
     expect(firstPage.stack?.[0]?.image).toBe('data:image/png;base64,cover')
   })
 

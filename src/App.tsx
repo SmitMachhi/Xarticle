@@ -10,7 +10,7 @@ import { downloadArticlePdf } from './lib/pdfExport'
 import { classifyInputUrl } from './lib/xUrl'
 import type { CoverMetaStyle, CoverPageMode, ExtractedArticle, MarginPreset, PaperSize, ThemeMode } from './types/article'
 
-const APP_NAME = 'X Article Printer'
+const APP_NAME = 'Xarticle.app'
 const HOW_IT_WORKS = [
   'Paste one public X status URL or long-form article URL.',
   'Preview the extracted content in your browser.',

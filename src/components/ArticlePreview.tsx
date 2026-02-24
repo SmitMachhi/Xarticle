@@ -40,7 +40,7 @@ export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaSty
             </figure>
           ) : null}
           <header className="preview-header">
-            <div className="source-badge">x article export</div>
+            <div className="source-badge">Xarticle.app</div>
             <h1>{article.title}</h1>
             <div className="author-row">
               {article.authorAvatarUrl ? (

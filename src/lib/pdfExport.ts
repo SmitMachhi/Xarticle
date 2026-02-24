@@ -27,25 +27,38 @@ const metricLabelMap = {
   bookmarks: 'Bookmarks',
 } as const
 
-const providerLabelMap: Record<ExtractedArticle['providerUsed'], string> = {
-  fxtwitter: 'source: public status parser',
-  companion: 'source: companion extension',
-  jina: 'source: fallback parser',
-}
-
 const toFilenameSafe = (value: string): string => {
   return value
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
-    .slice(0, 64)
+    .slice(0, 42)
 }
+
+const getStatusId = (url: string): string | null => {
+  try {
+    const match = new URL(url).pathname.match(/\/status\/(\d+)/)
+    return match?.[1] ?? null
+  } catch {
+    return null
+  }
+}
+
+const compactStamp = (): string =>
+  new Date()
+    .toISOString()
+    .replace(/[-:]/g, '')
+    .replace(/\..*$/, '')
+    .replace('T', '-')
 
 const fileNameFor = (article: ExtractedArticle, themeMode: ThemeMode): string => {
   const titleSlug = toFilenameSafe(article.title || 'article')
   const handleSlug = toFilenameSafe(article.authorHandle || 'unknown')
+  const statusId = getStatusId(article.canonicalUrl)
+  const stamp = compactStamp()
   const mode = themeMode === 'bw' ? 'bw' : 'color'
-  return `${titleSlug}-${handleSlug}-${mode}.pdf`
+  const core = statusId ? `${handleSlug}-${statusId}` : `${titleSlug}-${handleSlug}`
+  return `xarticle-${core}-${mode}-${stamp}.pdf`
 }
 
 const blobToDataUrl = (blob: Blob): Promise<string> =>
@@ -159,42 +172,6 @@ const metricCardLayout = (themeMode: ThemeMode) => ({
   paddingRight: () => 8,
   paddingTop: () => 6,
   paddingBottom: () => 6,
-})
-
-const boxedBadge = (text: string, themeMode: ThemeMode): Content => ({
-  table: {
-    widths: ['auto'],
-    body: [[{ text, style: 'sourceBadge', fillColor: themeMode === 'bw' ? '#ffffff' : '#ebfff3' }]],
-  },
-  layout: {
-    hLineColor: () => (themeMode === 'bw' ? '#666666' : '#b9e4cb'),
-    vLineColor: () => (themeMode === 'bw' ? '#666666' : '#b9e4cb'),
-    hLineWidth: () => 1,
-    vLineWidth: () => 1,
-    paddingLeft: () => 8,
-    paddingRight: () => 8,
-    paddingTop: () => 3,
-    paddingBottom: () => 3,
-  },
-  margin: [0, 0, 0, 8],
-})
-
-const warningBox = (warnings: string[], themeMode: ThemeMode): Content => ({
-  table: {
-    widths: ['*'],
-    body: [[{ stack: [{ text: 'Extraction Notes', bold: true, margin: [0, 0, 0, 4] }, { ul: warnings }], fillColor: '#fff8eb' }]],
-  },
-  layout: {
-    hLineColor: () => (themeMode === 'bw' ? '#777777' : '#f1d6a5'),
-    vLineColor: () => (themeMode === 'bw' ? '#777777' : '#f1d6a5'),
-    hLineWidth: () => 1,
-    vLineWidth: () => 1,
-    paddingLeft: () => 8,
-    paddingRight: () => 8,
-    paddingTop: () => 7,
-    paddingBottom: () => 7,
-  },
-  margin: [0, 10, 0, 12],
 })
 
 const splitCoverMediaBlock = (
@@ -383,7 +360,7 @@ export const buildArticlePdfDefinition = async (
   const coverPage: Content = {
     stack: [
       ...coverMediaContent,
-      { text: 'x article export', style: 'coverBadge', margin: [0, 4, 0, 16] },
+      { text: 'Xarticle.app', style: 'coverBadge', margin: [0, 4, 0, 16] },
       { text: article.title, style: 'coverTitle', margin: [0, 0, 0, 12] },
       {
         columns: [
@@ -411,7 +388,6 @@ export const buildArticlePdfDefinition = async (
         margin: [0, 0, 0, 0],
       },
     ],
-    pageBreak: 'after',
   }
 
   const content: Content[] = []
@@ -439,9 +415,7 @@ export const buildArticlePdfDefinition = async (
   }
 
   content.push(
-    boxedBadge(providerLabelMap[article.providerUsed], opts.themeMode),
     ...bodyHeaderContent,
-    ...(article.warnings.length > 0 ? [warningBox(article.warnings, opts.themeMode)] : []),
     ...bodyContent,
   )
 
@@ -450,7 +424,7 @@ export const buildArticlePdfDefinition = async (
     pageMargins: marginMap[opts.marginPreset],
     content,
     footer: () => ({
-      text: 'x article printer',
+      text: 'Xarticle.app',
       alignment: 'left',
       margin: [24, 0, 0, 12],
       fontSize: 8,
@@ -464,8 +438,8 @@ export const buildArticlePdfDefinition = async (
       title: article.title,
       author: article.authorName,
       subject: 'X Long-form Article Export',
-      creator: 'X Article Printer',
-      producer: 'X Article Printer',
+      creator: 'Xarticle.app',
+      producer: 'Xarticle.app',
     },
   }
 }
