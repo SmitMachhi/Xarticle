@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ArticlePreview } from './components/ArticlePreview'
 import { extractArticleFromUrl } from './lib/extractArticle'
+import { downloadArticleMarkdown } from './lib/markdownExport'
 import { downloadArticlePdf } from './lib/pdfExport'
 import { classifyInputUrl } from './lib/xUrl'
 import type { CoverMetaStyle, CoverPageMode, ExtractedArticle, MarginPreset, PaperSize, ThemeMode } from './types/article'
@@ -17,7 +18,7 @@ function App() {
   const [article, setArticle] = useState<ExtractedArticle | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [downloadState, setDownloadState] = useState<'idle' | 'color' | 'bw'>('idle')
+  const [downloadState, setDownloadState] = useState<'idle' | 'color' | 'bw' | 'markdown'>('idle')
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -64,6 +65,19 @@ function App() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'PDF generation failed.'
       setError(message)
+    } finally {
+      setDownloadState('idle')
+    }
+  }
+
+  const downloadMarkdown = () => {
+    if (!article) {
+      return
+    }
+
+    setDownloadState('markdown')
+    try {
+      downloadArticleMarkdown(article)
     } finally {
       setDownloadState('idle')
     }
@@ -142,6 +156,9 @@ function App() {
           </button>
           <button onClick={() => downloadPdf('bw')} disabled={!canDownload}>
             {downloadState === 'bw' ? 'Generating...' : 'Download B/W PDF'}
+          </button>
+          <button onClick={downloadMarkdown} disabled={!canDownload}>
+            {downloadState === 'markdown' ? 'Generating...' : 'Download Markdown'}
           </button>
         </div>
 
