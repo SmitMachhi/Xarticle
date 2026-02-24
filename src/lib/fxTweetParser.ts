@@ -213,9 +213,6 @@ export const parseFxTweetResponse = (payload: unknown, sourceUrl: string): Extra
       views: tweet.views ?? null,
       bookmarks: tweet.bookmarks ?? null,
     },
-    metricNotes: {
-      bookmarks: 'best effort from public status parser',
-    },
     blocks,
     warnings: ['Extracted via public status parser.'],
     extractedAt: new Date().toISOString(),
