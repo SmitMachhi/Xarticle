@@ -1,0 +1,197 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: Join our Discord community for updates, feedback, and support!
+      - link "Join Discord" [ref=e7] [cursor=pointer]:
+        - /url: https://discord.gg/v6raNqYxx3
+        - generic [ref=e8]: Join Discord
+    - button [ref=e9] [cursor=pointer]:
+      - generic [ref=e11]: 󰅖
+  - generic: 󰅖
+  - generic: 󰅖
+  - generic: 󰜷 󰅖
+  - generic [ref=e12]:
+    - generic [ref=e13]:
+      - heading "We value your privacy" [level=3] [ref=e14]
+      - button "×" [ref=e15] [cursor=pointer]
+    - paragraph [ref=e16]: We use cookies for analytics to improve our product. Choose your preferences below.
+    - generic [ref=e18]:
+      - button "Customize" [ref=e19] [cursor=pointer]
+      - button "Accept all" [ref=e20] [cursor=pointer]
+  - main [ref=e21]:
+    - generic [ref=e25]:
+      - generic [ref=e26]:
+        - generic [ref=e27]:
+          - generic [ref=e28]:
+            - img "Timeful Logo" [ref=e29] [cursor=pointer]
+            - generic [ref=e34]:
+              - button "How it works" [ref=e35] [cursor=pointer]:
+                - generic [ref=e36]: How it works
+              - link "Blog" [ref=e37] [cursor=pointer]:
+                - /url: /blog
+                - generic [ref=e38]: Blog
+              - button "Sign in" [ref=e39] [cursor=pointer]:
+                - generic [ref=e40]: Sign in
+          - generic [ref=e41]:
+            - generic [ref=e43]: 󱞽
+            - link "Formerly known as \"Schej\"" [ref=e44] [cursor=pointer]:
+              - /url: /blog/schej-is-now-timeful/
+        - generic [ref=e45]:
+          - generic [ref=e46]:
+            - generic [ref=e47]: We're open source!
+            - heading "Find a time to meet" [level=1] [ref=e51]
+            - generic [ref=e52]:
+              - text: Coordinate group meetings without the back and forth.
+              - text: Integrates with your calendar.
+          - generic [ref=e53]:
+            - button "Create event" [ref=e54] [cursor=pointer]:
+              - generic [ref=e55]: Create event
+            - generic [ref=e56]: It's free! No login required.
+          - iframe [ref=e68]:
+            - generic [active] [ref=f2e1]:
+              - generic:
+                - generic:
+                  - img
+      - generic [ref=e69]:
+        - generic [ref=e70]:
+          - generic [ref=e71]: How it works
+          - generic [ref=e72]:
+            - generic [ref=e73]: "1"
+            - generic [ref=e75]: Create a Timeful event
+          - generic [ref=e76]:
+            - generic [ref=e77]: "2"
+            - generic [ref=e79]: Share the Timeful link with your group for them to fill out
+          - generic [ref=e80]:
+            - generic [ref=e81]: "3"
+            - generic [ref=e83]: See where everybody's availability overlaps!
+        - generic [ref=e84]: It's that simple.
+        - img "schej character" [ref=e85]
+      - iframe [ref=e90]:
+        - generic "YouTube Video Player" [ref=f1e3]:
+          - generic [ref=f1e5]:
+            - link "Photo image of Timeful" [ref=f1e8] [cursor=pointer]:
+              - /url: https://www.youtube.com/channel/UCXHNScCIH1icZiidKco9pwg?embeds_referring_euri=https%3A%2F%2Ftimeful.app%2F
+            - link "How to use Timeful" [ref=f1e11] [cursor=pointer]:
+              - /url: https://www.youtube.com/watch?v=vFkBC8BrkOk
+            - button "Share" [ref=f1e13] [cursor=pointer]:
+              - generic [ref=f1e14]:
+                - img
+              - generic [ref=f1e15]: Share
+          - button "Play" [ref=f1e18] [cursor=pointer]:
+            - img
+          - link "Watch on YouTube" [ref=f1e19] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=vFkBC8BrkOk&embeds_referring_euri=https%3A%2F%2Ftimeful.app%2F
+            - generic [ref=f1e20]: Watch on
+            - generic [ref=f1e21]:
+              - img
+      - generic [ref=e93]:
+        - generic [ref=e94]: People love us on Reddit!
+        - generic [ref=e95]:
+          - generic [ref=e96]:
+            - generic [ref=e98]: Genuinely the best lightweight version of this kind of website that I've come across so far, exceptional.
+            - link "u/voipClock" [ref=e102] [cursor=pointer]:
+              - /url: https://www.reddit.com/r/opensource/comments/1klu471/comment/mt4l2ab
+          - generic [ref=e108]:
+            - generic [ref=e110]: It's almost comically easy to schedule meetings with Timeful.
+            - link "u/stuffingmybrain" [ref=e114] [cursor=pointer]:
+              - /url: https://www.reddit.com/r/schej/comments/1drs26z/comment/lb8rvty
+          - generic [ref=e120]:
+            - generic [ref=e122]: Timeful is everything I've ever wanted and more. On top of that, community support is the best I've seen of any app or software, ever.
+            - link "u/DMODD" [ref=e126] [cursor=pointer]:
+              - /url: https://www.reddit.com/r/schej/comments/1drs26z/comment/lb8udud
+          - generic [ref=e132]:
+            - generic [ref=e134]: With Timeful, I'm very quickly able to figure out the optimal time to schedule online extra help sessions before an exam.
+            - link "u/crackwurst" [ref=e138] [cursor=pointer]:
+              - /url: https://www.reddit.com/r/schej/comments/1drs26z/comment/lb9dmbe
+          - generic [ref=e144]:
+            - generic [ref=e146]: Exactly what I was looking for! Clear and clean interface, also on mobile (Doodle is a disaster).
+            - link "u/Willem1976" [ref=e150] [cursor=pointer]:
+              - /url: https://www.reddit.com/r/opensource/comments/1dlol7r/comment/lkn7sle
+      - generic [ref=e158]:
+        - generic [ref=e159]: Frequently Asked Questions
+        - generic [ref=e160]:
+          - generic [ref=e162] [cursor=pointer]:
+            - generic [ref=e163]: Does Timeful support timezones?
+            - generic [ref=e164]: 󰐕
+          - generic [ref=e166] [cursor=pointer]:
+            - generic [ref=e167]: How many people can respond to an event?
+            - generic [ref=e168]: 󰐕
+          - generic [ref=e170] [cursor=pointer]:
+            - generic [ref=e171]: What calendars does Timeful integrate with?
+            - generic [ref=e172]: 󰐕
+          - generic [ref=e174] [cursor=pointer]:
+            - generic [ref=e175]: Is calendar access required in order to use Timeful?
+            - generic [ref=e176]: 󰐕
+          - generic [ref=e178] [cursor=pointer]:
+            - generic [ref=e179]: Will other people be able to see my calendar events?
+            - generic [ref=e180]: 󰐕
+          - generic [ref=e182] [cursor=pointer]:
+            - generic [ref=e183]: How do I edit my availability?
+            - generic [ref=e184]: 󰐕
+          - generic [ref=e186] [cursor=pointer]:
+            - generic [ref=e187]: How is Timeful different from Lettucemeet or When2meet?
+            - generic [ref=e188]: 󰐕
+          - generic [ref=e190] [cursor=pointer]:
+            - generic [ref=e191]: I want it so that only I can see people's responses.
+            - generic [ref=e192]: 󰐕
+          - generic [ref=e194] [cursor=pointer]:
+            - generic [ref=e195]: Can I receive emails when someone fills out my event?
+            - generic [ref=e196]: 󰐕
+          - generic [ref=e198] [cursor=pointer]:
+            - generic [ref=e199]: How do I send reminders to people to fill out an event?
+            - generic [ref=e200]: 󰐕
+      - generic [ref=e203]:
+        - generic [ref=e204]:
+          - generic [ref=e205]:
+            - generic [ref=e206]: 󰃮
+            - generic [ref=e207]: timeful
+          - generic [ref=e208]:
+            - text: Made with 💚 by
+            - link "@jonathanzliu" [ref=e209] [cursor=pointer]:
+              - /url: https://x.com/jonathanzliu/
+          - generic [ref=e210]:
+            - link "X" [ref=e211] [cursor=pointer]:
+              - /url: https://x.com/timeful_app
+              - img [ref=e212]
+            - link "GitHub" [ref=e214] [cursor=pointer]:
+              - /url: https://github.com/schej-it/timeful.app
+              - generic [ref=e215]: 󰊤
+            - link "LinkedIn" [ref=e216] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/schejit
+              - generic [ref=e217]: 󰌻
+            - link "Reddit" [ref=e218] [cursor=pointer]:
+              - /url: https://www.reddit.com/r/timefulapp/
+              - generic [ref=e219]: 󰑍
+            - link "Discord" [ref=e220] [cursor=pointer]:
+              - /url: https://discord.gg/v6raNqYxx3
+              - img [ref=e221]
+          - generic [ref=e223]:
+            - link "Privacy Policy" [ref=e224] [cursor=pointer]:
+              - /url: /privacy-policy
+            - link "Cookie Preferences" [ref=e225] [cursor=pointer]:
+              - /url: /cookie-settings
+        - generic [ref=e226]:
+          - generic [ref=e227]: Links
+          - link "Blog" [ref=e229] [cursor=pointer]:
+            - /url: /blog
+          - button "Support" [ref=e231] [cursor=pointer]
+          - link "Give Feedback" [ref=e233] [cursor=pointer]:
+            - /url: https://forms.gle/A96i4TTWeKgH3P1W6
+        - generic [ref=e234]:
+          - generic [ref=e235]: Articles
+          - link "Schej is now Timeful" [ref=e237] [cursor=pointer]:
+            - /url: /blog/schej-is-now-timeful/
+          - link "Welcome to the Timeful blog!" [ref=e239] [cursor=pointer]:
+            - /url: /blog/about/
+          - link "Timeful vs Doodle" [ref=e241] [cursor=pointer]:
+            - /url: /blog/doodle/
+          - link "Timeful vs When2meet" [ref=e243] [cursor=pointer]:
+            - /url: /blog/when2meet/
+          - link "How to use When2meet with Google Calendar" [ref=e245] [cursor=pointer]:
+            - /url: /blog/gcalandwhen2meet/
+        - generic [ref=e246]:
+          - generic [ref=e247]: Reddit posts
+          - link "I made a better when2meet" [ref=e249] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/opensource/comments/1dlol7r/i_made_a_better_when2meet/
+          - link "I made a Doodle alternative" [ref=e251] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/opensource/comments/1klu471/i_made_a_doodle_alternative/
