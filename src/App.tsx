@@ -3,7 +3,7 @@ import { ArticlePreview } from './components/ArticlePreview'
 import { extractArticleFromUrl } from './lib/extractArticle'
 import { downloadArticlePdf } from './lib/pdfExport'
 import { classifyInputUrl } from './lib/xUrl'
-import type { ExtractedArticle, MarginPreset, PaperSize, ThemeMode } from './types/article'
+import type { CoverMetaStyle, CoverPageMode, ExtractedArticle, MarginPreset, PaperSize, ThemeMode } from './types/article'
 
 const APP_NAME = 'X Article Printer'
 
@@ -12,6 +12,8 @@ function App() {
   const [paperSize, setPaperSize] = useState<PaperSize>('A4')
   const [marginPreset, setMarginPreset] = useState<MarginPreset>('default')
   const [previewTheme, setPreviewTheme] = useState<ThemeMode>('color')
+  const [coverPageMode, setCoverPageMode] = useState<CoverPageMode>('always')
+  const [coverMetaStyle, setCoverMetaStyle] = useState<CoverMetaStyle>('full')
   const [article, setArticle] = useState<ExtractedArticle | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -56,6 +58,8 @@ function App() {
         paperSize,
         marginPreset,
         themeMode,
+        coverPageMode,
+        coverMetaStyle,
       })
     } catch (err) {
       const message = err instanceof Error ? err.message : 'PDF generation failed.'
@@ -112,6 +116,22 @@ function App() {
             <select value={previewTheme} onChange={(event) => setPreviewTheme(event.target.value as ThemeMode)}>
               <option value="color">Color</option>
               <option value="bw">B/W</option>
+            </select>
+          </label>
+
+          <label>
+            Cover Page
+            <select value={coverPageMode} onChange={(event) => setCoverPageMode(event.target.value as CoverPageMode)}>
+              <option value="always">Always On</option>
+              <option value="off">Off</option>
+            </select>
+          </label>
+
+          <label>
+            Cover Meta
+            <select value={coverMetaStyle} onChange={(event) => setCoverMetaStyle(event.target.value as CoverMetaStyle)}>
+              <option value="full">Full</option>
+              <option value="minimal">Minimal</option>
             </select>
           </label>
         </div>

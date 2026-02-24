@@ -1,7 +1,15 @@
 import type { Column, Content, StyleDictionary, TDocumentDefinitions } from 'pdfmake/interfaces'
 import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
-import type { ArticleBlock, ExtractedArticle, MarginPreset, PaperSize, ThemeMode } from '../types/article'
+import type {
+  ArticleBlock,
+  CoverMetaStyle,
+  CoverPageMode,
+  ExtractedArticle,
+  MarginPreset,
+  PaperSize,
+  ThemeMode,
+} from '../types/article'
 
 pdfMake.addVirtualFileSystem(pdfFonts)
 
@@ -226,6 +234,8 @@ export const downloadArticlePdf = async (
     paperSize: PaperSize
     marginPreset: MarginPreset
     themeMode: ThemeMode
+    coverPageMode: CoverPageMode
+    coverMetaStyle: CoverMetaStyle
   },
 ): Promise<void> => {
   const avatarDataUrl = article.authorAvatarUrl ? await loadImageDataUrl(article.authorAvatarUrl) : null
@@ -248,6 +258,7 @@ export const downloadArticlePdf = async (
   if (article.publishedAt) {
     metadataParts.push(new Date(article.publishedAt).toLocaleString())
   }
+  const coverMetadataParts = opts.coverMetaStyle === 'minimal' ? [`@${article.authorHandle}`] : metadataParts
 
   const coverMetrics: Content[] = [
     asCoverMetricCell(metricLabelMap.likes, article.metrics.likes),
@@ -280,7 +291,7 @@ export const downloadArticlePdf = async (
             width: '*',
             stack: [
               { text: article.authorName, style: 'title', margin: [0, 4, 0, 2] },
-              { text: metadataParts.join(' • '), style: 'coverMeta' },
+              { text: coverMetadataParts.join(' • '), style: 'coverMeta' },
             ],
           },
         ],
@@ -302,16 +313,21 @@ export const downloadArticlePdf = async (
     pageBreak: 'after',
   }
 
+  const content: Content[] = []
+  if (opts.coverPageMode === 'always') {
+    content.push(coverPage)
+  }
+  content.push(
+    { text: article.title, style: 'h1', margin: [0, 0, 0, 8] },
+    { text: `${article.authorName} • ${metadataParts.join(' • ')}`, style: 'meta', margin: [0, 0, 0, 6] },
+    { columns: metricColumns, columnGap: 8, margin: [0, 0, 0, 12] },
+    ...bodyContent,
+  )
+
   const docDefinition: TDocumentDefinitions = {
     pageSize: opts.paperSize,
     pageMargins: marginMap[opts.marginPreset],
-    content: [
-      coverPage,
-      { text: article.title, style: 'h1', margin: [0, 0, 0, 8] },
-      { text: `${article.authorName} • ${metadataParts.join(' • ')}`, style: 'meta', margin: [0, 0, 0, 6] },
-      { columns: metricColumns, columnGap: 8, margin: [0, 0, 0, 12] },
-      ...bodyContent,
-    ],
+    content,
     styles: stylesFor(opts.themeMode),
     defaultStyle: {
       font: 'Roboto',
