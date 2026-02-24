@@ -81,6 +81,14 @@ export const ArticlePreview = ({ article, themeMode }: ArticlePreviewProps) => {
             return <blockquote key={blockKey}>{block.text}</blockquote>
           }
 
+          if (block.type === 'code') {
+            return (
+              <pre key={blockKey} className="code-block">
+                <code>{block.code}</code>
+              </pre>
+            )
+          }
+
           if (block.type === 'list') {
             return (
               <ul key={blockKey}>

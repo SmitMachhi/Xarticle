@@ -134,6 +134,23 @@ const parseMedia = (mediaNode: HTMLImageElement | HTMLVideoElement): ArticleBloc
   }
 }
 
+const parseCodeBlock = (codeNode: HTMLPreElement): ArticleBlock | null => {
+  const text = (codeNode.textContent || '').replace(/\r\n/g, '\n').trim()
+  if (!text) {
+    return null
+  }
+
+  const codeEl = codeNode.querySelector('code')
+  const className = codeEl?.className || ''
+  const languageMatch = className.match(/language-([A-Za-z0-9_+-]+)/)
+
+  return {
+    type: 'code',
+    code: text,
+    language: languageMatch?.[1],
+  }
+}
+
 const extractBlocksFromDocument = (doc: Document): ArticleBlock[] => {
   const blocks: ArticleBlock[] = []
   const articleNode = doc.querySelector('article') || doc.querySelector('main')
@@ -142,7 +159,7 @@ const extractBlocksFromDocument = (doc: Document): ArticleBlock[] => {
     return blocks
   }
 
-  const nodes = Array.from(articleNode.querySelectorAll('h1, h2, h3, p, blockquote, ul, ol, img, video, figure, iframe'))
+  const nodes = Array.from(articleNode.querySelectorAll('h1, h2, h3, p, pre, blockquote, ul, ol, img, video, figure, iframe'))
 
   for (const node of nodes) {
     if (node instanceof HTMLHeadingElement) {
@@ -161,6 +178,14 @@ const extractBlocksFromDocument = (doc: Document): ArticleBlock[] => {
 
     if (node instanceof HTMLParagraphElement) {
       maybePushTextBlock(blocks, node.textContent || '')
+      continue
+    }
+
+    if (node instanceof HTMLPreElement) {
+      const codeBlock = parseCodeBlock(node)
+      if (codeBlock) {
+        blocks.push(codeBlock)
+      }
       continue
     }
 
@@ -211,6 +236,9 @@ const dedupeBlocks = (blocks: ArticleBlock[]): ArticleBlock[] => {
     let fingerprint = block.type
     if (block.type === 'paragraph' || block.type === 'quote' || block.type === 'heading') {
       fingerprint += `:${block.text}`
+    }
+    if (block.type === 'code') {
+      fingerprint += `:${block.language || 'plain'}:${block.code}`
     }
     if (block.type === 'list') {
       fingerprint += `:${block.items.join('|')}`
@@ -297,6 +325,17 @@ const parseMarkdownImage = (line: string): ArticleBlock | null => {
   }
 }
 
+const parseMarkdownFenceStart = (line: string): { language?: string } | null => {
+  const match = line.match(/^```([A-Za-z0-9_+-]+)?\s*$/)
+  if (!match) {
+    return null
+  }
+
+  return {
+    language: match[1] || undefined,
+  }
+}
+
 export const parseJinaMarkdown = (raw: string, sourceUrl: string): ExtractedArticle => {
   const marker = 'Markdown Content:'
   const markerIndex = raw.indexOf(marker)
@@ -306,6 +345,9 @@ export const parseJinaMarkdown = (raw: string, sourceUrl: string): ExtractedArti
   const blocks: ArticleBlock[] = []
   let paragraphBuffer: string[] = []
   let listBuffer: string[] = []
+  let codeBuffer: string[] = []
+  let codeLanguage: string | undefined
+  let inCodeFence = false
 
   const flushParagraph = () => {
     if (paragraphBuffer.length === 0) {
@@ -326,8 +368,44 @@ export const parseJinaMarkdown = (raw: string, sourceUrl: string): ExtractedArti
     listBuffer = []
   }
 
+  const flushCode = () => {
+    if (codeBuffer.length === 0) {
+      return
+    }
+    const code = codeBuffer.join('\n').trim()
+    if (code) {
+      blocks.push({
+        type: 'code',
+        code,
+        language: codeLanguage,
+      })
+    }
+    codeBuffer = []
+    codeLanguage = undefined
+  }
+
   for (const rawLine of lines) {
     const line = rawLine.trim()
+
+    if (inCodeFence) {
+      if (parseMarkdownFenceStart(line)) {
+        inCodeFence = false
+        flushCode()
+      } else {
+        codeBuffer.push(rawLine)
+      }
+      continue
+    }
+
+    const codeFenceStart = parseMarkdownFenceStart(line)
+    if (codeFenceStart) {
+      flushParagraph()
+      flushList()
+      inCodeFence = true
+      codeLanguage = codeFenceStart.language
+      continue
+    }
+
     if (!line) {
       flushParagraph()
       flushList()
@@ -376,6 +454,9 @@ export const parseJinaMarkdown = (raw: string, sourceUrl: string): ExtractedArti
 
   flushParagraph()
   flushList()
+  if (inCodeFence) {
+    flushCode()
+  }
 
   const url = normalizeInputUrl(sourceUrl)
   const titleLineMatch = raw.match(/Title:\s*(.+)/)

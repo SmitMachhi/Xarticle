@@ -55,28 +55,49 @@ interface FxTweetResponse {
 
 const normalizeText = (value: string): string => value.replace(/\s+/g, ' ').trim()
 
-const convertBlockType = (blockType: string | undefined, text: string): ArticleBlock => {
+const parseFencedCode = (value: string): { code: string; language?: string } | null => {
+  const match = value.match(/^```([A-Za-z0-9_+-]+)?\n([\s\S]+)\n```$/)
+  if (!match) {
+    return null
+  }
+
+  return {
+    code: match[2].trim(),
+    language: match[1] || undefined,
+  }
+}
+
+const convertBlockType = (blockType: string | undefined, rawText: string, normalizedText: string): ArticleBlock => {
+  const fencedCode = parseFencedCode(rawText)
+  if (fencedCode) {
+    return {
+      type: 'code',
+      code: fencedCode.code,
+      language: fencedCode.language,
+    }
+  }
+
   if (blockType === 'header-two') {
-    return { type: 'heading', level: 2, text }
+    return { type: 'heading', level: 2, text: normalizedText }
   }
 
   if (blockType === 'header-three') {
-    return { type: 'heading', level: 3, text }
+    return { type: 'heading', level: 3, text: normalizedText }
   }
 
   if (blockType === 'ordered-list-item') {
-    return { type: 'list', items: [text] }
+    return { type: 'list', items: [normalizedText] }
   }
 
   if (blockType === 'unordered-list-item') {
-    return { type: 'list', items: [text] }
+    return { type: 'list', items: [normalizedText] }
   }
 
   if (blockType === 'blockquote') {
-    return { type: 'quote', text }
+    return { type: 'quote', text: normalizedText }
   }
 
-  return { type: 'paragraph', text }
+  return { type: 'paragraph', text: normalizedText }
 }
 
 const mergeAdjacentLists = (blocks: ArticleBlock[]): ArticleBlock[] => {
@@ -127,11 +148,12 @@ const mediaBlocksFromTweet = (tweet: FxTweet): ArticleBlock[] => {
 const articleBlocksFromTweet = (tweet: FxTweet): ArticleBlock[] => {
   const parsed = (tweet.article?.content?.blocks || [])
     .map((block) => {
-      const text = normalizeText(block.text || '')
-      if (!text) {
+      const rawText = (block.text || '').trim()
+      if (!rawText) {
         return null
       }
-      return convertBlockType(block.type, text)
+      const normalizedText = normalizeText(rawText)
+      return convertBlockType(block.type, rawText, normalizedText)
     })
     .filter((block): block is ArticleBlock => block !== null)
 

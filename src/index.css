@@ -302,6 +302,21 @@ button:disabled {
   font-style: italic;
 }
 
+.article-body .code-block {
+  margin: 0.45rem 0 0.9rem;
+  border: 1px solid #d7deea;
+  border-radius: 8px;
+  background: #f6f8fb;
+  padding: 0.65rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+.article-body .code-block code {
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+  font-size: 0.84rem;
+}
+
 .preview-media {
   margin: 0.8rem 0;
 }
@@ -341,6 +356,11 @@ button:disabled {
 .preview-bw .article-body blockquote {
   border-color: #111111;
   color: #111111;
+}
+
+.preview-bw .article-body .code-block {
+  border-color: #777777;
+  background: #ffffff;
 }
 
 @media (max-width: 900px) {

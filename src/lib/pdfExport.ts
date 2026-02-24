@@ -68,6 +68,8 @@ const stylesFor = (themeMode: ThemeMode): StyleDictionary => {
   const textColor = themeMode === 'bw' ? '#111111' : '#171717'
   const metaColor = themeMode === 'bw' ? '#333333' : '#525252'
   const quoteColor = themeMode === 'bw' ? '#1f2937' : '#0f172a'
+  const codeBackground = themeMode === 'bw' ? '#ffffff' : '#f5f7fb'
+  const codeBorder = themeMode === 'bw' ? '#777777' : '#d8dfeb'
   return {
     title: { fontSize: 22, bold: true, color: textColor },
     coverTitle: { fontSize: 28, bold: true, color: textColor },
@@ -83,6 +85,15 @@ const stylesFor = (themeMode: ThemeMode): StyleDictionary => {
       italics: true,
       color: quoteColor,
       margin: [14, 4, 0, 10],
+    },
+    codeLanguage: { fontSize: 8, color: metaColor, bold: true },
+    codeBlock: {
+      fontSize: 9.5,
+      color: textColor,
+      margin: [0, 0, 0, 8],
+      fillColor: codeBackground,
+      decorationColor: codeBorder,
+      font: 'Courier',
     },
     metricLabel: { fontSize: 8, color: metaColor, bold: true },
     metricValue: { fontSize: 11, color: textColor },
@@ -137,6 +148,37 @@ const blockToContent = async (block: ArticleBlock): Promise<Content[]> => {
         margin: [0, 0, 0, 8],
       },
     ]
+  }
+
+  if (block.type === 'code') {
+    const codeContent: Content[] = []
+    if (block.language) {
+      codeContent.push({
+        text: block.language,
+        style: 'codeLanguage',
+        margin: [0, 2, 0, 4],
+      })
+    }
+
+    codeContent.push({
+      table: {
+        widths: ['*'],
+        body: [[{ text: block.code, style: 'codeBlock' }]],
+      },
+      layout: {
+        hLineColor: () => '#d8dfeb',
+        vLineColor: () => '#d8dfeb',
+        hLineWidth: () => 1,
+        vLineWidth: () => 1,
+        paddingLeft: () => 8,
+        paddingRight: () => 8,
+        paddingTop: () => 6,
+        paddingBottom: () => 6,
+      },
+      margin: [0, 0, 0, 10],
+    })
+
+    return codeContent
   }
 
   if (block.type === 'list') {
