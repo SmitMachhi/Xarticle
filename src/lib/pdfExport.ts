@@ -1,4 +1,4 @@
-import type { Column, Content, StyleDictionary, TDocumentDefinitions } from 'pdfmake/interfaces'
+import type { Column, Content, ContentStack, StyleDictionary, TDocumentDefinitions } from 'pdfmake/interfaces'
 import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
 import { recordPlannedDownload } from './downloadTelemetry'
@@ -26,6 +26,12 @@ const metricLabelMap = {
   views: 'Views',
   bookmarks: 'Bookmarks',
 } as const
+
+const providerLabelMap: Record<ExtractedArticle['providerUsed'], string> = {
+  fxtwitter: 'source: public status parser',
+  companion: 'source: companion extension',
+  jina: 'source: fallback parser',
+}
 
 const toFilenameSafe = (value: string): string => {
   return value
@@ -71,13 +77,18 @@ export interface PdfExportOptions {
   coverMetaStyle: CoverMetaStyle
 }
 
-const asMetricCell = (label: string, value: number | null): Content => {
+const asMetricCell = (label: string, value: number | null, note?: string): ContentStack => {
+  const stack: Content[] = [
+    { text: label, style: 'metricLabel' },
+    { text: value === null ? 'N/A' : value.toLocaleString(), style: 'metricValue' },
+  ]
+  if (note) {
+    stack.push({ text: note, style: 'metricNote' })
+  }
+
   return {
-    stack: [
-      { text: label, style: 'metricLabel' },
-      { text: value === null ? 'N/A' : value.toLocaleString(), style: 'metricValue' },
-    ],
-    margin: [0, 0, 8, 8],
+    stack,
+    margin: [0, 0, 0, 0],
   }
 }
 
@@ -93,6 +104,7 @@ const stylesFor = (themeMode: ThemeMode): StyleDictionary => {
     meta: { fontSize: 10, color: metaColor },
     coverMeta: { fontSize: 12, color: metaColor },
     coverBadge: { fontSize: 11, color: textColor, bold: true },
+    sourceBadge: { fontSize: 8.5, color: themeMode === 'bw' ? '#111111' : '#0d6e35', bold: true },
     paragraph: { fontSize: 11, lineHeight: 1.4, color: textColor },
     h1: { fontSize: 18, bold: true, color: textColor },
     h2: { fontSize: 16, bold: true, color: textColor },
@@ -114,6 +126,7 @@ const stylesFor = (themeMode: ThemeMode): StyleDictionary => {
     },
     metricLabel: { fontSize: 8, color: metaColor, bold: true },
     metricValue: { fontSize: 11, color: textColor },
+    metricNote: { fontSize: 7.4, color: metaColor },
     coverMetricLabel: { fontSize: 9, color: metaColor, bold: true },
     coverMetricValue: { fontSize: 13, color: textColor, bold: true },
     mediaCaption: { fontSize: 9, color: metaColor, italics: true },
@@ -136,6 +149,53 @@ const asCoverMetricCell = (label: string, value: number | null): Content => {
     ],
   }
 }
+
+const metricCardLayout = (themeMode: ThemeMode) => ({
+  hLineColor: () => (themeMode === 'bw' ? '#777777' : '#dce1dc'),
+  vLineColor: () => (themeMode === 'bw' ? '#777777' : '#dce1dc'),
+  hLineWidth: () => 1,
+  vLineWidth: () => 1,
+  paddingLeft: () => 8,
+  paddingRight: () => 8,
+  paddingTop: () => 6,
+  paddingBottom: () => 6,
+})
+
+const boxedBadge = (text: string, themeMode: ThemeMode): Content => ({
+  table: {
+    widths: ['auto'],
+    body: [[{ text, style: 'sourceBadge', fillColor: themeMode === 'bw' ? '#ffffff' : '#ebfff3' }]],
+  },
+  layout: {
+    hLineColor: () => (themeMode === 'bw' ? '#666666' : '#b9e4cb'),
+    vLineColor: () => (themeMode === 'bw' ? '#666666' : '#b9e4cb'),
+    hLineWidth: () => 1,
+    vLineWidth: () => 1,
+    paddingLeft: () => 8,
+    paddingRight: () => 8,
+    paddingTop: () => 3,
+    paddingBottom: () => 3,
+  },
+  margin: [0, 0, 0, 8],
+})
+
+const warningBox = (warnings: string[], themeMode: ThemeMode): Content => ({
+  table: {
+    widths: ['*'],
+    body: [[{ stack: [{ text: 'Extraction Notes', bold: true, margin: [0, 0, 0, 4] }, { ul: warnings }], fillColor: '#fff8eb' }]],
+  },
+  layout: {
+    hLineColor: () => (themeMode === 'bw' ? '#777777' : '#f1d6a5'),
+    vLineColor: () => (themeMode === 'bw' ? '#777777' : '#f1d6a5'),
+    hLineWidth: () => 1,
+    vLineWidth: () => 1,
+    paddingLeft: () => 8,
+    paddingRight: () => 8,
+    paddingTop: () => 7,
+    paddingBottom: () => 7,
+  },
+  margin: [0, 10, 0, 12],
+})
 
 const blockToContent = async (block: ArticleBlock, imageResolver: (url: string) => Promise<string | null>): Promise<Content[]> => {
   if (block.type === 'heading') {
@@ -250,12 +310,12 @@ export const buildArticlePdfDefinition = async (
     bodyContent.push(...contentItems)
   }
 
-  const metricColumns: Content[] = [
-    asMetricCell(metricLabelMap.likes, article.metrics.likes),
-    asMetricCell(metricLabelMap.replies, article.metrics.replies),
-    asMetricCell(metricLabelMap.reposts, article.metrics.reposts),
-    asMetricCell(metricLabelMap.views, article.metrics.views),
-    asMetricCell(metricLabelMap.bookmarks, article.metrics.bookmarks),
+  const metricColumns: ContentStack[] = [
+    asMetricCell(metricLabelMap.likes, article.metrics.likes, article.metricNotes?.likes),
+    asMetricCell(metricLabelMap.replies, article.metrics.replies, article.metricNotes?.replies),
+    asMetricCell(metricLabelMap.reposts, article.metrics.reposts, article.metricNotes?.reposts),
+    asMetricCell(metricLabelMap.views, article.metrics.views, article.metricNotes?.views),
+    asMetricCell(metricLabelMap.bookmarks, article.metrics.bookmarks, article.metricNotes?.bookmarks),
   ]
 
   const metadataParts = [`@${article.authorHandle}`]
@@ -322,9 +382,21 @@ export const buildArticlePdfDefinition = async (
     content.push(coverPage)
   }
   content.push(
+    boxedBadge(providerLabelMap[article.providerUsed], opts.themeMode),
     { text: article.title, style: 'h1', margin: [0, 0, 0, 8] },
     { text: `${article.authorName} • ${metadataParts.join(' • ')}`, style: 'meta', margin: [0, 0, 0, 6] },
-    { columns: metricColumns, columnGap: 8, margin: [0, 0, 0, 12] },
+    {
+      columns: metricColumns.map((metricCell) => ({
+        table: {
+          widths: ['*'],
+          body: [[{ ...metricCell, fillColor: opts.themeMode === 'bw' ? '#ffffff' : '#f8faf8' }]],
+        },
+        layout: metricCardLayout(opts.themeMode),
+      })),
+      columnGap: 8,
+      margin: [0, 0, 0, 12],
+    },
+    ...(article.warnings.length > 0 ? [warningBox(article.warnings, opts.themeMode)] : []),
     ...bodyContent,
   )
 
