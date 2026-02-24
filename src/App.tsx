@@ -1,4 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
+import pandaSeriousGear from './assets/panda_pose_serious_gear.png'
+import pandaWave from './assets/panda_pose_wave.png'
+import pandaWinkHeart from './assets/panda_pose_wink_heart.png'
+import pandaWrench from './assets/panda_pose_wrench.png'
 import { ArticlePreview } from './components/ArticlePreview'
 import { extractArticleFromUrl } from './lib/extractArticle'
 import { downloadArticleMarkdown } from './lib/markdownExport'
@@ -9,30 +13,26 @@ import type { CoverMetaStyle, CoverPageMode, ExtractedArticle, MarginPreset, Pap
 const APP_NAME = 'X Article Printer'
 const HOW_IT_WORKS = [
   'Paste one public X status URL or long-form article URL.',
-  'Load and preview the extracted content in your browser.',
-  'Export Color PDF, B/W PDF, or Markdown instantly.',
+  'Preview the extracted content in your browser.',
+  'Download Color PDF, B/W PDF, or Markdown instantly.',
 ]
 
 const FAQ_ITEMS = [
   {
     question: 'Does this support private or locked X accounts?',
-    answer: 'No. This app is designed for public X/Twitter pages only.',
+    answer: 'No. This app works only for public X/Twitter pages.',
   },
   {
     question: 'Can I use this without creating an account?',
-    answer: 'Yes. No login is required and extraction runs client-side.',
+    answer: 'Yes. No login is required.',
   },
   {
     question: 'Why is there a companion extension option?',
-    answer: 'Some X pages block cross-origin fetches. The extension improves reliability by fetching page HTML from browser context.',
+    answer: 'Some X pages block direct fetches. The extension improves extraction reliability.',
   },
   {
     question: 'What export formats are available?',
-    answer: 'You can export Color PDF, B/W PDF, and Markdown.',
-  },
-  {
-    question: 'Will this work for long X article URLs too?',
-    answer: 'Yes. Both status links and /i/articles links are supported.',
+    answer: 'Color PDF, B/W PDF, and Markdown are supported.',
   },
 ]
 
@@ -59,6 +59,35 @@ function App() {
   const canDownload = useMemo(() => Boolean(article) && downloadState === 'idle', [article, downloadState])
   const urlClassification = useMemo(() => classifyInputUrl(urlInput), [urlInput])
   const canLoad = !loading && (urlClassification.kind === 'status' || urlClassification.kind === 'article')
+
+  const mascotState = useMemo(() => {
+    if (loading) {
+      return {
+        src: pandaWrench,
+        label: 'WORKING ON IT',
+        copy: 'Pulling text blocks and metadata from the link.',
+      }
+    }
+    if (error) {
+      return {
+        src: pandaSeriousGear,
+        label: 'NEED A FIX',
+        copy: 'Try a different public URL or use companion extension mode.',
+      }
+    }
+    if (article) {
+      return {
+        src: pandaWinkHeart,
+        label: 'READY TO EXPORT',
+        copy: 'Preview looks good. Pick format and download.',
+      }
+    }
+    return {
+      src: pandaWave,
+      label: 'DROP A LINK',
+      copy: 'Paste any public X post or article to begin.',
+    }
+  }, [article, error, loading])
 
   const loadArticle = async () => {
     setLoading(true)
@@ -113,170 +142,143 @@ function App() {
 
   return (
     <div className="site-shell">
-      <div className="announcement-bar">
-        <p>
-          Free + open source. Export X/Twitter content into printable docs in under a minute.
-        </p>
-      </div>
+      <div className="pixel-noise" aria-hidden="true" />
 
-      <header className="site-header">
-        <div className="brand">
-          <span className="brand-mark" aria-hidden="true">
-            *
-          </span>
-          <div>
-            <strong>{APP_NAME}</strong>
-            <small>for public X links</small>
-          </div>
+      <header className="top-dialog pixel-frame">
+        <p className="pixel-title">YOU SEEM A BIT LOST. WANNA EXPORT?</p>
+        <div className="dialog-options">
+          <span className="dialog-option-active">&gt; YES PLEASE</span>
+          <span>NO</span>
         </div>
-        <nav className="site-nav" aria-label="primary">
-          <a href="#how-it-works">How it works</a>
-          <a href="#faq">FAQ</a>
-          <a href="#faq">Support</a>
-        </nav>
       </header>
 
-      <main>
-        <section className="hero">
-          <p className="hero-badge">we&apos;re open source / no backend required</p>
-          <h1>Export X posts and articles to print-ready PDFs</h1>
-          <p className="hero-subtitle">
-            Paste one public link, preview the result, then download clean documents in the format you need.
-          </p>
+      <main className="content-wrap">
+        <section className="hero-shell pixel-frame">
+          <h1 className="pixel-heading">{APP_NAME}</h1>
+          <p className="hero-copy">Convert public X posts and long-form articles into printable docs, fast.</p>
 
-          <section className="controls">
-            <label htmlFor="url">X Article URL</label>
-            <div className="row">
-              <input
-                id="url"
-                type="text"
-                placeholder="https://x.com/<handle>/status/... or /i/articles/..."
-                value={urlInput}
-                onChange={(event) => setUrlInput(event.target.value)}
-              />
-              <button onClick={loadArticle} disabled={!canLoad}>
-                {loading ? 'Loading...' : 'Load Article'}
-              </button>
-            </div>
-            <p className={`url-status url-status-${urlClassification.kind}`}>{urlClassification.reason}</p>
+          <div className="hero-grid">
+            <section className="controls-panel">
+              <label htmlFor="url">X Article URL</label>
+              <div className="row">
+                <input
+                  id="url"
+                  type="text"
+                  placeholder="https://x.com/<handle>/status/... or /i/articles/..."
+                  value={urlInput}
+                  onChange={(event) => setUrlInput(event.target.value)}
+                />
+                <button onClick={loadArticle} disabled={!canLoad}>
+                  {loading ? 'Loading...' : 'Load Article'}
+                </button>
+              </div>
 
-            <div className="option-grid">
-              <label>
-                Paper
-                <select value={paperSize} onChange={(event) => setPaperSize(event.target.value as PaperSize)}>
-                  <option value="A4">A4</option>
-                  <option value="LETTER">Letter</option>
-                </select>
-              </label>
+              <p className={`url-status url-status-${urlClassification.kind}`}>{urlClassification.reason}</p>
 
-              <label>
-                Margin
-                <select value={marginPreset} onChange={(event) => setMarginPreset(event.target.value as MarginPreset)}>
-                  <option value="default">Default</option>
-                  <option value="minimum">Minimum</option>
-                </select>
-              </label>
+              <div className="option-grid">
+                <label>
+                  Paper
+                  <select value={paperSize} onChange={(event) => setPaperSize(event.target.value as PaperSize)}>
+                    <option value="A4">A4</option>
+                    <option value="LETTER">Letter</option>
+                  </select>
+                </label>
 
-              <label>
-                Preview
-                <select value={previewTheme} onChange={(event) => setPreviewTheme(event.target.value as ThemeMode)}>
-                  <option value="color">Color</option>
-                  <option value="bw">B/W</option>
-                </select>
-              </label>
+                <label>
+                  Margin
+                  <select value={marginPreset} onChange={(event) => setMarginPreset(event.target.value as MarginPreset)}>
+                    <option value="default">Default</option>
+                    <option value="minimum">Minimum</option>
+                  </select>
+                </label>
 
-              <label>
-                Cover Page
-                <select value={coverPageMode} onChange={(event) => setCoverPageMode(event.target.value as CoverPageMode)}>
-                  <option value="always">Always On</option>
-                  <option value="off">Off</option>
-                </select>
-              </label>
+                <label>
+                  Preview
+                  <select value={previewTheme} onChange={(event) => setPreviewTheme(event.target.value as ThemeMode)}>
+                    <option value="color">Color</option>
+                    <option value="bw">B/W</option>
+                  </select>
+                </label>
 
-              <label>
-                Cover Meta
-                <select
-                  value={coverMetaStyle}
-                  onChange={(event) => setCoverMetaStyle(event.target.value as CoverMetaStyle)}
-                >
-                  <option value="full">Full</option>
-                  <option value="minimal">Minimal</option>
-                </select>
-              </label>
-            </div>
+                <label>
+                  Cover Page
+                  <select value={coverPageMode} onChange={(event) => setCoverPageMode(event.target.value as CoverPageMode)}>
+                    <option value="always">Always On</option>
+                    <option value="off">Off</option>
+                  </select>
+                </label>
 
-            <div className="button-row">
-              <button onClick={() => downloadPdf('color')} disabled={!canDownload}>
-                {downloadState === 'color' ? 'Generating...' : 'Download Color PDF'}
-              </button>
-              <button onClick={() => downloadPdf('bw')} disabled={!canDownload}>
-                {downloadState === 'bw' ? 'Generating...' : 'Download B/W PDF'}
-              </button>
-              <button onClick={downloadMarkdown} disabled={!canDownload}>
-                {downloadState === 'markdown' ? 'Generating...' : 'Download Markdown'}
-              </button>
-            </div>
+                <label>
+                  Cover Meta
+                  <select value={coverMetaStyle} onChange={(event) => setCoverMetaStyle(event.target.value as CoverMetaStyle)}>
+                    <option value="full">Full</option>
+                    <option value="minimal">Minimal</option>
+                  </select>
+                </label>
+              </div>
 
-            <p className="helper-line">
-              Supports X status and long-form article links. For best reliability across browsers, install the companion
-              extension.
-            </p>
-          </section>
+              <div className="button-row">
+                <button onClick={() => downloadPdf('color')} disabled={!canDownload}>
+                  {downloadState === 'color' ? 'Generating...' : 'Download Color PDF'}
+                </button>
+                <button onClick={() => downloadPdf('bw')} disabled={!canDownload}>
+                  {downloadState === 'bw' ? 'Generating...' : 'Download B/W PDF'}
+                </button>
+                <button onClick={downloadMarkdown} disabled={!canDownload}>
+                  {downloadState === 'markdown' ? 'Generating...' : 'Download Markdown'}
+                </button>
+              </div>
+
+              <p className="helper-line">Public links only. Companion extension improves reliability across browsers.</p>
+            </section>
+
+            <aside className="mascot-panel pixel-frame">
+              <img src={mascotState.src} alt="Robot panda mascot" />
+              <p className="pixel-subtitle">{mascotState.label}</p>
+              <p>{mascotState.copy}</p>
+            </aside>
+          </div>
         </section>
 
-        <section className="stage-band">
-          <div className="stage-content">
-            {error ? <section className="error-box">{error}</section> : null}
+        <section className="preview-band">
+          <div className="preview-content">
+            {error ? <section className="error-box pixel-frame">{error}</section> : null}
             {article ? (
               <section className="preview-wrap">
-                <ArticlePreview
-                  article={article}
-                  themeMode={previewTheme}
-                  coverPageMode={coverPageMode}
-                  coverMetaStyle={coverMetaStyle}
-                />
+                <ArticlePreview article={article} themeMode={previewTheme} />
               </section>
             ) : (
-              <section className="empty-state">Paste a link and click &quot;Load Article&quot; to preview.</section>
+              <section className="empty-state pixel-frame">Paste a link and click &quot;Load Article&quot; to preview.</section>
             )}
           </div>
         </section>
 
-        <section id="how-it-works" className="how-section">
-          <h2>How it works</h2>
-          <ul className="how-list">
-            {HOW_IT_WORKS.map((step) => (
-              <li key={step}>{step}</li>
-            ))}
-          </ul>
-          <p className="simple-line">It&apos;s that simple.</p>
-          <div className="mascot-block" aria-hidden="true">
-            <div className="mascot-face">
-              <span />
-              <span />
-            </div>
-          </div>
-        </section>
+        <section className="info-grid">
+          <article className="info-card pixel-frame" id="how-it-works">
+            <h2 className="pixel-subtitle">HOW IT WORKS</h2>
+            <ul className="how-list">
+              {HOW_IT_WORKS.map((step) => (
+                <li key={step}>{step}</li>
+              ))}
+            </ul>
+          </article>
 
-        <section id="faq" className="faq-section">
-          <h2>Frequently Asked Questions</h2>
-          <div className="faq-list">
-            {FAQ_ITEMS.map((item) => (
-              <details key={item.question}>
-                <summary>{item.question}</summary>
-                <p>{item.answer}</p>
-              </details>
-            ))}
-          </div>
+          <article className="info-card pixel-frame" id="faq">
+            <h2 className="pixel-subtitle">FAQ</h2>
+            <div className="faq-list">
+              {FAQ_ITEMS.map((item) => (
+                <details key={item.question}>
+                  <summary>{item.question}</summary>
+                  <p>{item.answer}</p>
+                </details>
+              ))}
+            </div>
+          </article>
         </section>
       </main>
 
-      <footer className="site-footer">
-        <div>
-          <strong>{APP_NAME}</strong>
-          <p>Open-source utility for printing public X content.</p>
-        </div>
-        <p>Built for fast exports and clean documents.</p>
+      <footer className="grass-footer">
+        <p>{APP_NAME} | Pixel mode</p>
       </footer>
     </div>
   )

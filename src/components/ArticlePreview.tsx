@@ -15,12 +15,6 @@ interface ArticlePreviewProps {
   coverMetaStyle: CoverMetaStyle
 }
 
-const providerLabel: Record<ExtractedArticle['providerUsed'], string> = {
-  fxtwitter: 'source: public status parser',
-  companion: 'source: companion extension',
-  jina: 'source: fallback parser',
-}
-
 const getCoverMediaIndex = (blocks: ExtractedArticle['blocks']): number =>
   blocks.findIndex((block) => block.type === 'media' && block.caption?.toLowerCase() === 'cover image')
 
@@ -79,7 +73,6 @@ export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaSty
       <article className="preview-card">
         {showBodyHeader ? (
           <header className="preview-header">
-            <div className="source-badge">{providerLabel[article.providerUsed]}</div>
             <h1>{article.title}</h1>
             <div className="author-row">
               {article.authorAvatarUrl ? (
@@ -99,11 +92,7 @@ export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaSty
               {article.canonicalUrl}
             </a>
           </header>
-        ) : (
-          <div className="preview-body-top">
-            <div className="source-badge">{providerLabel[article.providerUsed]}</div>
-          </div>
-        )}
+        ) : null}
 
         {showBodyHeader ? (
           <section className="metric-grid" aria-label="article metrics">
@@ -116,17 +105,6 @@ export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaSty
                 {article.metricNotes?.[metric.key] ? <em>{article.metricNotes[metric.key]}</em> : null}
               </div>
             ))}
-          </section>
-        ) : null}
-
-        {article.warnings.length > 0 ? (
-          <section className="warning-box" aria-label="extraction warnings">
-            <strong>Extraction Notes</strong>
-            <ul>
-              {article.warnings.map((warning) => (
-                <li key={warning}>{warning}</li>
-              ))}
-            </ul>
           </section>
         ) : null}
 
