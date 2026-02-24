@@ -404,6 +404,13 @@ export const buildArticlePdfDefinition = async (
     pageSize: opts.paperSize,
     pageMargins: marginMap[opts.marginPreset],
     content,
+    footer: () => ({
+      text: 'x article printer',
+      alignment: 'left',
+      margin: [24, 0, 0, 12],
+      fontSize: 8,
+      color: opts.themeMode === 'bw' ? '#444444' : '#3d8f62',
+    }),
     styles: stylesFor(opts.themeMode),
     defaultStyle: {
       font: 'Roboto',
