@@ -197,6 +197,30 @@ const warningBox = (warnings: string[], themeMode: ThemeMode): Content => ({
   margin: [0, 10, 0, 12],
 })
 
+const splitCoverMediaBlock = (
+  blocks: ArticleBlock[],
+  coverEnabled: boolean,
+): { coverMediaBlock: Extract<ArticleBlock, { type: 'media' }> | null; bodyBlocks: ArticleBlock[] } => {
+  if (!coverEnabled) {
+    return { coverMediaBlock: null, bodyBlocks: blocks }
+  }
+
+  const index = blocks.findIndex((block) => block.type === 'media' && block.caption?.toLowerCase() === 'cover image')
+  if (index === -1) {
+    return { coverMediaBlock: null, bodyBlocks: blocks }
+  }
+
+  const maybeCover = blocks[index]
+  if (maybeCover.type !== 'media') {
+    return { coverMediaBlock: null, bodyBlocks: blocks }
+  }
+
+  return {
+    coverMediaBlock: maybeCover,
+    bodyBlocks: blocks.filter((_, blockIndex) => blockIndex !== index),
+  }
+}
+
 const blockToContent = async (block: ArticleBlock, imageResolver: (url: string) => Promise<string | null>): Promise<Content[]> => {
   if (block.type === 'heading') {
     const style = block.level === 1 ? 'h1' : block.level === 2 ? 'h2' : 'h3'
@@ -303,9 +327,11 @@ export const buildArticlePdfDefinition = async (
   imageResolver: (url: string) => Promise<string | null> = loadImageDataUrl,
 ): Promise<TDocumentDefinitions> => {
   const avatarDataUrl = article.authorAvatarUrl ? await imageResolver(article.authorAvatarUrl) : null
+  const { coverMediaBlock, bodyBlocks } = splitCoverMediaBlock(article.blocks, opts.coverPageMode === 'always')
+  const coverMediaDataUrl = coverMediaBlock ? await imageResolver(coverMediaBlock.url) : null
   const bodyContent: Content[] = []
 
-  for (const block of article.blocks) {
+  for (const block of bodyBlocks) {
     const contentItems = await blockToContent(block, imageResolver)
     bodyContent.push(...contentItems)
   }
@@ -344,10 +370,21 @@ export const buildArticlePdfDefinition = async (
         style: 'avatarFallback',
       }
 
+  const coverMediaContent: Content[] = coverMediaDataUrl
+    ? [
+        {
+          image: coverMediaDataUrl,
+          fit: [500, 250],
+          margin: [0, 0, 0, 14],
+        },
+      ]
+    : []
+
   const coverPage: Content = {
     stack: [
-      { text: 'x article export', style: 'coverBadge', margin: [0, 4, 0, 24] },
-      { text: article.title, style: 'coverTitle', margin: [0, 0, 0, 28] },
+      ...coverMediaContent,
+      { text: 'x article export', style: 'coverBadge', margin: [0, 4, 0, 16] },
+      { text: article.title, style: 'coverTitle', margin: [0, 0, 0, 12] },
       {
         columns: [
           coverAuthorVisual,
@@ -359,15 +396,15 @@ export const buildArticlePdfDefinition = async (
             ],
           },
         ],
-        margin: [0, 0, 0, 24],
+        margin: [0, 0, 0, 14],
       },
       {
         text: article.canonicalUrl,
         style: 'embed',
         link: article.canonicalUrl,
-        margin: [0, 0, 0, 20],
+        margin: [0, 0, 0, 12],
       },
-      { columns: coverMetrics, columnGap: 12, margin: [0, 0, 0, 20] },
+      { columns: coverMetrics, columnGap: 12, margin: [0, 0, 0, 12] },
       {
         text: `generated ${new Date().toLocaleString()}`,
         style: 'meta',

@@ -69,6 +69,22 @@ describe('pdf definition regression', () => {
     expect(titleCount).toBe(1)
   })
 
+  it('promotes the cover image to the cover page top when enabled', async () => {
+    const payload = loadFixture('elvissun-status.json')
+    const article = parseFxTweetResponse(payload, 'https://x.com/elvissun/status/2025920521871716562?s=20')
+
+    const doc = await buildArticlePdfDefinition(article, baseOpts, async (url) => {
+      if (url.includes('HB0Qm-HWMAAoBAz')) {
+        return 'data:image/png;base64,cover'
+      }
+      return null
+    })
+
+    const firstPage = (doc.content as Array<{ stack?: Array<{ image?: string }>; pageBreak?: string }>)[0]
+    expect(firstPage.pageBreak).toBe('after')
+    expect(firstPage.stack?.[0]?.image).toBe('data:image/png;base64,cover')
+  })
+
   it('skips the cover page when disabled', async () => {
     const payload = loadFixture('elvissun-status.json')
     const article = parseFxTweetResponse(payload, 'https://x.com/elvissun/status/2025920521871716562?s=20')

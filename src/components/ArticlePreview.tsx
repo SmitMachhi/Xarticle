@@ -21,16 +21,30 @@ const providerLabel: Record<ExtractedArticle['providerUsed'], string> = {
   jina: 'source: fallback parser',
 }
 
+const getCoverMediaIndex = (blocks: ExtractedArticle['blocks']): number =>
+  blocks.findIndex((block) => block.type === 'media' && block.caption?.toLowerCase() === 'cover image')
+
 export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaStyle }: ArticlePreviewProps) => {
   const coverMeta = coverMetaStyle === 'minimal'
     ? `@${article.authorHandle}`
     : `@${article.authorHandle}${article.publishedAt ? ` • ${new Date(article.publishedAt).toLocaleString()}` : ''}`
   const showBodyHeader = coverPageMode !== 'always'
+  const coverMediaIndex = getCoverMediaIndex(article.blocks)
+  const coverMediaBlock = coverMediaIndex >= 0 ? article.blocks[coverMediaIndex] : null
+  const visibleBlocks = coverPageMode === 'always'
+    ? article.blocks.filter((_, index) => index !== coverMediaIndex)
+    : article.blocks
 
   return (
     <div className={`preview-stack ${themeMode === 'bw' ? 'preview-bw' : 'preview-color'}`}>
       {coverPageMode === 'always' ? (
         <article className="preview-card preview-cover">
+          {coverMediaBlock?.type === 'media' ? (
+            <figure className="preview-cover-media">
+              <img src={coverMediaBlock.url} alt={coverMediaBlock.caption || coverMediaBlock.mediaType} loading="lazy" />
+              {coverMediaBlock.caption ? <figcaption>{coverMediaBlock.caption}</figcaption> : null}
+            </figure>
+          ) : null}
           <header className="preview-header">
             <div className="source-badge">x article export</div>
             <h1>{article.title}</h1>
@@ -117,7 +131,7 @@ export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaSty
         ) : null}
 
         <section className="article-body">
-          {article.blocks.map((block, idx) => {
+          {visibleBlocks.map((block, idx) => {
             const blockKey = `${block.type}-${idx}`
 
           if (block.type === 'heading') {
