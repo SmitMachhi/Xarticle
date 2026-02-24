@@ -1,4 +1,4 @@
-import type { Content, StyleDictionary, TDocumentDefinitions } from 'pdfmake/interfaces'
+import type { Column, Content, StyleDictionary, TDocumentDefinitions } from 'pdfmake/interfaces'
 import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
 import type { ArticleBlock, ExtractedArticle, MarginPreset, PaperSize, ThemeMode } from '../types/article'
@@ -70,7 +70,10 @@ const stylesFor = (themeMode: ThemeMode): StyleDictionary => {
   const quoteColor = themeMode === 'bw' ? '#1f2937' : '#0f172a'
   return {
     title: { fontSize: 22, bold: true, color: textColor },
+    coverTitle: { fontSize: 28, bold: true, color: textColor },
     meta: { fontSize: 10, color: metaColor },
+    coverMeta: { fontSize: 12, color: metaColor },
+    coverBadge: { fontSize: 11, color: textColor, bold: true },
     paragraph: { fontSize: 11, lineHeight: 1.4, color: textColor },
     h1: { fontSize: 18, bold: true, color: textColor },
     h2: { fontSize: 16, bold: true, color: textColor },
@@ -83,8 +86,26 @@ const stylesFor = (themeMode: ThemeMode): StyleDictionary => {
     },
     metricLabel: { fontSize: 8, color: metaColor, bold: true },
     metricValue: { fontSize: 11, color: textColor },
+    coverMetricLabel: { fontSize: 9, color: metaColor, bold: true },
+    coverMetricValue: { fontSize: 13, color: textColor, bold: true },
     mediaCaption: { fontSize: 9, color: metaColor, italics: true },
     embed: { fontSize: 10, color: textColor, decoration: 'underline' },
+    avatarFallback: {
+      fontSize: 12,
+      bold: true,
+      color: textColor,
+      alignment: 'center',
+      margin: [0, 12, 0, 0],
+    },
+  }
+}
+
+const asCoverMetricCell = (label: string, value: number | null): Content => {
+  return {
+    stack: [
+      { text: label, style: 'coverMetricLabel' },
+      { text: value === null ? 'N/A' : value.toLocaleString(), style: 'coverMetricValue' },
+    ],
   }
 }
 
@@ -165,6 +186,7 @@ export const downloadArticlePdf = async (
     themeMode: ThemeMode
   },
 ): Promise<void> => {
+  const avatarDataUrl = article.authorAvatarUrl ? await loadImageDataUrl(article.authorAvatarUrl) : null
   const bodyContent: Content[] = []
 
   for (const block of article.blocks) {
@@ -185,13 +207,66 @@ export const downloadArticlePdf = async (
     metadataParts.push(new Date(article.publishedAt).toLocaleString())
   }
 
+  const coverMetrics: Content[] = [
+    asCoverMetricCell(metricLabelMap.likes, article.metrics.likes),
+    asCoverMetricCell(metricLabelMap.replies, article.metrics.replies),
+    asCoverMetricCell(metricLabelMap.reposts, article.metrics.reposts),
+    asCoverMetricCell(metricLabelMap.views, article.metrics.views),
+    asCoverMetricCell(metricLabelMap.bookmarks, article.metrics.bookmarks),
+  ]
+
+  const coverAuthorVisual: Column = avatarDataUrl
+    ? {
+        width: 62,
+        image: avatarDataUrl,
+        fit: [56, 56],
+      }
+    : {
+        width: 62,
+        text: '@',
+        style: 'avatarFallback',
+      }
+
+  const coverPage: Content = {
+    stack: [
+      { text: 'x article export', style: 'coverBadge', margin: [0, 4, 0, 24] },
+      { text: article.title, style: 'coverTitle', margin: [0, 0, 0, 28] },
+      {
+        columns: [
+          coverAuthorVisual,
+          {
+            width: '*',
+            stack: [
+              { text: article.authorName, style: 'title', margin: [0, 4, 0, 2] },
+              { text: metadataParts.join(' • '), style: 'coverMeta' },
+            ],
+          },
+        ],
+        margin: [0, 0, 0, 24],
+      },
+      {
+        text: article.canonicalUrl,
+        style: 'embed',
+        link: article.canonicalUrl,
+        margin: [0, 0, 0, 20],
+      },
+      { columns: coverMetrics, columnGap: 12, margin: [0, 0, 0, 20] },
+      {
+        text: `generated ${new Date().toLocaleString()}`,
+        style: 'meta',
+        margin: [0, 0, 0, 0],
+      },
+    ],
+    pageBreak: 'after',
+  }
+
   const docDefinition: TDocumentDefinitions = {
     pageSize: opts.paperSize,
     pageMargins: marginMap[opts.marginPreset],
     content: [
-      { text: article.title, style: 'title', margin: [0, 0, 0, 8] },
+      coverPage,
+      { text: article.title, style: 'h1', margin: [0, 0, 0, 8] },
       { text: `${article.authorName} • ${metadataParts.join(' • ')}`, style: 'meta', margin: [0, 0, 0, 6] },
-      { text: article.canonicalUrl, style: 'embed', link: article.canonicalUrl, margin: [0, 0, 0, 10] },
       { columns: metricColumns, columnGap: 8, margin: [0, 0, 0, 12] },
       ...bodyContent,
     ],
