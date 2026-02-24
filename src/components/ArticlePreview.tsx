@@ -13,10 +13,17 @@ interface ArticlePreviewProps {
   themeMode: ThemeMode
 }
 
+const providerLabel: Record<ExtractedArticle['providerUsed'], string> = {
+  fxtwitter: 'source: public status parser',
+  companion: 'source: companion extension',
+  jina: 'source: fallback parser',
+}
+
 export const ArticlePreview = ({ article, themeMode }: ArticlePreviewProps) => {
   return (
     <article className={`preview-card ${themeMode === 'bw' ? 'preview-bw' : 'preview-color'}`}>
       <header className="preview-header">
+        <div className="source-badge">{providerLabel[article.providerUsed]}</div>
         <h1>{article.title}</h1>
         <div className="author-row">
           {article.authorAvatarUrl ? (
@@ -44,6 +51,7 @@ export const ArticlePreview = ({ article, themeMode }: ArticlePreviewProps) => {
             <strong>
               {article.metrics[metric.key] === null ? 'N/A' : article.metrics[metric.key]?.toLocaleString()}
             </strong>
+            {article.metricNotes?.[metric.key] ? <em>{article.metricNotes[metric.key]}</em> : null}
           </div>
         ))}
       </section>

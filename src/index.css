@@ -178,6 +178,19 @@ button:disabled {
   line-height: 1.2;
 }
 
+.source-badge {
+  display: inline-block;
+  margin-bottom: 0.45rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #1d4d8e;
+  border: 1px solid #c8d8ef;
+  border-radius: 999px;
+  padding: 0.2rem 0.45rem;
+  background: #edf4ff;
+}
+
 .author-row {
   margin-top: 0.65rem;
   display: flex;
@@ -246,6 +259,12 @@ button:disabled {
 
 .metric-card strong {
   font-size: 0.92rem;
+}
+
+.metric-card em {
+  font-size: 0.68rem;
+  color: #64748b;
+  font-style: normal;
 }
 
 .warning-box {
@@ -346,6 +365,12 @@ button:disabled {
 .preview-bw .metric-card {
   background: #ffffff;
   border-color: #777777;
+}
+
+.preview-bw .source-badge {
+  color: #111111;
+  background: #ffffff;
+  border-color: #666666;
 }
 
 .preview-bw .source-link,

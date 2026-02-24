@@ -472,6 +472,13 @@ export const parseJinaMarkdown = (raw: string, sourceUrl: string): ExtractedArti
     authorName: authorMatch?.[1]?.trim() || getHandleFromUrl(url),
     authorHandle: authorMatch?.[2]?.trim() || getHandleFromUrl(url),
     metrics: parseMetricsFromText(raw),
+    metricNotes: {
+      likes: 'best effort from fallback text parsing',
+      replies: 'best effort from fallback text parsing',
+      reposts: 'best effort from fallback text parsing',
+      views: 'best effort from fallback text parsing',
+      bookmarks: 'best effort from fallback text parsing',
+    },
     blocks,
     warnings: ['Fallback extraction mode used. Some metrics or embeds may be missing.'],
     extractedAt: new Date().toISOString(),
@@ -505,6 +512,9 @@ export const parseXHtmlDocument = (html: string, sourceUrl: string): ExtractedAr
     authorAvatarUrl: inferAuthorAvatar(html),
     publishedAt: inferPublishedAt(doc),
     metrics: parseMetricsFromText(html),
+    metricNotes: {
+      bookmarks: 'best effort from public page data',
+    },
     blocks,
     warnings: [],
     extractedAt: new Date().toISOString(),

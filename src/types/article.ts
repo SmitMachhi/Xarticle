@@ -53,6 +53,7 @@ export interface ExtractedArticle {
   authorAvatarUrl?: string
   publishedAt?: string
   metrics: Record<MetricKey, number | null>
+  metricNotes?: Partial<Record<MetricKey, string>>
   blocks: ArticleBlock[]
   warnings: string[]
   extractedAt: string
