@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "X Article Printer Companion",
+  "description": "Companion extension for reliable public X article extraction.",
+  "version": "0.1.0",
+  "permissions": ["contextMenus", "tabs"],
+  "host_permissions": ["https://x.com/*", "https://twitter.com/*", "https://www.x.com/*", "https://www.twitter.com/*"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://localhost:5173/*", "https://xarticleprinter.app/*", "https://*.xarticleprinter.app/*"],
+      "js": ["content-bridge.js"],
+      "run_at": "document_start"
+    }
+  ]
+}
