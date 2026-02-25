@@ -456,7 +456,7 @@ function App() {
             <span>{APP_NAME}</span>
           </p>
           <p className="site-footer-credit">
-            made with love{' '}
+            made with{' '}
             <span role="img" aria-label="heart">
               ❤️
             </span>{' '}
