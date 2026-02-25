@@ -202,11 +202,9 @@ function App() {
               <span className="sparkle sparkle-b" aria-hidden="true">
                 ✦
               </span>
-              <div className="panda-avatar-wrap">
-                <img src={mascotState.src} alt="Panda mascot" />
-                <span className="orbit orbit-a" aria-hidden="true" />
-                <span className="orbit orbit-b" aria-hidden="true" />
-              </div>
+              <img className="panda-hero" src={mascotState.src} alt="Panda mascot" />
+              <span className="orbit orbit-a" aria-hidden="true" />
+              <span className="orbit orbit-b" aria-hidden="true" />
             </div>
 
             <section className="section-block">
