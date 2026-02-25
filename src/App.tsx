@@ -48,8 +48,10 @@ function App() {
   const [downloadState, setDownloadState] = useState<'idle' | 'pdf' | 'markdown'>('idle')
   const [celebratePanda, setCelebratePanda] = useState(false)
   const [manualMascotIndex, setManualMascotIndex] = useState<number | null>(null)
+  const [inlineNotice, setInlineNotice] = useState<string | null>(null)
   const [edgeNudge, setEdgeNudge] = useState(0)
   const edgeNudgeResetTimerRef = useRef<number | null>(null)
+  const inlineNoticeTimerRef = useRef<number | null>(null)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -66,6 +68,17 @@ function App() {
   const triggerCelebrate = () => {
     setCelebratePanda(true)
     window.setTimeout(() => setCelebratePanda(false), 900)
+  }
+
+  const showInlineNotice = (message: string) => {
+    setInlineNotice(message)
+    if (inlineNoticeTimerRef.current !== null) {
+      window.clearTimeout(inlineNoticeTimerRef.current)
+    }
+    inlineNoticeTimerRef.current = window.setTimeout(() => {
+      setInlineNotice(null)
+      inlineNoticeTimerRef.current = null
+    }, 5200)
   }
 
   const mascotVariants = [pandaWave, pandaWrench, pandaSeriousGear, pandaWinkHeart] as const
@@ -143,6 +156,14 @@ function App() {
     }
   }, [])
 
+  useEffect(() => {
+    return () => {
+      if (inlineNoticeTimerRef.current !== null) {
+        window.clearTimeout(inlineNoticeTimerRef.current)
+      }
+    }
+  }, [])
+
   const shellStyle = { '--edge-nudge': `${edgeNudge}px` } as CSSProperties
 
   const loadArticle = async () => {
@@ -201,7 +222,7 @@ function App() {
         const assetSummary = result.assetsIncluded > 0 ? `${result.assetsIncluded} image file(s)` : 'no downloadable image files'
         const failureSummary =
           result.assetsFailed > 0 ? ` ${result.assetsFailed} media file(s) could not be bundled and remain linked online.` : ''
-        window.alert(`Downloaded an offline Markdown ZIP because this article contains media. It includes article.md and ${assetSummary} in assets/.${failureSummary}`)
+        showInlineNotice(`Downloaded an offline Markdown ZIP because this article contains media. It includes article.md and ${assetSummary} in assets/.${failureSummary}`)
       }
       triggerCelebrate()
     } catch (err) {
@@ -234,6 +255,14 @@ function App() {
       <a className="skip-link" href="#main-content">
         Skip to main content
       </a>
+      {inlineNotice ? (
+        <aside className="inline-notice" role="status" aria-live="polite">
+          <p>{inlineNotice}</p>
+          <button className="inline-notice-close" onClick={() => setInlineNotice(null)} aria-label="Dismiss message">
+            OK
+          </button>
+        </aside>
+      ) : null}
       <header className="site-header">
         <div className="brand-block">
           <img className="brand-icon" src={pandaFaceIcon} alt="" aria-hidden="true" />
