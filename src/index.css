@@ -21,17 +21,6 @@
   --control-height: 48px;
 }
 
-@keyframes quick-rise {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 @keyframes pulse-dot {
   0%,
   100% {
@@ -128,7 +117,6 @@ select {
   gap: 1rem;
   position: relative;
   z-index: 2;
-  animation: quick-rise 180ms ease-out both;
 }
 
 .brand-block {
@@ -199,7 +187,6 @@ select {
     linear-gradient(100deg, rgba(233, 247, 239, 0.75) 0%, rgba(255, 255, 255, 0) 45%),
     color-mix(in srgb, var(--surface) 97%, #edf6f1 3%);
   box-shadow: var(--shadow);
-  animation: quick-rise 210ms ease-out both;
 }
 
 .hero-kicker {
@@ -246,12 +233,10 @@ select {
   border-radius: var(--radius);
   background: color-mix(in srgb, var(--surface) 97%, #eef3f6 3%);
   box-shadow: var(--shadow);
-  transition: transform 120ms ease, box-shadow 120ms ease;
-  animation: quick-rise 220ms ease-out both;
+  transition: box-shadow 120ms ease;
 }
 
 .app-card:hover {
-  transform: translateY(-2px);
   box-shadow: 0 16px 26px rgba(31, 41, 51, 0.1);
 }
 
@@ -484,7 +469,6 @@ button:disabled {
 .preview-band {
   margin-top: 1.2rem;
   padding: 0;
-  animation: quick-rise 260ms ease-out both;
 }
 
 .preview-content {
@@ -819,7 +803,6 @@ button:disabled {
   text-align: center;
   position: relative;
   z-index: 2;
-  animation: quick-rise 300ms ease-out both;
 }
 
 .site-footer p {
