@@ -250,10 +250,11 @@ select {
 
 .hero-copy {
   margin: 0.65rem 0 0;
-  max-width: 60ch;
+  max-width: none;
   color: var(--muted);
   font-size: 1rem;
   line-height: 1.45;
+  white-space: nowrap;
 }
 
 .workbench {
@@ -311,12 +312,6 @@ select {
   font-size: 1.08rem;
   font-weight: 700;
   color: #1f3e2d;
-}
-
-.section-subtitle {
-  margin: 0;
-  color: #65766a;
-  font-size: 0.86rem;
 }
 
 .row {
@@ -500,16 +495,16 @@ button:disabled {
   border: 1px solid #c8dccc;
   border-radius: 12px;
   background: #f6fbf7;
-  padding: 0.72rem;
-  min-height: 118px;
+  padding: 0.92rem;
+  min-height: 178px;
   position: relative;
   overflow: hidden;
   transition: border-color 120ms ease, background-color 120ms ease;
 }
 
 .panda-avatar-wrap {
-  width: 64px;
-  height: 64px;
+  width: 120px;
+  height: 120px;
   border-radius: 14px;
   display: grid;
   place-items: center;
@@ -529,8 +524,8 @@ button:disabled {
 }
 
 .panda-guide img {
-  width: 60px;
-  height: 60px;
+  width: 104px;
+  height: 104px;
   object-fit: contain;
   image-rendering: pixelated;
   animation: panda-bob 1.4s ease-in-out infinite;
@@ -576,22 +571,22 @@ button:disabled {
 
 .orbit {
   position: absolute;
-  width: 8px;
-  height: 8px;
+  width: 11px;
+  height: 11px;
   border-radius: 999px;
   background: #2bb56a;
   opacity: 0.55;
 }
 
 .orbit-a {
-  right: -4px;
-  top: 6px;
+  right: 2px;
+  top: 10px;
   animation: orbit-drift 1.1s ease-in-out infinite;
 }
 
 .orbit-b {
-  left: -3px;
-  bottom: 7px;
+  left: 4px;
+  bottom: 12px;
   background: #88d2a9;
   animation: orbit-drift 1.1s ease-in-out infinite 120ms;
 }
@@ -948,6 +943,10 @@ button:disabled {
 
   .workbench {
     gap: 0.8rem;
+  }
+
+  .hero-copy {
+    white-space: normal;
   }
 }
 

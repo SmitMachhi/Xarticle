@@ -28,8 +28,8 @@ const FAQ_ITEMS = [
     answer: 'Yes. No login is required.',
   },
   {
-    question: 'Why is there a companion extension option?',
-    answer: 'Some X pages block direct fetches. The extension improves extraction reliability.',
+    question: 'Do you store my links or exports?',
+    answer: 'No. Extraction and file generation run in your browser session.',
   },
   {
     question: 'What export formats are available?',
@@ -163,16 +163,13 @@ function App() {
         <section className="hero-shell">
           <p className="hero-kicker">No login required.</p>
           <h1 className="hero-title">Paste one X link. Export instantly.</h1>
-          <p className="hero-copy">
-            Built for speed and clarity. Works with public X posts and long-form article URLs in modern browsers.
-          </p>
+          <p className="hero-copy">Fast exports for public X posts and long-form article URLs.</p>
         </section>
 
         <section className="workbench">
           <section className="controls-panel app-card">
             <section className="section-block">
               <h2 className="section-title">Paste URL</h2>
-              <p className="section-subtitle">Works with public status links and long-form article links.</p>
               <label htmlFor="url">X URL</label>
               <div className="row">
                 <input
@@ -186,9 +183,11 @@ function App() {
                   {loading ? 'Loading...' : 'Load Article'}
                 </button>
               </div>
-              <p className={`url-status url-status-${urlClassification.kind}`} aria-live="polite">
-                {urlClassification.reason}
-              </p>
+              {urlClassification.kind !== 'empty' ? (
+                <p className={`url-status url-status-${urlClassification.kind}`} aria-live="polite">
+                  {urlClassification.reason}
+                </p>
+              ) : null}
             </section>
           </section>
 
