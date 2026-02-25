@@ -86,6 +86,16 @@ function App() {
     setManualMascotIndex((prev) => ((prev ?? defaultMascotIndex) + 1) % mascotVariants.length)
   }
 
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setManualMascotIndex((prev) => ((prev ?? defaultMascotIndex) + 1) % mascotVariants.length)
+    }, 1700)
+
+    return () => {
+      window.clearInterval(intervalId)
+    }
+  }, [defaultMascotIndex, mascotVariants.length])
+
   const loadArticle = async () => {
     setLoading(true)
     setError(null)
