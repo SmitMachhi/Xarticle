@@ -696,11 +696,12 @@ button:disabled {
 .preview-stack {
   display: grid;
   gap: 0.72rem;
+  justify-items: center;
 }
 
 .preview-card {
-  max-width: 980px;
-  margin: 0 auto;
+  width: min(100%, 980px);
+  margin: 0;
   padding: 1.2rem;
   border: 1px solid var(--line);
   border-radius: 14px;
