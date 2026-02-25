@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { CSSProperties } from 'react'
 import pandaSeriousGear from './assets/panda_pose_serious_gear.png'
 import pandaWave from './assets/panda_pose_wave.png'
 import pandaWinkHeart from './assets/panda_pose_wink_heart.png'
@@ -47,6 +48,8 @@ function App() {
   const [downloadState, setDownloadState] = useState<'idle' | 'pdf' | 'markdown'>('idle')
   const [celebratePanda, setCelebratePanda] = useState(false)
   const [manualMascotIndex, setManualMascotIndex] = useState<number | null>(null)
+  const [edgeNudge, setEdgeNudge] = useState(0)
+  const edgeNudgeResetTimerRef = useRef<number | null>(null)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -95,6 +98,52 @@ function App() {
       window.clearInterval(intervalId)
     }
   }, [defaultMascotIndex, mascotVariants.length])
+
+  useEffect(() => {
+    const handleWheel = (event: WheelEvent) => {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return
+      }
+
+      const deltaY = event.deltaY
+      if (deltaY === 0) {
+        return
+      }
+
+      const maxScrollY = document.documentElement.scrollHeight - window.innerHeight
+      const atTopEdge = window.scrollY <= 0 && deltaY < 0
+      const atBottomEdge = window.scrollY >= maxScrollY - 1 && deltaY > 0
+
+      if (!atTopEdge && !atBottomEdge) {
+        return
+      }
+
+      event.preventDefault()
+
+      const nudgeStrength = Math.min(14, Math.max(3, Math.abs(deltaY) * 0.045))
+      setEdgeNudge(atBottomEdge ? -nudgeStrength : nudgeStrength)
+
+      if (edgeNudgeResetTimerRef.current !== null) {
+        window.clearTimeout(edgeNudgeResetTimerRef.current)
+      }
+
+      edgeNudgeResetTimerRef.current = window.setTimeout(() => {
+        setEdgeNudge(0)
+        edgeNudgeResetTimerRef.current = null
+      }, 150)
+    }
+
+    window.addEventListener('wheel', handleWheel, { passive: false })
+
+    return () => {
+      window.removeEventListener('wheel', handleWheel)
+      if (edgeNudgeResetTimerRef.current !== null) {
+        window.clearTimeout(edgeNudgeResetTimerRef.current)
+      }
+    }
+  }, [])
+
+  const shellStyle = { '--edge-nudge': `${edgeNudge}px` } as CSSProperties
 
   const loadArticle = async () => {
     setLoading(true)
@@ -167,7 +216,7 @@ function App() {
   }
 
   return (
-    <div className="site-shell">
+    <div className="site-shell" style={shellStyle}>
       <a className="skip-link" href="#main-content">
         Skip to main content
       </a>
