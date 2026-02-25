@@ -246,7 +246,7 @@ function App() {
             <div className="hero-copy-block">
               <p className="hero-kicker">No login required.</p>
               <h1 className="hero-title">Paste link. Download Article.</h1>
-              <p className="hero-copy">Export public X articles in reader-friendly formats for humans and LLMs.</p>
+              <p className="hero-copy">Paste one public X link, and get a clean PDF for humans or Markdown for LLMs in seconds.</p>
             </div>
 
             <div className="hero-mascot-wrap">
