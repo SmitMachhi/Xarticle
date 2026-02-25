@@ -163,6 +163,13 @@ select {
   gap: 0.75rem;
 }
 
+.brand-copy {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
 .brand-icon {
   width: 30px;
   height: 30px;
@@ -181,10 +188,28 @@ select {
   color: #154b2e;
 }
 
-.brand-sub {
-  margin: 0.15rem 0 0;
-  font-size: 0.83rem;
-  color: var(--muted);
+.brand-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.brand-separator {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #1fa35f;
+}
+
+.brand-badge {
+  margin: 0;
+  padding: 0.18rem 0.56rem;
+  border-radius: 999px;
+  border: 1px solid #bbddc8;
+  background: #eaf8ef;
+  color: #226844;
+  font-size: 0.76rem;
+  font-weight: 700;
 }
 
 .top-nav {
@@ -246,21 +271,8 @@ select {
   align-items: center;
 }
 
-.hero-kicker {
-  margin: 0;
-  display: inline-block;
-  padding: 0.3rem 0.72rem;
-  border-radius: 999px;
-  border: 1px solid #bfdbc8;
-  background: #eaf8ef;
-  color: #216944;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-}
-
 .hero-title {
-  margin: 0.9rem 0 0;
+  margin: 0;
   font-family: var(--font-display);
   font-size: clamp(1.9rem, 3.1vw, 2.5rem);
   line-height: 1.16;

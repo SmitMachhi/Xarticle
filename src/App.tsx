@@ -227,8 +227,12 @@ function App() {
       <header className="site-header">
         <div className="brand-block">
           <img className="brand-icon" src="/panda-head.svg" alt="" aria-hidden="true" />
-          <div>
+          <div className="brand-copy">
             <p className="brand-name">{APP_NAME}</p>
+            <div className="brand-meta">
+              <span className="brand-separator" aria-hidden="true" />
+              <p className="brand-badge">No login required.</p>
+            </div>
           </div>
         </div>
         <div className="header-actions">
@@ -243,7 +247,6 @@ function App() {
         <section className="hero-shell">
           <div className="hero-layout">
             <div className="hero-copy-block">
-              <p className="hero-kicker">No login required.</p>
               <h1 className="hero-title">Paste link. Download Article.</h1>
               <p className="hero-copy">Export public X articles in reader-friendly formats for humans and LLMs.</p>
             </div>
