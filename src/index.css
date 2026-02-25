@@ -41,6 +41,53 @@
   }
 }
 
+@keyframes ring-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(31, 157, 91, 0.24);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(31, 157, 91, 0);
+  }
+}
+
+@keyframes text-swap-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sparkle-burst {
+  0% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.7);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px) scale(1.2);
+  }
+}
+
+@keyframes dot-ready {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.65;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
 *,
 *::before,
 *::after {
@@ -277,6 +324,26 @@ select {
   color: #1f3e2d;
 }
 
+.section-title-with-dot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.live-dot {
+  width: 0.62rem;
+  height: 0.62rem;
+  border-radius: 999px;
+  background: #9cb8a5;
+  opacity: 0.45;
+}
+
+.live-dot.is-ready {
+  background: #1f9d5b;
+  opacity: 1;
+  animation: dot-ready 1s ease-in-out infinite;
+}
+
 .section-subtitle {
   margin: 0;
   color: #65766a;
@@ -296,6 +363,32 @@ select {
   gap: 0.5rem;
 }
 
+.select-shell {
+  position: relative;
+  display: block;
+}
+
+.select-shell select {
+  appearance: none;
+  padding-right: 2.25rem;
+}
+
+.select-shell::after {
+  content: '⌄';
+  position: absolute;
+  right: 0.76rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #2a5b3f;
+  font-size: 1rem;
+  transition: transform 140ms ease;
+}
+
+.select-shell:focus-within::after {
+  transform: translateY(-50%) rotate(180deg);
+}
+
 input,
 select,
 button {
@@ -310,6 +403,10 @@ button {
     border-color 120ms ease,
     background-color 120ms ease,
     transform 100ms ease;
+}
+
+select {
+  width: 100%;
 }
 
 input::placeholder {
@@ -339,6 +436,8 @@ button:disabled {
   border-color: #218f55;
   background: linear-gradient(180deg, #27a864 0%, #1f9d5b 100%);
   color: #f4fff8;
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-primary:hover:enabled {
@@ -350,11 +449,35 @@ button:disabled {
   background: #f5faf7;
   border-color: #c0d7c7;
   color: #26523a;
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-muted:hover:enabled {
   background: #e9f5ec;
   transform: translateY(-1px);
+}
+
+.btn-primary::after,
+.btn-muted::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-130%);
+  background: linear-gradient(110deg, transparent 25%, rgba(255, 255, 255, 0.35) 50%, transparent 75%);
+  opacity: 0;
+  transition: transform 360ms ease, opacity 180ms ease;
+}
+
+.btn-primary:hover:enabled::after,
+.btn-muted:hover:enabled::after {
+  transform: translateX(130%);
+  opacity: 0.9;
+}
+
+.btn-primary:active:enabled,
+.btn-muted:active:enabled {
+  transform: translateY(1px);
 }
 
 .button-row {
@@ -415,13 +538,25 @@ button:disabled {
   transition: border-color 120ms ease, background-color 120ms ease;
 }
 
-.panda-guide::after {
-  content: '✨';
+.panda-avatar-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 30% 20%, #f6fff9 0%, #e2f6ea 90%);
+  border: 1px solid #c4dfcd;
+  position: relative;
+  transition: transform 150ms ease;
+}
+
+.panda-avatar-wrap::before {
+  content: '';
   position: absolute;
-  right: 0.75rem;
-  top: 0.55rem;
-  font-size: 0.85rem;
-  opacity: 0.7;
+  inset: -4px;
+  border-radius: 16px;
+  border: 1px dashed rgba(34, 152, 89, 0.45);
+  animation: ring-pulse 1.8s ease-in-out infinite;
 }
 
 .panda-guide img {
@@ -434,6 +569,44 @@ button:disabled {
 
 .panda-guide.is-loading img {
   animation-duration: 0.8s;
+}
+
+.panda-guide:hover .panda-avatar-wrap {
+  transform: translateX(4px) translateY(-2px);
+}
+
+.panda-guide.is-ready {
+  border-color: #abd2b8;
+  background: #f4fbf6;
+}
+
+.sparkle {
+  position: absolute;
+  font-size: 0.9rem;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sparkle-a {
+  right: 1rem;
+  top: 0.55rem;
+}
+
+.sparkle-b {
+  right: 1.95rem;
+  top: 1rem;
+}
+
+.panda-guide.is-celebrating .sparkle-a {
+  animation: sparkle-burst 620ms ease-out;
+}
+
+.panda-guide.is-celebrating .sparkle-b {
+  animation: sparkle-burst 700ms ease-out 80ms;
+}
+
+.text-swap {
+  animation: text-swap-in 160ms ease-out both;
 }
 
 .panda-guide-title,

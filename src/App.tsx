@@ -45,6 +45,7 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [downloadState, setDownloadState] = useState<'idle' | 'pdf' | 'markdown'>('idle')
+  const [celebratePanda, setCelebratePanda] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -57,6 +58,11 @@ function App() {
   const canDownload = useMemo(() => Boolean(article) && downloadState === 'idle', [article, downloadState])
   const urlClassification = useMemo(() => classifyInputUrl(urlInput), [urlInput])
   const canLoad = !loading && (urlClassification.kind === 'status' || urlClassification.kind === 'article')
+
+  const triggerCelebrate = () => {
+    setCelebratePanda(true)
+    window.setTimeout(() => setCelebratePanda(false), 900)
+  }
 
   const mascotState = useMemo(() => {
     if (loading) {
@@ -117,6 +123,7 @@ function App() {
         coverPageMode: 'always',
         coverMetaStyle: 'full',
       })
+      triggerCelebrate()
     } catch (err) {
       const message = err instanceof Error ? err.message : 'PDF generation failed.'
       setError(message)
@@ -133,6 +140,7 @@ function App() {
     setDownloadState('markdown')
     try {
       downloadArticleMarkdown(article)
+      triggerCelebrate()
     } finally {
       setDownloadState('idle')
     }
@@ -193,12 +201,27 @@ function App() {
           </section>
 
           <aside className="app-card helper-card export-panel">
-            <div className={`panda-guide ${loading ? 'is-loading' : ''}`} aria-live="polite">
-              <img src={mascotState.src} alt="Panda assistant" />
+            <div
+              className={`panda-guide ${loading ? 'is-loading' : ''} ${canDownload ? 'is-ready' : ''} ${celebratePanda ? 'is-celebrating' : ''}`}
+              aria-live="polite"
+            >
+              <span className="sparkle sparkle-a" aria-hidden="true">
+                ✦
+              </span>
+              <span className="sparkle sparkle-b" aria-hidden="true">
+                ✦
+              </span>
+              <div className="panda-avatar-wrap">
+                <img src={mascotState.src} alt="Panda assistant" />
+              </div>
               <div>
                 <p className="panda-guide-title">Panda assistant</p>
-                <p className="panda-guide-status">{mascotState.label}</p>
-                <p className="panda-guide-copy">{mascotState.copy}</p>
+                <p key={mascotState.label} className="panda-guide-status text-swap">
+                  {mascotState.label}
+                </p>
+                <p key={mascotState.copy} className="panda-guide-copy text-swap">
+                  {mascotState.copy}
+                </p>
               </div>
             </div>
 
@@ -207,24 +230,31 @@ function App() {
               <div className="option-grid">
                 <label>
                   Paper Size
-                  <select value={paperSize} onChange={(event) => setPaperSize(event.target.value as PaperSize)}>
-                    <option value="A4">A4</option>
-                    <option value="LETTER">Letter</option>
-                  </select>
+                  <span className="select-shell">
+                    <select value={paperSize} onChange={(event) => setPaperSize(event.target.value as PaperSize)}>
+                      <option value="A4">A4</option>
+                      <option value="LETTER">Letter</option>
+                    </select>
+                  </span>
                 </label>
 
                 <label>
                   Margin
-                  <select value={marginPreset} onChange={(event) => setMarginPreset(event.target.value as MarginPreset)}>
-                    <option value="default">Default</option>
-                    <option value="minimum">Minimum</option>
-                  </select>
+                  <span className="select-shell">
+                    <select value={marginPreset} onChange={(event) => setMarginPreset(event.target.value as MarginPreset)}>
+                      <option value="default">Default</option>
+                      <option value="minimum">Minimum</option>
+                    </select>
+                  </span>
                 </label>
               </div>
             </section>
 
             <section className="section-block">
-              <h2 className="section-title">Download</h2>
+              <h2 className="section-title section-title-with-dot">
+                Download
+                <span className={`live-dot ${canDownload ? 'is-ready' : ''}`} aria-hidden="true" />
+              </h2>
               <div className="button-row">
                 <button className="btn-primary" onClick={downloadPdf} disabled={!canDownload}>
                   {downloadState === 'pdf' ? 'Generating...' : 'Download for Humans (PDF)'}
