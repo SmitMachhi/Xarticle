@@ -226,7 +226,7 @@ function App() {
       </a>
       <header className="site-header">
         <div className="brand-block">
-          <span className="brand-dot" aria-hidden="true" />
+          <img className="brand-icon" src="/panda-head.svg" alt="" aria-hidden="true" />
           <div>
             <p className="brand-name">{APP_NAME}</p>
           </div>
