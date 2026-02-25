@@ -13,13 +13,12 @@ interface ArticlePreviewProps {
   themeMode: ThemeMode
   coverPageMode: CoverPageMode
   coverMetaStyle: CoverMetaStyle
-  density: 'comfortable' | 'compact'
 }
 
 const getCoverMediaIndex = (blocks: ExtractedArticle['blocks']): number =>
   blocks.findIndex((block) => block.type === 'media' && block.caption?.toLowerCase() === 'cover image')
 
-export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaStyle, density }: ArticlePreviewProps) => {
+export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaStyle }: ArticlePreviewProps) => {
   const coverMeta = coverMetaStyle === 'minimal'
     ? `@${article.authorHandle}`
     : `@${article.authorHandle}${article.publishedAt ? ` • ${new Date(article.publishedAt).toLocaleString()}` : ''}`
@@ -29,11 +28,7 @@ export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaSty
   const visibleBlocks = coverPageMode === 'always'
     ? article.blocks.filter((_, index) => index !== coverMediaIndex)
     : article.blocks
-  const previewStackClass = [
-    'preview-stack',
-    themeMode === 'bw' ? 'preview-bw' : 'preview-color',
-    density === 'compact' ? 'preview-compact' : 'preview-comfortable',
-  ].join(' ')
+  const previewStackClass = `preview-stack ${themeMode === 'bw' ? 'preview-bw' : 'preview-color'}`
 
   return (
     <div className={previewStackClass}>

@@ -612,107 +612,6 @@ button:disabled {
   font-size: 1.02rem;
 }
 
-.preview-toolbar {
-  position: sticky;
-  top: 0.78rem;
-  z-index: 3;
-  margin-bottom: 0.72rem;
-  padding: 0.72rem;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: color-mix(in srgb, #ffffff 94%, #e8f8ef 6%);
-  display: grid;
-  gap: 0.6rem;
-}
-
-.preview-toolbar-main {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-}
-
-.preview-status-chip {
-  border-radius: 999px;
-  border: 1px solid #bfd7c3;
-  padding: 0.25rem 0.62rem;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #245f3f;
-  background: #e9f8ee;
-}
-
-.preview-status-chip.is-loading {
-  border-color: #b8d0dc;
-  color: #285872;
-  background: #eaf4fb;
-}
-
-.preview-status-chip.is-warning {
-  border-color: #dfcc98;
-  color: #75522a;
-  background: #fff7e8;
-}
-
-.preview-status-chip.is-idle {
-  border-color: #c8d6ce;
-  color: #577367;
-  background: #f4faf7;
-}
-
-.preview-toolbar-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-}
-
-.preview-toolbar-sub {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-}
-
-.preview-jump-row,
-.preview-density-toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-}
-
-.chip-btn {
-  min-height: 34px;
-  border-radius: 999px;
-  border: 1px solid #bfd5c7;
-  background: #f4faf7;
-  color: #28523d;
-  padding: 0.25rem 0.7rem;
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-
-.chip-btn:hover:enabled {
-  background: #e9f7ee;
-}
-
-.chip-btn.is-selected {
-  border-color: #20a25f;
-  color: #f2fff8;
-  background: linear-gradient(180deg, #28ae68 0%, #1f9d5b 100%);
-}
-
-.preview-confidence {
-  margin: 0 0 0.7rem;
-  border: 1px solid #e0cc9f;
-  border-radius: 10px;
-  background: #fff8e9;
-  color: #6f532b;
-  padding: 0.55rem 0.66rem;
-  font-size: 0.83rem;
-}
 
 .preview-skeleton {
   border: 1px solid var(--line);
@@ -784,20 +683,6 @@ button:disabled {
 .preview-stack {
   display: grid;
   gap: 0.72rem;
-}
-
-.preview-stack.preview-compact .preview-card {
-  padding: 0.85rem;
-}
-
-.preview-stack.preview-compact .metric-grid {
-  gap: 0.4rem;
-}
-
-.preview-stack.preview-compact .article-body {
-  margin-top: 0.68rem;
-  font-size: 0.95rem;
-  line-height: 1.46;
 }
 
 .preview-card {
@@ -1131,9 +1016,6 @@ button:disabled {
     white-space: normal;
   }
 
-  .preview-toolbar {
-    position: static;
-  }
 }
 
 @media (max-width: 760px) {

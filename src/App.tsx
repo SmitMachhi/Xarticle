@@ -13,14 +13,11 @@ import type { ExtractedArticle, MarginPreset, PaperSize } from './types/article'
 
 const APP_NAME = 'Xarticle.app'
 const APP_TAGLINE = 'Fast exports for public X articles and statuses.'
-const EXAMPLE_PREVIEW_URL = 'https://x.com/OpenAI/status/1889706166405652562'
 const HOW_IT_WORKS = [
   'Paste one public X status URL or long-form article URL.',
   'Preview the extracted content in your browser.',
   'Download PDF for people or Markdown for LLM workflows.',
 ]
-
-type PreviewDensity = 'comfortable' | 'compact'
 
 const FAQ_ITEMS = [
   {
@@ -51,8 +48,6 @@ function App() {
   const [downloadState, setDownloadState] = useState<'idle' | 'pdf' | 'markdown'>('idle')
   const [celebratePanda, setCelebratePanda] = useState(false)
   const [manualMascotIndex, setManualMascotIndex] = useState<number | null>(null)
-  const [previewDensity, setPreviewDensity] = useState<PreviewDensity>('comfortable')
-  const [lastLoadedUrl, setLastLoadedUrl] = useState('')
   const [edgeNudge, setEdgeNudge] = useState(0)
   const edgeNudgeResetTimerRef = useRef<number | null>(null)
 
@@ -67,29 +62,6 @@ function App() {
   const canDownload = useMemo(() => Boolean(article) && downloadState === 'idle', [article, downloadState])
   const urlClassification = useMemo(() => classifyInputUrl(urlInput), [urlInput])
   const canLoad = !loading && (urlClassification.kind === 'status' || urlClassification.kind === 'article')
-  const normalizedInputUrl = (urlClassification.normalizedUrl || urlInput).trim()
-  const previewNeedsRefresh = Boolean(article && normalizedInputUrl && normalizedInputUrl !== lastLoadedUrl)
-  const hasMediaBlock = Boolean(article?.blocks.some((block) => block.type === 'media'))
-  const hasEmbedBlock = Boolean(article?.blocks.some((block) => block.type === 'embed'))
-
-  const confidenceMessage = useMemo(() => {
-    if (!article) {
-      return null
-    }
-
-    const notes: string[] = []
-    if (article.mode === 'fallback') {
-      notes.push('Fallback parser was used for this preview.')
-    }
-    if (Object.keys(article.metricNotes ?? {}).length > 0) {
-      notes.push('Some metrics may be estimated.')
-    }
-    if (article.warnings.length > 0) {
-      notes.push(article.warnings[0])
-    }
-
-    return notes.length > 0 ? notes.join(' ') : null
-  }, [article])
 
   const triggerCelebrate = () => {
     setCelebratePanda(true)
@@ -186,7 +158,6 @@ function App() {
     try {
       const result = await extractArticleFromUrl(requestUrl)
       setArticle(result.article)
-      setLastLoadedUrl(requestUrl)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown extraction error.'
       setError(message)
@@ -247,11 +218,6 @@ function App() {
       const message = err instanceof Error ? err.message : 'Could not read clipboard.'
       setError(message)
     }
-  }
-
-  const scrollToPreviewSection = (sectionId: string) => {
-    const target = document.getElementById(sectionId)
-    target?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   return (
@@ -382,69 +348,6 @@ function App() {
           {error ? <section className="error-box app-card">{error}</section> : null}
           <div className="preview-content app-card">
             <h2>Preview</h2>
-            <section className="preview-toolbar" aria-label="Preview controls">
-              <div className="preview-toolbar-main">
-                <span
-                  className={`preview-status-chip ${loading ? 'is-loading' : article ? (previewNeedsRefresh ? 'is-warning' : 'is-ready') : 'is-idle'}`}
-                >
-                  {loading ? 'Loading preview...' : article ? (previewNeedsRefresh ? 'Preview needs refresh' : 'Preview ready') : 'No preview yet'}
-                </span>
-                <div className="preview-toolbar-actions">
-                  <button className="btn-muted" onClick={loadArticle} disabled={!previewNeedsRefresh || !canLoad}>
-                    Refresh Preview
-                  </button>
-                  <button className="btn-primary" onClick={downloadPdf} disabled={!canDownload}>
-                    {downloadState === 'pdf' ? 'Generating...' : 'Download for Humans (PDF)'}
-                  </button>
-                  <button className="btn-muted" onClick={downloadMarkdown} disabled={!canDownload}>
-                    {downloadState === 'markdown' ? 'Generating...' : 'Download for LLMs (Markdown)'}
-                  </button>
-                </div>
-              </div>
-
-              {article ? (
-                <div className="preview-toolbar-sub">
-                  <div className="preview-jump-row" aria-label="Preview jump links">
-                    <button className="chip-btn" onClick={() => scrollToPreviewSection('preview-section-cover')}>
-                      Cover
-                    </button>
-                    <button className="chip-btn" onClick={() => scrollToPreviewSection('preview-section-article')}>
-                      Article
-                    </button>
-                    <button className="chip-btn" onClick={() => scrollToPreviewSection('preview-section-stats')}>
-                      Stats
-                    </button>
-                    {hasMediaBlock ? (
-                      <button className="chip-btn" onClick={() => scrollToPreviewSection('preview-section-media')}>
-                        Media
-                      </button>
-                    ) : null}
-                    {hasEmbedBlock ? (
-                      <button className="chip-btn" onClick={() => scrollToPreviewSection('preview-section-embeds')}>
-                        Embeds
-                      </button>
-                    ) : null}
-                  </div>
-                  <div className="preview-density-toggle" role="group" aria-label="Preview density">
-                    <button
-                      className={`chip-btn ${previewDensity === 'comfortable' ? 'is-selected' : ''}`}
-                      onClick={() => setPreviewDensity('comfortable')}
-                    >
-                      Comfortable
-                    </button>
-                    <button
-                      className={`chip-btn ${previewDensity === 'compact' ? 'is-selected' : ''}`}
-                      onClick={() => setPreviewDensity('compact')}
-                    >
-                      Compact
-                    </button>
-                  </div>
-                </div>
-              ) : null}
-            </section>
-
-            {article && confidenceMessage ? <p className="preview-confidence">{confidenceMessage}</p> : null}
-
             {loading ? (
               <section className="preview-skeleton" aria-label="Loading preview">
                 <div className="preview-skeleton-cover" />
@@ -460,21 +363,11 @@ function App() {
                   themeMode="color"
                   coverPageMode="always"
                   coverMetaStyle="full"
-                  density={previewDensity}
                 />
               </section>
             ) : (
               <section className="empty-state">
                 <p>Paste one public X link, then click Load Article.</p>
-                <button
-                  className="btn-muted"
-                  onClick={() => {
-                    setUrlInput(EXAMPLE_PREVIEW_URL)
-                    setError(null)
-                  }}
-                >
-                  Try example link
-                </button>
               </section>
             )}
           </div>
