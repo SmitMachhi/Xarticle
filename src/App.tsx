@@ -280,7 +280,7 @@ function App() {
           <div className="hero-layout">
             <div className="hero-copy-block">
               <p className="hero-kicker">No login required.</p>
-              <h1 className="hero-title">Paste link. Get file.</h1>
+              <h1 className="hero-title">Paste link. Download Article.</h1>
               <p className="hero-copy">Fast exports for public X posts and long-form article URLs.</p>
             </div>
 
