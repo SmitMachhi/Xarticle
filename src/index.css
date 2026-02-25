@@ -825,7 +825,38 @@ button:disabled {
   margin-top: 0.92rem;
   font-size: 1.01rem;
   line-height: 1.58;
-  max-width: 76ch;
+  max-width: none;
+  width: 100%;
+}
+
+.article-tools {
+  position: sticky;
+  top: 0.52rem;
+  z-index: 2;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.8rem;
+}
+
+.article-copy-btn {
+  min-height: 34px;
+  border-radius: 999px;
+  border: 1px solid #bbd8c7;
+  background: #ecf9f1;
+  color: #255c3f;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.2rem 0.75rem;
+}
+
+.article-copy-btn:hover:enabled {
+  background: #dff2e7;
+}
+
+.article-copy-btn.is-failed {
+  border-color: #e9bec6;
+  background: #fff2f5;
+  color: #a73a4d;
 }
 
 .article-body h2,

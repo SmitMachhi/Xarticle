@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react'
 import type { CoverMetaStyle, CoverPageMode, ExtractedArticle, ThemeMode } from '../types/article'
 
 const metricRows = [
@@ -18,7 +19,33 @@ interface ArticlePreviewProps {
 const getCoverMediaIndex = (blocks: ExtractedArticle['blocks']): number =>
   blocks.findIndex((block) => block.type === 'media' && block.caption?.toLowerCase() === 'cover image')
 
+const toPlainTextForBlock = (block: ExtractedArticle['blocks'][number]): string => {
+  if (block.type === 'heading') {
+    return block.text
+  }
+  if (block.type === 'paragraph') {
+    return block.text
+  }
+  if (block.type === 'quote') {
+    return block.text
+  }
+  if (block.type === 'code') {
+    return block.code
+  }
+  if (block.type === 'list') {
+    return block.items.join('\n')
+  }
+  if (block.type === 'embed') {
+    return block.url ? `${block.text} (${block.url})` : block.text
+  }
+  if (block.type === 'media') {
+    return block.caption || ''
+  }
+  return ''
+}
+
 export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaStyle }: ArticlePreviewProps) => {
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
   const coverMeta = coverMetaStyle === 'minimal'
     ? `@${article.authorHandle}`
     : `@${article.authorHandle}${article.publishedAt ? ` • ${new Date(article.publishedAt).toLocaleString()}` : ''}`
@@ -29,6 +56,27 @@ export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaSty
     ? article.blocks.filter((_, index) => index !== coverMediaIndex)
     : article.blocks
   const previewStackClass = `preview-stack ${themeMode === 'bw' ? 'preview-bw' : 'preview-color'}`
+  const copyTextPayload = useMemo(
+    () => visibleBlocks.map((block) => toPlainTextForBlock(block)).filter((line) => line.trim().length > 0).join('\n\n'),
+    [visibleBlocks],
+  )
+
+  const copyText = async () => {
+    if (!copyTextPayload) {
+      return
+    }
+    try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error('Clipboard API unavailable')
+      }
+      await navigator.clipboard.writeText(copyTextPayload)
+      setCopyState('copied')
+      window.setTimeout(() => setCopyState('idle'), 1400)
+    } catch {
+      setCopyState('failed')
+      window.setTimeout(() => setCopyState('idle'), 1800)
+    }
+  }
 
   return (
     <div className={previewStackClass}>
@@ -108,6 +156,12 @@ export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaSty
             ))}
           </section>
         ) : null}
+
+        <div className="article-tools">
+          <button type="button" className={`article-copy-btn ${copyState === 'failed' ? 'is-failed' : ''}`} onClick={copyText}>
+            {copyState === 'copied' ? 'Copied' : copyState === 'failed' ? 'Copy failed' : 'Copy text'}
+          </button>
+        </div>
 
         <section className="article-body">
           {visibleBlocks.map((block, idx) => {
