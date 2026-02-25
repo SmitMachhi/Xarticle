@@ -15,7 +15,7 @@ const APP_TAGLINE = 'Calm exports for public X articles and statuses.'
 const HOW_IT_WORKS = [
   'Paste one public X status URL or long-form article URL.',
   'Preview the extracted content in your browser.',
-  'Download Color PDF, B/W PDF, or Markdown instantly.',
+  'Download PDF for people or Markdown for LLM workflows.',
 ]
 
 const FAQ_ITEMS = [
@@ -33,7 +33,7 @@ const FAQ_ITEMS = [
   },
   {
     question: 'What export formats are available?',
-    answer: 'Color PDF, B/W PDF, and Markdown are supported.',
+    answer: 'PDF and Markdown are supported.',
   },
 ]
 
@@ -47,7 +47,7 @@ function App() {
   const [article, setArticle] = useState<ExtractedArticle | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [downloadState, setDownloadState] = useState<'idle' | 'color' | 'bw' | 'markdown'>('idle')
+  const [downloadState, setDownloadState] = useState<'idle' | 'pdf' | 'markdown'>('idle')
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -111,7 +111,7 @@ function App() {
       return
     }
 
-    setDownloadState(themeMode)
+    setDownloadState('pdf')
     try {
       await downloadArticlePdf(article, {
         paperSize,
@@ -143,6 +143,9 @@ function App() {
 
   return (
     <div className="site-shell">
+      <a className="skip-link" href="#main-content">
+        Skip to main content
+      </a>
       <header className="site-header">
         <div className="brand-block">
           <span className="brand-dot" aria-hidden="true" />
@@ -163,7 +166,7 @@ function App() {
         </div>
       </header>
 
-      <main className="content-wrap">
+      <main className="content-wrap" id="main-content">
         <section className="hero-shell">
           <p className="hero-kicker">No login. No backend. No clutter.</p>
           <h1 className="hero-title">Paste one X link. Export a clean, print-ready file.</h1>
@@ -190,7 +193,9 @@ function App() {
                   {loading ? 'Loading...' : 'Load Article'}
                 </button>
               </div>
-              <p className={`url-status url-status-${urlClassification.kind}`}>{urlClassification.reason}</p>
+              <p className={`url-status url-status-${urlClassification.kind}`} aria-live="polite">
+                {urlClassification.reason}
+              </p>
             </section>
 
             <section className="section-block">
@@ -241,14 +246,11 @@ function App() {
             <section className="section-block">
               <h2 className="section-title">3. Download</h2>
               <div className="button-row">
-                <button className="btn-primary" onClick={() => downloadPdf('color')} disabled={!canDownload}>
-                  {downloadState === 'color' ? 'Generating...' : 'Download Color PDF'}
-                </button>
-                <button className="btn-muted" onClick={() => downloadPdf('bw')} disabled={!canDownload}>
-                  {downloadState === 'bw' ? 'Generating...' : 'Download B/W PDF'}
+                <button className="btn-primary" onClick={() => downloadPdf(previewTheme)} disabled={!canDownload}>
+                  {downloadState === 'pdf' ? 'Generating...' : 'Download for Humans (PDF)'}
                 </button>
                 <button className="btn-muted" onClick={downloadMarkdown} disabled={!canDownload}>
-                  {downloadState === 'markdown' ? 'Generating...' : 'Download Markdown'}
+                  {downloadState === 'markdown' ? 'Generating...' : 'Download for LLMs (Markdown)'}
                 </button>
               </div>
               <p className="helper-line">Public links only. Companion extension mode improves extraction reliability.</p>
