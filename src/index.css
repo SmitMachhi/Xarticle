@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap');
 
 :root {
-  --bg: #f1f5f2;
+  --bg: #eef6fb;
   --surface: #ffffff;
   --surface-soft: #f7faf8;
   --text: #112117;
@@ -67,7 +67,7 @@ body,
 body {
   margin: 0;
   min-width: 320px;
-  background: linear-gradient(180deg, #edf3ef 0%, #f7faf8 42%, var(--bg) 100%);
+  background: linear-gradient(180deg, #76c7e8 0%, #9ad8ef 34%, var(--bg) 72%);
   color: var(--text);
   font-family: var(--font-body);
   font-size: clamp(16px, 0.92rem + 0.15vw, 17px);
@@ -99,19 +99,20 @@ select {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(16rem 7rem at 14% 22%, rgba(208, 235, 217, 0.45) 0%, transparent 74%),
-    radial-gradient(20rem 7rem at 70% 15%, rgba(210, 236, 219, 0.34) 0%, transparent 78%),
-    radial-gradient(15rem 6rem at 86% 31%, rgba(199, 230, 209, 0.3) 0%, transparent 76%);
+    radial-gradient(14rem 6rem at 14% 22%, rgba(255, 255, 255, 0.62) 0%, transparent 73%),
+    radial-gradient(18rem 7rem at 70% 15%, rgba(255, 255, 255, 0.52) 0%, transparent 78%),
+    radial-gradient(14rem 6rem at 86% 31%, rgba(255, 255, 255, 0.45) 0%, transparent 76%);
 }
 
 .site-shell::after {
   content: '';
   position: absolute;
   inset: auto 0 0;
-  height: 110px;
+  height: 128px;
   z-index: 0;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(233, 246, 237, 0) 0%, rgba(233, 246, 237, 0.8) 80%, rgba(228, 241, 232, 1) 100%);
+  background:
+    linear-gradient(180deg, rgba(173, 220, 129, 0) 0%, rgba(173, 220, 129, 0.82) 70%, rgba(157, 206, 113, 1) 100%);
 }
 
 .site-header {
@@ -180,25 +181,6 @@ select {
 
 .top-nav a:hover {
   color: #134e2f;
-}
-
-.panda-powered {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  border: 1px solid #c7dccd;
-  border-radius: 999px;
-  background: #f4faf6;
-  padding: 0.32rem 0.68rem 0.32rem 0.38rem;
-  color: #315846;
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-
-.panda-powered img {
-  width: 24px;
-  height: 24px;
-  image-rendering: pixelated;
 }
 
 .content-wrap {
@@ -393,12 +375,6 @@ button:disabled {
 .button-row {
   display: grid;
   gap: 0.6rem;
-}
-
-.download-note {
-  margin: 0;
-  color: #627468;
-  font-size: 0.82rem;
 }
 
 .url-status {
@@ -837,9 +813,9 @@ button:disabled {
   margin: 1.2rem auto 1.3rem;
   padding: 1rem 1.1rem;
   border-radius: var(--radius);
-  border: 1px solid #c5ddc9;
-  background: #edf7f0;
-  color: #3e5f4b;
+  border: 1px solid #138a4f;
+  background: linear-gradient(180deg, #18a55f 0%, #109655 100%);
+  color: #ecfff2;
   text-align: center;
   position: relative;
   z-index: 2;

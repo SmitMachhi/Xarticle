@@ -156,16 +156,12 @@ function App() {
             <a href="#how-it-works">How it works</a>
             <a href="#faq">FAQ</a>
           </nav>
-          <div className="panda-powered">
-            <img src={pandaWave} alt="" />
-            <span>Powered by Panda</span>
-          </div>
         </div>
       </header>
 
       <main className="content-wrap" id="main-content">
         <section className="hero-shell">
-          <p className="hero-kicker">No login. No backend.</p>
+          <p className="hero-kicker">No login required.</p>
           <h1 className="hero-title">Paste one X link. Export instantly.</h1>
           <p className="hero-copy">
             Built for speed and clarity. Works with public X posts and long-form article URLs in modern browsers.
@@ -237,7 +233,6 @@ function App() {
                   {downloadState === 'markdown' ? 'Generating...' : 'Download for LLMs (Markdown)'}
                 </button>
               </div>
-              <p className="download-note">PDF for print readers. Markdown for AI/LLM processing.</p>
             </section>
           </aside>
         </section>
