@@ -245,7 +245,7 @@ select {
 }
 
 .hero-shell {
-  padding: 1.15rem 1.3rem 1.3rem;
+  padding: 0.8rem 1rem 0.9rem;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background:
@@ -256,8 +256,8 @@ select {
 
 .hero-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(220px, 0.9fr);
-  gap: 0.9rem;
+  grid-template-columns: minmax(0, 1.45fr) minmax(180px, 0.75fr);
+  gap: 0.55rem;
   align-items: center;
 }
 
@@ -282,10 +282,10 @@ select {
 }
 
 .hero-copy {
-  margin: 0.65rem 0 0;
+  margin: 0.38rem 0 0;
   max-width: none;
   color: var(--muted);
-  font-size: 1rem;
+  font-size: 0.96rem;
   line-height: 1.45;
   white-space: nowrap;
 }
@@ -536,7 +536,7 @@ button:disabled {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 200px;
+  min-height: 150px;
   padding: 0;
   margin: 0 auto;
   position: relative;
@@ -545,8 +545,8 @@ button:disabled {
 }
 
 .panda-hero {
-  width: 210px;
-  height: 210px;
+  width: 168px;
+  height: 168px;
   object-fit: contain;
   image-rendering: pixelated;
   animation: panda-bob 1.35s ease-in-out infinite;
@@ -1057,12 +1057,12 @@ button:disabled {
   }
 
   .panda-guide {
-    min-height: 180px;
+    min-height: 150px;
   }
 
   .panda-hero {
-    width: 165px;
-    height: 165px;
+    width: 140px;
+    height: 140px;
   }
 
   .metric-grid {
