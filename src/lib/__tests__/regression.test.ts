@@ -72,7 +72,7 @@ describe('pdf definition regression', () => {
     expect(collectTexts(doc.content)).not.toContain('Extracted via public status parser.')
 
     const footerText = typeof doc.footer === 'function' ? collectTexts(doc.footer(1, 2, {} as never)) : []
-    expect(footerText).toContain('Xarticle.app')
+    expect(footerText).toContain('Xarticle.co')
   })
 
   it('promotes the cover image to the cover page top when enabled', async () => {

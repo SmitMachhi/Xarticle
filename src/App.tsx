@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
+import pandaFaceIcon from './assets/panda-face-nobg.png'
 import pandaSeriousGear from './assets/panda_pose_serious_gear.png'
 import pandaWave from './assets/panda_pose_wave.png'
 import pandaWinkHeart from './assets/panda_pose_wink_heart.png'
@@ -11,7 +12,7 @@ import { downloadArticlePdf } from './lib/pdfExport'
 import { classifyInputUrl } from './lib/xUrl'
 import type { ExtractedArticle, MarginPreset, PaperSize } from './types/article'
 
-const APP_NAME = 'Xarticle.app'
+const APP_NAME = 'Xarticle.co'
 const HOW_IT_WORKS = [
   'Paste one public X status URL or long-form article URL.',
   'Preview the extracted content in your browser.',
@@ -226,7 +227,7 @@ function App() {
       </a>
       <header className="site-header">
         <div className="brand-block">
-          <img className="brand-icon" src="/panda-head.svg" alt="" aria-hidden="true" />
+          <img className="brand-icon" src={pandaFaceIcon} alt="" aria-hidden="true" />
           <div className="brand-copy">
             <p className="brand-name">{APP_NAME}</p>
             <div className="brand-meta">

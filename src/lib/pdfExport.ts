@@ -360,7 +360,7 @@ export const buildArticlePdfDefinition = async (
   const coverPage: Content = {
     stack: [
       ...coverMediaContent,
-      { text: 'Xarticle.app', style: 'coverBadge', margin: [0, 4, 0, 16] },
+      { text: 'Xarticle.co', style: 'coverBadge', margin: [0, 4, 0, 16] },
       { text: article.title, style: 'coverTitle', margin: [0, 0, 0, 12] },
       {
         columns: [
@@ -424,7 +424,7 @@ export const buildArticlePdfDefinition = async (
     pageMargins: marginMap[opts.marginPreset],
     content,
     footer: () => ({
-      text: 'Xarticle.app',
+      text: 'Xarticle.co',
       alignment: 'left',
       margin: [24, 0, 0, 12],
       fontSize: 8,
@@ -438,8 +438,8 @@ export const buildArticlePdfDefinition = async (
       title: article.title,
       author: article.authorName,
       subject: 'X Long-form Article Export',
-      creator: 'Xarticle.app',
-      producer: 'Xarticle.app',
+      creator: 'Xarticle.co',
+      producer: 'Xarticle.co',
     },
   }
 }
