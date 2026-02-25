@@ -504,6 +504,9 @@ button:disabled {
 }
 
 .panda-guide {
+  appearance: none;
+  border: 0;
+  background: transparent;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -512,6 +515,7 @@ button:disabled {
   margin: 0 auto;
   position: relative;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .panda-hero {

@@ -46,6 +46,7 @@ function App() {
   const [error, setError] = useState<string | null>(null)
   const [downloadState, setDownloadState] = useState<'idle' | 'pdf' | 'markdown'>('idle')
   const [celebratePanda, setCelebratePanda] = useState(false)
+  const [manualMascotIndex, setManualMascotIndex] = useState<number | null>(null)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -64,26 +65,26 @@ function App() {
     window.setTimeout(() => setCelebratePanda(false), 900)
   }
 
-  const mascotState = useMemo(() => {
+  const mascotVariants = [pandaWave, pandaWrench, pandaSeriousGear, pandaWinkHeart] as const
+  const defaultMascotIndex = useMemo(() => {
     if (loading) {
-      return {
-        src: pandaWrench,
-      }
+      return 1
     }
     if (error) {
-      return {
-        src: pandaSeriousGear,
-      }
+      return 2
     }
     if (article) {
-      return {
-        src: pandaWinkHeart,
-      }
+      return 3
     }
-    return {
-      src: pandaWave,
-    }
+    return 0
   }, [article, error, loading])
+
+  const mascotIndex = manualMascotIndex ?? defaultMascotIndex
+  const mascotSrc = mascotVariants[mascotIndex]
+
+  const cycleMascot = () => {
+    setManualMascotIndex((prev) => ((prev ?? defaultMascotIndex) + 1) % mascotVariants.length)
+  }
 
   const loadArticle = async () => {
     setLoading(true)
@@ -186,9 +187,12 @@ function App() {
             </div>
 
             <div className="hero-mascot-wrap">
-              <div
+              <button
+                type="button"
                 className={`panda-guide ${loading ? 'is-loading' : ''} ${canDownload ? 'is-ready' : ''} ${celebratePanda ? 'is-celebrating' : ''}`}
                 aria-live="polite"
+                aria-label="Cycle panda mascot"
+                onClick={cycleMascot}
               >
                 <span className="sparkle sparkle-a" aria-hidden="true">
                   ✦
@@ -196,10 +200,10 @@ function App() {
                 <span className="sparkle sparkle-b" aria-hidden="true">
                   ✦
                 </span>
-                <img className="panda-hero" src={mascotState.src} alt="Panda mascot" />
+                <img className="panda-hero" src={mascotSrc} alt="Panda mascot" />
                 <span className="orbit orbit-a" aria-hidden="true" />
                 <span className="orbit orbit-b" aria-hidden="true" />
-              </div>
+              </button>
             </div>
           </div>
         </section>
