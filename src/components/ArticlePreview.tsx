@@ -158,8 +158,14 @@ export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaSty
         ) : null}
 
         <div className="article-tools">
-          <button type="button" className={`article-copy-btn ${copyState === 'failed' ? 'is-failed' : ''}`} onClick={copyText}>
-            {copyState === 'copied' ? 'Copied' : copyState === 'failed' ? 'Copy failed' : 'Copy text'}
+          <button
+            type="button"
+            className={`article-copy-btn ${copyState === 'failed' ? 'is-failed' : ''}`}
+            onClick={copyText}
+            aria-label={copyState === 'copied' ? 'Copied' : copyState === 'failed' ? 'Copy failed' : 'Copy text'}
+            title={copyState === 'copied' ? 'Copied' : copyState === 'failed' ? 'Copy failed' : 'Copy text'}
+          >
+            {copyState === 'copied' ? '✓' : '⧉'}
           </button>
         </div>
 

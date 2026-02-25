@@ -840,13 +840,17 @@ button:disabled {
 
 .article-copy-btn {
   min-height: 34px;
-  border-radius: 999px;
+  min-width: 34px;
+  border-radius: 10px;
   border: 1px solid #bbd8c7;
   background: #ecf9f1;
   color: #255c3f;
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 700;
-  padding: 0.2rem 0.75rem;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  line-height: 1;
 }
 
 .article-copy-btn:hover:enabled {
