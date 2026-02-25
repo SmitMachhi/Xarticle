@@ -48,10 +48,12 @@ function App() {
   const [downloadState, setDownloadState] = useState<'idle' | 'pdf' | 'markdown'>('idle')
   const [celebratePanda, setCelebratePanda] = useState(false)
   const [manualMascotIndex, setManualMascotIndex] = useState<number | null>(null)
-  const [inlineNotice, setInlineNotice] = useState<string | null>(null)
+  const [markdownNotice, setMarkdownNotice] = useState<string | null>(null)
+  const [markdownNoticeLeaving, setMarkdownNoticeLeaving] = useState(false)
   const [edgeNudge, setEdgeNudge] = useState(0)
   const edgeNudgeResetTimerRef = useRef<number | null>(null)
-  const inlineNoticeTimerRef = useRef<number | null>(null)
+  const markdownNoticeHideTimerRef = useRef<number | null>(null)
+  const markdownNoticeClearTimerRef = useRef<number | null>(null)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -70,15 +72,24 @@ function App() {
     window.setTimeout(() => setCelebratePanda(false), 900)
   }
 
-  const showInlineNotice = (message: string) => {
-    setInlineNotice(message)
-    if (inlineNoticeTimerRef.current !== null) {
-      window.clearTimeout(inlineNoticeTimerRef.current)
+  const showMarkdownNotice = (message: string) => {
+    setMarkdownNotice(message)
+    setMarkdownNoticeLeaving(false)
+    if (markdownNoticeHideTimerRef.current !== null) {
+      window.clearTimeout(markdownNoticeHideTimerRef.current)
     }
-    inlineNoticeTimerRef.current = window.setTimeout(() => {
-      setInlineNotice(null)
-      inlineNoticeTimerRef.current = null
-    }, 5200)
+    if (markdownNoticeClearTimerRef.current !== null) {
+      window.clearTimeout(markdownNoticeClearTimerRef.current)
+    }
+    markdownNoticeHideTimerRef.current = window.setTimeout(() => {
+      setMarkdownNoticeLeaving(true)
+      markdownNoticeHideTimerRef.current = null
+    }, 3900)
+    markdownNoticeClearTimerRef.current = window.setTimeout(() => {
+      setMarkdownNotice(null)
+      setMarkdownNoticeLeaving(false)
+      markdownNoticeClearTimerRef.current = null
+    }, 4300)
   }
 
   const mascotVariants = [pandaWave, pandaWrench, pandaSeriousGear, pandaWinkHeart] as const
@@ -158,8 +169,11 @@ function App() {
 
   useEffect(() => {
     return () => {
-      if (inlineNoticeTimerRef.current !== null) {
-        window.clearTimeout(inlineNoticeTimerRef.current)
+      if (markdownNoticeHideTimerRef.current !== null) {
+        window.clearTimeout(markdownNoticeHideTimerRef.current)
+      }
+      if (markdownNoticeClearTimerRef.current !== null) {
+        window.clearTimeout(markdownNoticeClearTimerRef.current)
       }
     }
   }, [])
@@ -222,7 +236,7 @@ function App() {
         const assetSummary = result.assetsIncluded > 0 ? `${result.assetsIncluded} image file(s)` : 'no downloadable image files'
         const failureSummary =
           result.assetsFailed > 0 ? ` ${result.assetsFailed} media file(s) could not be bundled and remain linked online.` : ''
-        showInlineNotice(`Downloaded an offline Markdown ZIP because this article contains media. It includes article.md and ${assetSummary} in assets/.${failureSummary}`)
+        showMarkdownNotice(`Downloaded offline Markdown ZIP with article.md and ${assetSummary} in assets/.${failureSummary}`)
       }
       triggerCelebrate()
     } catch (err) {
@@ -255,14 +269,6 @@ function App() {
       <a className="skip-link" href="#main-content">
         Skip to main content
       </a>
-      {inlineNotice ? (
-        <aside className="inline-notice" role="status" aria-live="polite">
-          <p>{inlineNotice}</p>
-          <button className="inline-notice-close" onClick={() => setInlineNotice(null)} aria-label="Dismiss message">
-            OK
-          </button>
-        </aside>
-      ) : null}
       <header className="site-header">
         <div className="brand-block">
           <img className="brand-icon" src={pandaFaceIcon} alt="" aria-hidden="true" />
@@ -376,6 +382,15 @@ function App() {
                 <button className="btn-muted" onClick={downloadMarkdown} disabled={!canDownload}>
                   {downloadState === 'markdown' ? 'Generating...' : 'Download for LLMs (Markdown)'}
                 </button>
+                {markdownNotice ? (
+                  <p
+                    className={`markdown-notice ${markdownNoticeLeaving ? 'is-leaving' : 'is-entering'}`}
+                    role="status"
+                    aria-live="polite"
+                  >
+                    {markdownNotice}
+                  </p>
+                ) : null}
               </div>
             </section>
           </aside>
