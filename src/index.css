@@ -77,11 +77,6 @@ html,
 body,
 #root {
   min-height: 100%;
-  height: 100%;
-}
-
-html {
-  background: linear-gradient(180deg, #76c7e8 0%, #9ad8ef 34%, var(--bg) 72%);
 }
 
 body {
@@ -92,6 +87,15 @@ body {
   font-family: var(--font-body);
   font-size: clamp(16px, 0.92rem + 0.15vw, 17px);
   line-height: 1.5;
+}
+
+html {
+  background: #76c7e8;
+}
+
+html,
+body {
+  overscroll-behavior-y: none;
 }
 
 a {
