@@ -51,17 +51,6 @@
   }
 }
 
-@keyframes text-swap-in {
-  from {
-    opacity: 0;
-    transform: translateY(3px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 @keyframes sparkle-burst {
   0% {
     opacity: 0;
@@ -76,14 +65,14 @@
   }
 }
 
-@keyframes dot-ready {
+@keyframes orbit-drift {
   0%,
   100% {
-    transform: scale(1);
-    opacity: 0.65;
+    transform: translate(0, 0);
+    opacity: 0.5;
   }
   50% {
-    transform: scale(1.2);
+    transform: translate(4px, -5px);
     opacity: 1;
   }
 }
@@ -324,26 +313,6 @@ select {
   color: #1f3e2d;
 }
 
-.section-title-with-dot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.live-dot {
-  width: 0.62rem;
-  height: 0.62rem;
-  border-radius: 999px;
-  background: #9cb8a5;
-  opacity: 0.45;
-}
-
-.live-dot.is-ready {
-  background: #1f9d5b;
-  opacity: 1;
-  animation: dot-ready 1s ease-in-out infinite;
-}
-
 .section-subtitle {
   margin: 0;
   color: #65766a;
@@ -526,13 +495,13 @@ button:disabled {
 }
 
 .panda-guide {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
+  display: grid;
+  place-items: center;
   border: 1px solid #c8dccc;
   border-radius: 12px;
   background: #f6fbf7;
   padding: 0.72rem;
+  min-height: 118px;
   position: relative;
   overflow: hidden;
   transition: border-color 120ms ease, background-color 120ms ease;
@@ -572,7 +541,7 @@ button:disabled {
 }
 
 .panda-guide:hover .panda-avatar-wrap {
-  transform: translateX(4px) translateY(-2px);
+  transform: translateY(-2px) scale(1.03);
 }
 
 .panda-guide.is-ready {
@@ -605,38 +574,26 @@ button:disabled {
   animation: sparkle-burst 700ms ease-out 80ms;
 }
 
-.text-swap {
-  animation: text-swap-in 160ms ease-out both;
+.orbit {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #2bb56a;
+  opacity: 0.55;
 }
 
-.panda-guide-title,
-.panda-guide-status,
-.panda-guide-copy {
-  margin: 0;
+.orbit-a {
+  right: -4px;
+  top: 6px;
+  animation: orbit-drift 1.1s ease-in-out infinite;
 }
 
-.panda-guide-title {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #396349;
-}
-
-.panda-guide-status {
-  margin-top: 0.12rem;
-  font-size: 0.96rem;
-  font-weight: 700;
-  color: #214634;
-}
-
-.panda-guide-copy {
-  margin-top: 0.1rem;
-  font-size: 0.88rem;
-  color: #5f7668;
-}
-
-.helper-card h2 {
-  margin: 0.95rem 0 0;
-  font-size: 1.02rem;
+.orbit-b {
+  left: -3px;
+  bottom: 7px;
+  background: #88d2a9;
+  animation: orbit-drift 1.1s ease-in-out infinite 120ms;
 }
 
 .preview-band {

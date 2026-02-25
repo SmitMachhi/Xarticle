@@ -68,28 +68,20 @@ function App() {
     if (loading) {
       return {
         src: pandaWrench,
-        label: 'Working on it',
-        copy: 'Pulling text blocks and metadata from the link.',
       }
     }
     if (error) {
       return {
         src: pandaSeriousGear,
-        label: 'Need a fix',
-        copy: 'Try a different public URL or use companion extension mode.',
       }
     }
     if (article) {
       return {
         src: pandaWinkHeart,
-        label: 'Ready to export',
-        copy: 'Preview looks good. Pick format and download.',
       }
     }
     return {
       src: pandaWave,
-      label: 'Drop a link',
-      copy: 'Paste any public X post or article to begin.',
     }
   }, [article, error, loading])
 
@@ -212,21 +204,14 @@ function App() {
                 ✦
               </span>
               <div className="panda-avatar-wrap">
-                <img src={mascotState.src} alt="Panda assistant" />
-              </div>
-              <div>
-                <p className="panda-guide-title">Panda assistant</p>
-                <p key={mascotState.label} className="panda-guide-status text-swap">
-                  {mascotState.label}
-                </p>
-                <p key={mascotState.copy} className="panda-guide-copy text-swap">
-                  {mascotState.copy}
-                </p>
+                <img src={mascotState.src} alt="Panda mascot" />
+                <span className="orbit orbit-a" aria-hidden="true" />
+                <span className="orbit orbit-b" aria-hidden="true" />
               </div>
             </div>
 
             <section className="section-block">
-              <h2 className="section-title">Export Settings</h2>
+              <h2 className="section-title">PDF Export Settings</h2>
               <div className="option-grid">
                 <label>
                   Paper Size
@@ -248,17 +233,16 @@ function App() {
                   </span>
                 </label>
               </div>
-            </section>
-
-            <section className="section-block">
-              <h2 className="section-title section-title-with-dot">
-                Download
-                <span className={`live-dot ${canDownload ? 'is-ready' : ''}`} aria-hidden="true" />
-              </h2>
               <div className="button-row">
                 <button className="btn-primary" onClick={downloadPdf} disabled={!canDownload}>
                   {downloadState === 'pdf' ? 'Generating...' : 'Download for Humans (PDF)'}
                 </button>
+              </div>
+            </section>
+
+            <section className="section-block">
+              <h2 className="section-title">Markdown Export</h2>
+              <div className="button-row">
                 <button className="btn-muted" onClick={downloadMarkdown} disabled={!canDownload}>
                   {downloadState === 'markdown' ? 'Generating...' : 'Download for LLMs (Markdown)'}
                 </button>
