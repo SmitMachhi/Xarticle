@@ -17,10 +17,6 @@ const HOW_IT_WORKS = [
   'Preview the extracted content in your browser.',
   'Download PDF for people or Markdown for LLM workflows.',
 ]
-const EXAMPLE_LINKS = [
-  'https://x.com/elonmusk/status/1890196671229270196',
-  'https://x.com/OpenAI/status/1889706166405652562',
-]
 
 const FAQ_ITEMS = [
   {
@@ -142,10 +138,6 @@ function App() {
     }
   }
 
-  const applyExample = (value: string) => {
-    setUrlInput(value)
-  }
-
   const pasteFromClipboard = async () => {
     try {
       if (!navigator.clipboard?.readText) {
@@ -186,75 +178,63 @@ function App() {
 
       <main className="content-wrap" id="main-content">
         <section className="hero-shell">
-          <p className="hero-kicker">No login required.</p>
-          <h1 className="hero-title">Paste one X link. Export instantly.</h1>
-          <p className="hero-copy">Fast exports for public X posts and long-form article URLs.</p>
+          <div className="hero-layout">
+            <div className="hero-copy-block">
+              <p className="hero-kicker">No login required.</p>
+              <h1 className="hero-title">Paste one X link. Export instantly.</h1>
+              <p className="hero-copy">Fast exports for public X posts and long-form article URLs.</p>
+            </div>
+
+            <div className="hero-mascot-wrap">
+              <div
+                className={`panda-guide ${loading ? 'is-loading' : ''} ${canDownload ? 'is-ready' : ''} ${celebratePanda ? 'is-celebrating' : ''}`}
+                aria-live="polite"
+              >
+                <span className="sparkle sparkle-a" aria-hidden="true">
+                  ✦
+                </span>
+                <span className="sparkle sparkle-b" aria-hidden="true">
+                  ✦
+                </span>
+                <img className="panda-hero" src={mascotState.src} alt="Panda mascot" />
+                <span className="orbit orbit-a" aria-hidden="true" />
+                <span className="orbit orbit-b" aria-hidden="true" />
+              </div>
+            </div>
+          </div>
         </section>
 
         <section className="workbench">
-          <div className="left-stack">
-            <section className="controls-panel app-card">
-              <section className="section-block">
-                <h2 className="section-title">Paste URL</h2>
-                <label htmlFor="url">X URL</label>
-                <div className="row">
-                  <input
-                    id="url"
-                    type="text"
-                    placeholder="https://x.com/<handle>/status/... or /i/articles/..."
-                    value={urlInput}
-                    onChange={(event) => setUrlInput(event.target.value)}
-                  />
-                  <button className="btn-primary" onClick={loadArticle} disabled={!canLoad}>
-                    {loading ? 'Loading...' : 'Load Article'}
-                  </button>
-                </div>
-                {urlClassification.kind !== 'empty' ? (
-                  <p className={`url-status url-status-${urlClassification.kind}`} aria-live="polite">
-                    {urlClassification.reason}
-                  </p>
-                ) : null}
-              </section>
-            </section>
-
-            <section className="app-card quick-tools">
-              <h3>Quick Fill</h3>
-              <div className="chip-grid">
-                {EXAMPLE_LINKS.map((link) => (
-                  <button key={link} className="chip-button" onClick={() => applyExample(link)}>
-                    {link}
-                  </button>
-                ))}
+          <section className="controls-panel app-card">
+            <section className="section-block">
+              <h2 className="section-title">Paste URL</h2>
+              <label htmlFor="url">X URL</label>
+              <div className="row">
+                <input
+                  id="url"
+                  type="text"
+                  placeholder="https://x.com/<handle>/status/... or /i/articles/..."
+                  value={urlInput}
+                  onChange={(event) => setUrlInput(event.target.value)}
+                />
+                <button className="btn-primary" onClick={loadArticle} disabled={!canLoad}>
+                  {loading ? 'Loading...' : 'Load Article'}
+                </button>
               </div>
               <div className="mini-action-row">
-                <button className="btn-muted" onClick={pasteFromClipboard}>
+                <button className="btn-muted btn-clipboard" onClick={pasteFromClipboard}>
                   Paste from Clipboard
                 </button>
               </div>
-              <ul className="micro-how">
-                <li>Paste or tap an example link.</li>
-                <li>Click Load Article.</li>
-                <li>Export PDF or Markdown.</li>
-              </ul>
+              {urlClassification.kind !== 'empty' ? (
+                <p className={`url-status url-status-${urlClassification.kind}`} aria-live="polite">
+                  {urlClassification.reason}
+                </p>
+              ) : null}
             </section>
-          </div>
+          </section>
 
           <aside className="app-card helper-card export-panel">
-            <div
-              className={`panda-guide ${loading ? 'is-loading' : ''} ${canDownload ? 'is-ready' : ''} ${celebratePanda ? 'is-celebrating' : ''}`}
-              aria-live="polite"
-            >
-              <span className="sparkle sparkle-a" aria-hidden="true">
-                ✦
-              </span>
-              <span className="sparkle sparkle-b" aria-hidden="true">
-                ✦
-              </span>
-              <img className="panda-hero" src={mascotState.src} alt="Panda mascot" />
-              <span className="orbit orbit-a" aria-hidden="true" />
-              <span className="orbit orbit-b" aria-hidden="true" />
-            </div>
-
             <section className="section-block">
               <h2 className="section-title">PDF Export Settings</h2>
               <div className="option-grid">

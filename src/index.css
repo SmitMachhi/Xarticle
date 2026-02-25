@@ -215,6 +215,23 @@ select {
   box-shadow: var(--shadow);
 }
 
+.hero-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(220px, 0.9fr);
+  gap: 0.9rem;
+  align-items: center;
+}
+
+.hero-copy-block {
+  min-width: 0;
+}
+
+.hero-mascot-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .hero-kicker {
   margin: 0;
   display: inline-block;
@@ -253,12 +270,6 @@ select {
   grid-template-columns: minmax(0, 1.7fr) minmax(340px, 1fr);
   gap: 1.05rem;
   align-items: start;
-}
-
-.left-stack {
-  display: grid;
-  gap: 1rem;
-  align-content: start;
 }
 
 .app-card {
@@ -464,76 +475,16 @@ button:disabled {
   color: #a43d4e;
 }
 
-.quick-tools {
-  position: relative;
-  padding: 1rem 1.1rem;
-  overflow: hidden;
-  background:
-    radial-gradient(12rem 7rem at 86% 20%, rgba(109, 199, 148, 0.16) 0%, transparent 66%),
-    color-mix(in srgb, var(--surface) 97%, #eef6f1 3%);
-}
-
-.quick-tools h3 {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 1rem;
-  color: #1f3f2d;
-}
-
-.chip-grid {
-  margin-top: 0.68rem;
-  display: grid;
-  gap: 0.48rem;
-}
-
-.chip-button {
-  min-height: 40px;
-  border-radius: 999px;
-  text-align: left;
-  padding: 0.5rem 0.8rem;
-  border: 1px solid #bdd8c5;
-  background: #f4fbf7;
-  color: #27533b;
-  font-size: 0.82rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.chip-button:hover {
-  background: #eaf6ef;
-}
-
 .mini-action-row {
-  margin-top: 0.58rem;
+  margin-top: 0.4rem;
   display: flex;
   gap: 0.5rem;
 }
 
-.micro-how {
-  margin: 0.72rem 0 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 0.42rem;
-}
-
-.micro-how li {
-  position: relative;
-  padding-left: 1rem;
-  font-size: 0.85rem;
-  color: #4b6557;
-}
-
-.micro-how li::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0.5rem;
-  width: 0.34rem;
-  height: 0.34rem;
-  border-radius: 999px;
-  background: #26a461;
+.btn-clipboard {
+  width: fit-content;
+  min-height: 40px;
+  padding: 0.45rem 0.85rem;
 }
 
 .helper-card {
@@ -552,18 +503,13 @@ button:disabled {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.export-panel .section-block {
-  border-top: 1px solid #dfe9ee;
-  padding-top: 0.9rem;
-}
-
 .panda-guide {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 220px;
+  min-height: 200px;
   padding: 0;
-  margin: 0 auto 0.3rem;
+  margin: 0 auto;
   position: relative;
   overflow: hidden;
 }
@@ -981,6 +927,10 @@ button:disabled {
 }
 
 @media (max-width: 980px) {
+  .hero-layout {
+    grid-template-columns: 1fr;
+  }
+
   .workbench,
   .info-grid {
     grid-template-columns: 1fr;
