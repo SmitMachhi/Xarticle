@@ -189,15 +189,24 @@ function App() {
     }
   }
 
-  const downloadMarkdown = () => {
+  const downloadMarkdown = async () => {
     if (!article) {
       return
     }
 
     setDownloadState('markdown')
     try {
-      downloadArticleMarkdown(article)
+      const result = await downloadArticleMarkdown(article)
+      if (result.format === 'zip') {
+        const assetSummary = result.assetsIncluded > 0 ? `${result.assetsIncluded} image file(s)` : 'no downloadable image files'
+        const failureSummary =
+          result.assetsFailed > 0 ? ` ${result.assetsFailed} media file(s) could not be bundled and remain linked online.` : ''
+        window.alert(`Downloaded an offline Markdown ZIP because this article contains media. It includes article.md and ${assetSummary} in assets/.${failureSummary}`)
+      }
       triggerCelebrate()
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Markdown generation failed.'
+      setError(message)
     } finally {
       setDownloadState('idle')
     }
