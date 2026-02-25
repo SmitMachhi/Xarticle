@@ -1,0 +1,228 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e7]:
+      - paragraph [ref=e8]: Xarticle.app
+      - paragraph [ref=e9]: Calm exports for public X articles and statuses.
+    - generic [ref=e10]:
+      - navigation [ref=e11]:
+        - link "How it works" [ref=e12] [cursor=pointer]:
+          - /url: "#how-it-works"
+        - link "FAQ" [ref=e13] [cursor=pointer]:
+          - /url: "#faq"
+      - generic [ref=e15]: Powered by Panda
+  - main [ref=e16]:
+    - generic [ref=e17]:
+      - paragraph [ref=e18]: No login. No backend. No clutter.
+      - heading "Paste one X link. Export a clean, print-ready file." [level=1] [ref=e19]
+      - paragraph [ref=e20]: Built for speed and clarity. Works with public X posts and long-form article URLs in modern browsers, with a friendly panda helper guiding each step.
+    - generic [ref=e21]:
+      - generic [ref=e22]:
+        - generic [ref=e23]: X URL
+        - generic [ref=e24]:
+          - textbox "X URL" [ref=e25]:
+            - /placeholder: https://x.com/<handle>/status/... or /i/articles/...
+            - text: https://x.com/elvissun/status/2025920521871716562
+          - button "Load Article" [ref=e26] [cursor=pointer]
+        - paragraph [ref=e27]: Detected status URL.
+        - generic [ref=e29]:
+          - paragraph [ref=e30]: Ready to export
+          - paragraph [ref=e31]: Preview looks good. Pick format and download.
+        - generic [ref=e32]:
+          - generic [ref=e33]:
+            - text: Paper
+            - combobox "Paper" [ref=e34]:
+              - option "A4" [selected]
+              - option "Letter"
+          - generic [ref=e35]:
+            - text: Margin
+            - combobox "Margin" [ref=e36]:
+              - option "Default" [selected]
+              - option "Minimum"
+          - generic [ref=e37]:
+            - text: Preview
+            - combobox "Preview" [ref=e38]:
+              - option "Color" [selected]
+              - option "B/W"
+          - generic [ref=e39]:
+            - text: Cover Page
+            - combobox "Cover Page" [ref=e40]:
+              - option "Always On" [selected]
+              - option "Off"
+          - generic [ref=e41]:
+            - text: Cover Meta
+            - combobox "Cover Meta" [ref=e42]:
+              - option "Full" [selected]
+              - option "Minimal"
+        - generic [ref=e43]:
+          - button "Download Color PDF" [ref=e44] [cursor=pointer]
+          - button "Download B/W PDF" [ref=e45] [cursor=pointer]
+          - button "Download Markdown" [ref=e46] [cursor=pointer]
+        - paragraph [ref=e47]: Public links only. Companion extension mode improves extraction reliability.
+      - complementary [ref=e48]:
+        - heading "How it works" [level=2] [ref=e49]
+        - list [ref=e50]:
+          - listitem [ref=e51]: Paste one public X status URL or long-form article URL.
+          - listitem [ref=e52]: Preview the extracted content in your browser.
+          - listitem [ref=e53]: Download Color PDF, B/W PDF, or Markdown instantly.
+    - generic [ref=e55]:
+      - heading "Preview" [level=2] [ref=e56]
+      - generic [ref=e78]:
+        - article [ref=e79]:
+          - figure "Cover image" [ref=e80]:
+            - img "Cover image" [ref=e81]
+            - generic [ref=e82]: Cover image
+          - generic [ref=e83]:
+            - generic [ref=e84]: Xarticle.app
+            - 'heading "OpenClaw + Codex/ClaudeCode Agent Swarm: The One-Person Dev Team [Full Setup]" [level=1] [ref=e85]'
+            - generic [ref=e86]:
+              - img "Elvis avatar" [ref=e87]
+              - generic [ref=e88]:
+                - generic [ref=e89]: Elvis
+                - generic [ref=e90]: "@elvissun • 2/23/2026, 8:07:46 AM"
+            - link "https://x.com/elvissun/status/2025920521871716562" [ref=e91] [cursor=pointer]:
+              - /url: https://x.com/elvissun/status/2025920521871716562
+          - region "cover metrics" [ref=e92]:
+            - generic [ref=e93]:
+              - generic [ref=e94]: Likes
+              - strong [ref=e95]: 7,135
+            - generic [ref=e96]:
+              - generic [ref=e97]: Replies
+              - strong [ref=e98]: "224"
+            - generic [ref=e99]:
+              - generic [ref=e100]: Reposts
+              - strong [ref=e101]: "818"
+            - generic [ref=e102]:
+              - generic [ref=e103]: Views
+              - strong [ref=e104]: 2,522,315
+            - generic [ref=e105]:
+              - generic [ref=e106]: Bookmarks
+              - strong [ref=e107]: 21,916
+        - article [ref=e108]:
+          - generic [ref=e109]:
+            - paragraph [ref=e110]: I don't use Codex or Claude Code directly anymore.
+            - paragraph [ref=e111]: I use OpenClaw as my orchestration layer. My orchestrator, Zoe, spawns the agents, writes their prompts, picks the right model for each task, monitors progress, and pings me on Telegram when PRs are ready to merge.
+            - paragraph [ref=e112]: "Proof points from the last 4 weeks:"
+            - paragraph [ref=e113]: "- 94 commits in one day. My most productive day - I had 3 client calls and didn't open my editor once. The average is around 50 commits a day."
+            - paragraph [ref=e114]: "- 7 PRs in 30 minutes. Idea to production are blazing fast because coding and validations are mostly automated."
+            - paragraph [ref=e115]: "- Commits → MRR: I use this for a real B2B SaaS I'm building — bundling it with founder-led sales to deliver most feature requests same-day. Speed converts leads into paying customers."
+            - paragraph [ref=e116]: My git history looks like I just hired a dev team. In reality it's just me going from managing claude code, to managing an openclaw agent that manages a fleet of other claude code and codex agents.
+            - paragraph [ref=e117]: "Success rate: The system one-shots almost all small to medium tasks without any intervention."
+            - paragraph [ref=e118]: "Cost: ~$100/month for Claude and $90/month for Codex, but you can start with $20."
+            - paragraph [ref=e119]: "Here's why this works better than using Codex or Claude Code directly:"
+            - paragraph [ref=e120]: ">Codex and Claude Code have very little context about your business."
+            - paragraph [ref=e121]: They see code. They don't see the full picture of your business.
+            - paragraph [ref=e122]: OpenClaw changes the equation. It acts as the orchestration layer between you and all agents — it holds all my business context (customer data, meeting notes, past decisions, what worked, what failed) inside my Obsidian vault, and translates historical context into precise prompts for each coding agent. The agents stay focused on code. The orchestrator stays at the high strategy level.
+            - paragraph [ref=e123]: "Here's how the system works at a high level:"
+            - paragraph [ref=e124]: Last week Stripe wrote about their background agent system called "Minions" — parallel coding agents backed by a centralized orchestration layer. I accidentally built the same thing but it runs locally on my Mac mini.
+            - paragraph [ref=e125]: Before I tell you how to set this up, you should know WHY you need an agent orchestrator.
+            - heading "Why One AI Can't Do Both" [level=3] [ref=e126]
+            - paragraph [ref=e127]: Context windows are zero-sum. You have to choose what goes in.
+            - paragraph [ref=e128]: "Fill it with code → no room for business context. Fill it with customer history → no room for the codebase. This is why the two-tier system works: each AI is loaded with exactly what it needs."
+            - paragraph [ref=e129]: "OpenClaw and Codex have drastically different context:"
+            - paragraph [ref=e130]: Specialization through context, not through different models.
+            - heading "The Full 8-step Workflow" [level=3] [ref=e131]
+            - paragraph [ref=e132]: Let me walk through a real example from last week.
+            - paragraph [ref=e133]: "Step 1: Customer Request → Scoping with Zoe"
+            - paragraph [ref=e134]: I had a call with an agency customer. They wanted to reuse configurations they've already set up across the team.
+            - paragraph [ref=e135]: After the call, I talked through the request with Zoe. Because all my meeting notes sync automatically to my obsidian vault, zero explanation was needed on my end. We scoped out the feature together — and landed on a template system that lets them save and edit their existing configurations.
+            - paragraph [ref=e136]: "Then Zoe does three things:"
+            - list [ref=e137]:
+              - listitem [ref=e138]: Tops up credits to unblock customer immediately — she has admin API access
+              - listitem [ref=e139]: Pulls customer config from prod database — she has read-only prod DB access (my codex agents will never have this) to retrieve their existing setup, which gets included in the prompt
+              - listitem [ref=e140]: Spawns a Codex agent — with a detailed prompt containing all the context
+            - paragraph [ref=e141]: "Step 2: Spawn the Agent"
+            - paragraph [ref=e142]: "Each agent gets its own worktree (isolated branch) and tmux session:"
+            - paragraph [ref=e143]: The agent runs in a tmux session with full terminal logging via a script.
+            - paragraph [ref=e144]: "Here's how we launch agents:"
+            - paragraph [ref=e145]: "I used to use codex exec or claude -p, but switch to tmux recently:"
+            - paragraph [ref=e146]: "tmux is far better because mid-task redirection is powerful. Agent going the wrong direction? Don't kill it:"
+            - paragraph [ref=e147]: "The task gets tracked in .clawdbot/active-tasks.json:"
+            - paragraph [ref=e148]: When complete, it updates with PR number and checks. (More on this in step 5)
+            - paragraph [ref=e149]: "Step 3: Monitoring in a loop"
+            - paragraph [ref=e150]: A cron job runs every 10 minutes to babysit all agents. This pretty much functions as an improved Ralph Loop, more on it later.
+            - paragraph [ref=e151]: "But it doesn't poll the agents directly — that would be expensive. Instead, it runs a script that reads the JSON registry and checks:"
+            - paragraph [ref=e152]: "The script is 100% deterministic and extremely token-efficient:"
+            - paragraph [ref=e153]: "- Checks if tmux sessions are alive - Checks for open PRs on tracked branches - Checks CI status via gh cli - Auto-respawns failed agents (max 3 attempts) if CI fails or critical review feedback - Only alerts if something needs human attention"
+            - paragraph [ref=e154]: I'm not watching terminals. The system tells me when to look.
+            - paragraph [ref=e155]: "Step 4: Agent Creates PR"
+            - paragraph [ref=e156]: "The agent commits, pushes, and opens a PR via `gh pr create --fill`. At this point I do NOT get notified — a PR alone isn't done."
+            - paragraph [ref=e157]: "Definition of done (very important your agent knows this):"
+            - paragraph [ref=e158]: "- PR created - Branch synced to main (no merge conflicts) - CI passing (lint, types, unit tests, E2E) - Codex review passed - Claude Code review passed - Gemini review passed - Screenshots included (if UI changes)"
+            - paragraph [ref=e159]: "Step 5: Automated Code Review"
+            - paragraph [ref=e160]: "Every PR gets reviewed by three AI models. They catch different things:"
+            - list [ref=e161]:
+              - listitem [ref=e162]: Codex Reviewer — Exceptional at edge cases. Does the most thorough review. Catches logic errors, missing error handling, race conditions. False positive rate is very low.
+              - listitem [ref=e163]: Gemini Code Assist Reviewer — Free and incredibly useful. Catches security issues, scalability problems other agents miss. And suggests specific fixes. No brainer to install.
+              - listitem [ref=e164]: Claude Code Reviewer — Mostly useless - tends to be overly cautious. Lots of "consider adding..." suggestions that are usually overengineering. I skip everything unless it's marked critical. It rarely finds critical issues on its own but validates what the other reviewers flag.
+            - paragraph [ref=e165]: All three post comments directly on the PR.
+            - paragraph [ref=e166]: "Step 6: Automated Testing"
+            - paragraph [ref=e167]: "Our CI pipeline runs a heavy amount of automated tests:"
+            - paragraph [ref=e168]: "- Lint and TypeScript checks - Unit tests - E2E tests - Playwright tests against a preview environment (identical to prod)"
+            - paragraph [ref=e169]: "I added a new rule last week: if the PR changes any UI, it must include a screenshot in the PR description. Otherwise CI fails. This dramatically shortens review time — I can see exactly what changed without clicking through the preview."
+            - paragraph [ref=e170]: "Step 7: Human Review"
+            - paragraph [ref=e171]: "Now I get the Telegram notification: \"PR #341 ready for review.\""
+            - paragraph [ref=e172]: "By this point:"
+            - paragraph [ref=e173]: "- CI passed - Three AI reviewers approved the code - Screenshots show the UI changes - All edge cases are documented in review comments"
+            - paragraph [ref=e174]: My review takes 5-10 minutes. Many PRs I merge without reading the code — the screenshot shows me everything I need.
+            - paragraph [ref=e175]: "Step 8: Merge"
+            - paragraph [ref=e176]: PR merges. A daily cron job cleans up orphaned worktrees and task registry json.
+            - heading "The Ralph Loop V2" [level=3] [ref=e177]
+            - paragraph [ref=e178]: This is essentially the Ralph Loop, but better.
+            - paragraph [ref=e179]: The Ralph Loop pulls context from memory, generate output, evaluate results, save learnings. But most implementations run the same prompt each cycle. The distilled learnings improve future retrievals, but the prompt itself stays static.
+            - paragraph [ref=e180]: "Our system is different. When an agent fails, Zoe doesn't just respawn it with the same prompt. She looks at the failure with full business context and figures out how to unblock it:"
+            - list [ref=e181]:
+              - listitem [ref=e182]: Agent ran out of context? "Focus only on these three files."
+              - listitem [ref=e183]: Agent went the wrong direction? "Stop. The customer wanted X, not Y. Here's what they said in the meeting."
+              - listitem [ref=e184]: Agent need clarification? "Here's customer's email and what their company does."
+            - paragraph [ref=e185]: Zoe babysits agents through to completion. She has context the agents don't — customer history, meeting notes, what we tried before, why it failed. She uses that context to write better prompts on each retry.
+            - paragraph [ref=e186]: "But she also doesn't wait for me to assign tasks. She finds work proactively:"
+            - list [ref=e187]:
+              - listitem [ref=e188]: "Morning: Scans Sentry → finds 4 new errors → spawns 4 agents to investigate and fix"
+              - listitem [ref=e189]: "After meetings: Scans meeting notes → flags 3 feature requests customers mentioned → spawns 3 Codex agents"
+              - listitem [ref=e190]: "Evening: Scans git log → spawns Claude Code to update changelog and customer docs"
+            - paragraph [ref=e191]: "I take a walk after a customer call. Come back to Telegram: \"7 PRs ready for review. 3 features, 4 bug fixes.\""
+            - paragraph [ref=e192]: When agents succeed, the pattern gets logged. "This prompt structure works for billing features." "Codex needs the type definitions upfront." "Always include the test file paths."
+            - paragraph [ref=e193]: "The reward signals are: CI passing, all three code reviews passing, human merge. Any failure triggers the loop. Over time, Zoe writes better prompts because she remembers what shipped."
+            - heading "Choosing the Right Agent" [level=3] [ref=e194]
+            - paragraph [ref=e195]: "Not all coding agents are equal. Quick reference:"
+            - paragraph [ref=e196]: Codex is my workhorse. Backend logic, complex bugs, multi-file refactors, anything that requires reasoning across the codebase. It's slower but thorough. I use it for 90% of tasks.
+            - paragraph [ref=e197]: Claude Code is faster and better at frontend work. It also has fewer permission issues, so it's great for git operations. (I used to use this more to drive day to day, but Codex 5.3 is simply better and faster now)
+            - paragraph [ref=e198]: Gemini has a different superpower — design sensibility. For beautiful UIs, I'll have Gemini generate an HTML/CSS spec first, then hand that to Claude Code to implement in our component system. Gemini designs, Claude builds.
+            - paragraph [ref=e199]: Zoe picks the right agent for each task and routes outputs between them. A billing system bug goes to Codex. A button style fix goes to Claude Code. A new dashboard design starts with Gemini.
+            - heading "How to Set This Up" [level=3] [ref=e200]
+            - paragraph [ref=e201]: "Copy this entire article into OpenClaw and tell it: \"Implement this agent swarm setup for my codebase.\""
+            - paragraph [ref=e202]: It'll read the architecture, create the scripts, set up the directory structure, and configure cron monitoring. Done in 10 minutes.
+            - paragraph [ref=e203]: No course to sell you.
+            - heading "The Bottleneck Nobody Expects" [level=3] [ref=e204]
+            - paragraph [ref=e205]: "Here's the ceiling I'm hitting right now: RAM."
+            - paragraph [ref=e206]: "Each agent needs its own worktree. Each worktree needs its own `node_modules`. Each agent runs builds, type checks, tests. Five agents running simultaneously means five parallel TypeScript compilers, five test runners, five sets of dependencies loaded into memory."
+            - paragraph [ref=e207]: My Mac Mini with 16GB tops out at 4-5 agents before it starts swapping — and I need to be lucky they don't try to build at the same time.
+            - paragraph [ref=e208]: So I bought a Mac Studio M4 max with 128GB RAM ($3,500) to power this system. It arrives end of March and I'll share if it's worth it.
+            - 'heading "Up Next: The One-Person Million-Dollar Company" [level=3] [ref=e209]'
+            - paragraph [ref=e210]: We're going to see a ton of one-person million-dollar companies starting in 2026. The leverage is massive for those who understand how to build recursively self-improving agents.
+            - paragraph [ref=e211]: "This is what it looks like: an AI orchestrator as an extension of yourself (like what Zoe is to me), delegating work to specialized agents that handle different business functions. Engineering. Customer support. Ops. Marketing. Each agent focused on what it's good at. You maintain laser focus and full control."
+            - paragraph [ref=e212]: The next generation of entrepreneurs won't hire a team of 10 to do what one person with the right system can do. They'll build like this — staying small, moving fast, shipping daily.
+            - paragraph [ref=e213]: There's so much AI-generated slop right now. So much hype around agents and "mission controls" without building anything actually useful. Fancy demos with no real-world benefits.
+            - paragraph [ref=e214]: "I'm trying to do the opposite: less hype, more documentation of building an actual business. Real customers, real revenue, real commits that ship to production, and real loss too."
+            - paragraph [ref=e215]: What am I building? Agentic PR — a one-person company taking on the enterprise PR incumbents. Agents that help startups get press coverage without a $10k/month retainer.
+            - paragraph [ref=e216]: If you want to see how far I take this, follow along.
+    - generic [ref=e58]:
+      - article [ref=e59]:
+        - heading "FAQ" [level=2] [ref=e60]
+        - generic [ref=e61]:
+          - group [ref=e62]:
+            - generic "Does this support private or locked X accounts? +" [ref=e63] [cursor=pointer]
+          - group [ref=e64]:
+            - generic "Can I use this without creating an account? +" [ref=e65] [cursor=pointer]
+          - group [ref=e66]:
+            - generic "Why is there a companion extension option? +" [ref=e67] [cursor=pointer]
+          - group [ref=e68]:
+            - generic "What export formats are available? +" [ref=e69] [cursor=pointer]
+      - article [ref=e70]:
+        - heading "Why people use this" [level=2] [ref=e71]
+        - list [ref=e72]:
+          - listitem [ref=e73]: No account setup.
+          - listitem [ref=e74]: Works fully client-side in browser.
+          - listitem [ref=e75]: Keeps selectable text for print and LLM workflows.
+  - contentinfo [ref=e76]:
+    - paragraph [ref=e77]: Xarticle.app • simple export utility

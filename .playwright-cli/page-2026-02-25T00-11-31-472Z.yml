@@ -1,0 +1,86 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e7]:
+      - paragraph [ref=e8]: Xarticle.app
+      - paragraph [ref=e9]: One-link exports for public X articles and statuses.
+    - navigation [ref=e10]:
+      - link "How it works" [ref=e11] [cursor=pointer]:
+        - /url: "#how-it-works"
+      - link "FAQ" [ref=e12] [cursor=pointer]:
+        - /url: "#faq"
+  - main [ref=e13]:
+    - generic [ref=e14]:
+      - paragraph [ref=e15]: No login required
+      - heading "Paste one X link. Export a clean, print-ready file." [level=1] [ref=e16]
+      - paragraph [ref=e17]: Built for speed and clarity. Works with public X posts and long-form article URLs in modern browsers.
+    - generic [ref=e18]:
+      - generic [ref=e19]:
+        - generic [ref=e20]: X URL
+        - generic [ref=e21]:
+          - textbox "X URL" [ref=e22]:
+            - /placeholder: https://x.com/<handle>/status/... or /i/articles/...
+          - button "Load Article" [disabled] [ref=e23]
+        - paragraph [ref=e24]: Paste an X URL to begin.
+        - generic [ref=e26]:
+          - paragraph [ref=e27]: DROP A LINK
+          - paragraph [ref=e28]: Paste any public X post or article to begin.
+        - generic [ref=e29]:
+          - generic [ref=e30]:
+            - text: Paper
+            - combobox "Paper" [ref=e31]:
+              - option "A4" [selected]
+              - option "Letter"
+          - generic [ref=e32]:
+            - text: Margin
+            - combobox "Margin" [ref=e33]:
+              - option "Default" [selected]
+              - option "Minimum"
+          - generic [ref=e34]:
+            - text: Preview
+            - combobox "Preview" [ref=e35]:
+              - option "Color" [selected]
+              - option "B/W"
+          - generic [ref=e36]:
+            - text: Cover Page
+            - combobox "Cover Page" [ref=e37]:
+              - option "Always On" [selected]
+              - option "Off"
+          - generic [ref=e38]:
+            - text: Cover Meta
+            - combobox "Cover Meta" [ref=e39]:
+              - option "Full" [selected]
+              - option "Minimal"
+        - generic [ref=e40]:
+          - button "Download Color PDF" [disabled] [ref=e41]
+          - button "Download B/W PDF" [disabled] [ref=e42]
+          - button "Download Markdown" [disabled] [ref=e43]
+        - paragraph [ref=e44]: Public links only. Companion extension mode improves extraction reliability.
+      - complementary [ref=e45]:
+        - heading "How it works" [level=2] [ref=e46]
+        - list [ref=e47]:
+          - listitem [ref=e48]: Paste one public X status URL or long-form article URL.
+          - listitem [ref=e49]: Preview the extracted content in your browser.
+          - listitem [ref=e50]: Download Color PDF, B/W PDF, or Markdown instantly.
+    - generic [ref=e52]:
+      - heading "Preview" [level=2] [ref=e53]
+      - generic [ref=e54]: Paste a link and click "Load Article" to preview.
+    - generic [ref=e55]:
+      - article [ref=e56]:
+        - heading "FAQ" [level=2] [ref=e57]
+        - generic [ref=e58]:
+          - group [ref=e59]:
+            - generic "Does this support private or locked X accounts? +" [ref=e60] [cursor=pointer]
+          - group [ref=e61]:
+            - generic "Can I use this without creating an account? +" [ref=e62] [cursor=pointer]
+          - group [ref=e63]:
+            - generic "Why is there a companion extension option? +" [ref=e64] [cursor=pointer]
+          - group [ref=e65]:
+            - generic "What export formats are available? +" [ref=e66] [cursor=pointer]
+      - article [ref=e67]:
+        - heading "Why people use this" [level=2] [ref=e68]
+        - list [ref=e69]:
+          - listitem [ref=e70]: No account setup.
+          - listitem [ref=e71]: Works fully client-side in browser.
+          - listitem [ref=e72]: Keeps selectable text for print and LLM workflows.
+  - contentinfo [ref=e73]:
+    - paragraph [ref=e74]: Xarticle.app • simple export utility
