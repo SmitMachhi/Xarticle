@@ -13,12 +13,13 @@ interface ArticlePreviewProps {
   themeMode: ThemeMode
   coverPageMode: CoverPageMode
   coverMetaStyle: CoverMetaStyle
+  density: 'comfortable' | 'compact'
 }
 
 const getCoverMediaIndex = (blocks: ExtractedArticle['blocks']): number =>
   blocks.findIndex((block) => block.type === 'media' && block.caption?.toLowerCase() === 'cover image')
 
-export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaStyle }: ArticlePreviewProps) => {
+export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaStyle, density }: ArticlePreviewProps) => {
   const coverMeta = coverMetaStyle === 'minimal'
     ? `@${article.authorHandle}`
     : `@${article.authorHandle}${article.publishedAt ? ` • ${new Date(article.publishedAt).toLocaleString()}` : ''}`
@@ -28,11 +29,16 @@ export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaSty
   const visibleBlocks = coverPageMode === 'always'
     ? article.blocks.filter((_, index) => index !== coverMediaIndex)
     : article.blocks
+  const previewStackClass = [
+    'preview-stack',
+    themeMode === 'bw' ? 'preview-bw' : 'preview-color',
+    density === 'compact' ? 'preview-compact' : 'preview-comfortable',
+  ].join(' ')
 
   return (
-    <div className={`preview-stack ${themeMode === 'bw' ? 'preview-bw' : 'preview-color'}`}>
+    <div className={previewStackClass}>
       {coverPageMode === 'always' ? (
-        <article className="preview-card preview-cover">
+        <article className="preview-card preview-cover" id="preview-section-cover">
           {coverMediaBlock?.type === 'media' ? (
             <figure className="preview-cover-media">
               <img src={coverMediaBlock.url} alt={coverMediaBlock.caption || coverMediaBlock.mediaType} loading="lazy" />
@@ -58,7 +64,7 @@ export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaSty
             </a>
           </header>
 
-          <section className="metric-grid" aria-label="cover metrics">
+          <section className="metric-grid" aria-label="cover metrics" id="preview-section-stats">
             {metricRows.map((metric) => (
               <div className="metric-card" key={`cover-${metric.key}`}>
                 <span>{metric.label}</span>
@@ -70,7 +76,7 @@ export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaSty
         </article>
       ) : null}
 
-      <article className="preview-card">
+      <article className="preview-card" id="preview-section-article">
         {showBodyHeader ? (
           <header className="preview-header">
             <h1>{article.title}</h1>
@@ -95,7 +101,7 @@ export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaSty
         ) : null}
 
         {showBodyHeader ? (
-          <section className="metric-grid" aria-label="article metrics">
+          <section className="metric-grid" aria-label="article metrics" id="preview-section-stats">
             {metricRows.map((metric) => (
               <div className="metric-card" key={metric.key}>
                 <span>{metric.label}</span>
@@ -111,6 +117,12 @@ export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaSty
         <section className="article-body">
           {visibleBlocks.map((block, idx) => {
             const blockKey = `${block.type}-${idx}`
+            const hasMediaAnchor = visibleBlocks
+              .slice(0, idx)
+              .some((candidate) => candidate.type === 'media')
+            const hasEmbedAnchor = visibleBlocks
+              .slice(0, idx)
+              .some((candidate) => candidate.type === 'embed')
 
           if (block.type === 'heading') {
             if (block.level === 1) {
@@ -150,7 +162,11 @@ export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaSty
 
           if (block.type === 'media') {
             return (
-              <figure key={blockKey} className="preview-media">
+              <figure
+                key={blockKey}
+                className="preview-media"
+                id={!hasMediaAnchor ? 'preview-section-media' : undefined}
+              >
                 <img src={block.url} alt={block.caption || block.mediaType} loading="lazy" />
                 {block.caption ? <figcaption>{block.caption}</figcaption> : null}
               </figure>
@@ -159,7 +175,7 @@ export const ArticlePreview = ({ article, themeMode, coverPageMode, coverMetaSty
 
           if (block.type === 'embed') {
             return (
-              <p key={blockKey} className="embed-line">
+              <p key={blockKey} className="embed-line" id={!hasEmbedAnchor ? 'preview-section-embeds' : undefined}>
                 {block.url ? (
                   <a href={block.url} target="_blank" rel="noreferrer">
                     {block.text}
