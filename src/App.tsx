@@ -11,7 +11,7 @@ import { classifyInputUrl } from './lib/xUrl'
 import type { CoverMetaStyle, CoverPageMode, ExtractedArticle, MarginPreset, PaperSize, ThemeMode } from './types/article'
 
 const APP_NAME = 'Xarticle.app'
-const APP_TAGLINE = 'One-link exports for public X articles and statuses.'
+const APP_TAGLINE = 'Calm exports for public X articles and statuses.'
 const HOW_IT_WORKS = [
   'Paste one public X status URL or long-form article URL.',
   'Preview the extracted content in your browser.',
@@ -65,27 +65,27 @@ function App() {
     if (loading) {
       return {
         src: pandaWrench,
-        label: 'WORKING ON IT',
+        label: 'Working on it',
         copy: 'Pulling text blocks and metadata from the link.',
       }
     }
     if (error) {
       return {
         src: pandaSeriousGear,
-        label: 'NEED A FIX',
+        label: 'Need a fix',
         copy: 'Try a different public URL or use companion extension mode.',
       }
     }
     if (article) {
       return {
         src: pandaWinkHeart,
-        label: 'READY TO EXPORT',
+        label: 'Ready to export',
         copy: 'Preview looks good. Pick format and download.',
       }
     }
     return {
       src: pandaWave,
-      label: 'DROP A LINK',
+      label: 'Drop a link',
       copy: 'Paste any public X post or article to begin.',
     }
   }, [article, error, loading])
@@ -151,105 +151,119 @@ function App() {
             <p className="brand-sub">{APP_TAGLINE}</p>
           </div>
         </div>
-        <nav className="top-nav">
-          <a href="#how-it-works">How it works</a>
-          <a href="#faq">FAQ</a>
-        </nav>
+        <div className="header-actions">
+          <nav className="top-nav">
+            <a href="#how-it-works">How it works</a>
+            <a href="#faq">FAQ</a>
+          </nav>
+          <div className="panda-powered">
+            <img src={pandaWave} alt="" />
+            <span>Powered by Panda</span>
+          </div>
+        </div>
       </header>
 
       <main className="content-wrap">
         <section className="hero-shell">
-          <p className="hero-kicker">No login required</p>
+          <p className="hero-kicker">No login. No backend. No clutter.</p>
           <h1 className="hero-title">Paste one X link. Export a clean, print-ready file.</h1>
           <p className="hero-copy">
-            Built for speed and clarity. Works with public X posts and long-form article URLs in modern browsers.
+            Built for speed and clarity. Works with public X posts and long-form article URLs in modern browsers, with a
+            friendly panda helper guiding each step.
           </p>
         </section>
 
         <section className="workbench">
           <section className="controls-panel app-card">
-            <label htmlFor="url">X URL</label>
-            <div className="row">
-              <input
-                id="url"
-                type="text"
-                placeholder="https://x.com/<handle>/status/... or /i/articles/..."
-                value={urlInput}
-                onChange={(event) => setUrlInput(event.target.value)}
-              />
-              <button className="btn-primary" onClick={loadArticle} disabled={!canLoad}>
-                {loading ? 'Loading...' : 'Load Article'}
-              </button>
-            </div>
-
-            <p className={`url-status url-status-${urlClassification.kind}`}>{urlClassification.reason}</p>
-
-            <div className="status-chip" aria-live="polite">
-              <img src={mascotState.src} alt="" />
-              <div>
-                <p className="status-chip-label">{mascotState.label}</p>
-                <p className="status-chip-copy">{mascotState.copy}</p>
+            <section className="section-block">
+              <h2 className="section-title">1. Paste URL</h2>
+              <label htmlFor="url">X URL</label>
+              <div className="row">
+                <input
+                  id="url"
+                  type="text"
+                  placeholder="https://x.com/<handle>/status/... or /i/articles/..."
+                  value={urlInput}
+                  onChange={(event) => setUrlInput(event.target.value)}
+                />
+                <button className="btn-primary" onClick={loadArticle} disabled={!canLoad}>
+                  {loading ? 'Loading...' : 'Load Article'}
+                </button>
               </div>
-            </div>
+              <p className={`url-status url-status-${urlClassification.kind}`}>{urlClassification.reason}</p>
+            </section>
 
-            <div className="option-grid">
-              <label>
-                Paper
-                <select value={paperSize} onChange={(event) => setPaperSize(event.target.value as PaperSize)}>
-                  <option value="A4">A4</option>
-                  <option value="LETTER">Letter</option>
-                </select>
-              </label>
+            <section className="section-block">
+              <h2 className="section-title">2. Export settings</h2>
+              <div className="option-grid">
+                <label>
+                  Paper
+                  <select value={paperSize} onChange={(event) => setPaperSize(event.target.value as PaperSize)}>
+                    <option value="A4">A4</option>
+                    <option value="LETTER">Letter</option>
+                  </select>
+                </label>
 
-              <label>
-                Margin
-                <select value={marginPreset} onChange={(event) => setMarginPreset(event.target.value as MarginPreset)}>
-                  <option value="default">Default</option>
-                  <option value="minimum">Minimum</option>
-                </select>
-              </label>
+                <label>
+                  Margin
+                  <select value={marginPreset} onChange={(event) => setMarginPreset(event.target.value as MarginPreset)}>
+                    <option value="default">Default</option>
+                    <option value="minimum">Minimum</option>
+                  </select>
+                </label>
 
-              <label>
-                Preview
-                <select value={previewTheme} onChange={(event) => setPreviewTheme(event.target.value as ThemeMode)}>
-                  <option value="color">Color</option>
-                  <option value="bw">B/W</option>
-                </select>
-              </label>
+                <label>
+                  Preview
+                  <select value={previewTheme} onChange={(event) => setPreviewTheme(event.target.value as ThemeMode)}>
+                    <option value="color">Color</option>
+                    <option value="bw">B/W</option>
+                  </select>
+                </label>
 
-              <label>
-                Cover Page
-                <select value={coverPageMode} onChange={(event) => setCoverPageMode(event.target.value as CoverPageMode)}>
-                  <option value="always">Always On</option>
-                  <option value="off">Off</option>
-                </select>
-              </label>
+                <label>
+                  Cover Page
+                  <select value={coverPageMode} onChange={(event) => setCoverPageMode(event.target.value as CoverPageMode)}>
+                    <option value="always">Always On</option>
+                    <option value="off">Off</option>
+                  </select>
+                </label>
 
-              <label>
-                Cover Meta
-                <select value={coverMetaStyle} onChange={(event) => setCoverMetaStyle(event.target.value as CoverMetaStyle)}>
-                  <option value="full">Full</option>
-                  <option value="minimal">Minimal</option>
-                </select>
-              </label>
-            </div>
+                <label>
+                  Cover Meta
+                  <select value={coverMetaStyle} onChange={(event) => setCoverMetaStyle(event.target.value as CoverMetaStyle)}>
+                    <option value="full">Full</option>
+                    <option value="minimal">Minimal</option>
+                  </select>
+                </label>
+              </div>
+            </section>
 
-            <div className="button-row">
-              <button className="btn-primary" onClick={() => downloadPdf('color')} disabled={!canDownload}>
-                {downloadState === 'color' ? 'Generating...' : 'Download Color PDF'}
-              </button>
-              <button className="btn-muted" onClick={() => downloadPdf('bw')} disabled={!canDownload}>
-                {downloadState === 'bw' ? 'Generating...' : 'Download B/W PDF'}
-              </button>
-              <button className="btn-muted" onClick={downloadMarkdown} disabled={!canDownload}>
-                {downloadState === 'markdown' ? 'Generating...' : 'Download Markdown'}
-              </button>
-            </div>
-
-            <p className="helper-line">Public links only. Companion extension mode improves extraction reliability.</p>
+            <section className="section-block">
+              <h2 className="section-title">3. Download</h2>
+              <div className="button-row">
+                <button className="btn-primary" onClick={() => downloadPdf('color')} disabled={!canDownload}>
+                  {downloadState === 'color' ? 'Generating...' : 'Download Color PDF'}
+                </button>
+                <button className="btn-muted" onClick={() => downloadPdf('bw')} disabled={!canDownload}>
+                  {downloadState === 'bw' ? 'Generating...' : 'Download B/W PDF'}
+                </button>
+                <button className="btn-muted" onClick={downloadMarkdown} disabled={!canDownload}>
+                  {downloadState === 'markdown' ? 'Generating...' : 'Download Markdown'}
+                </button>
+              </div>
+              <p className="helper-line">Public links only. Companion extension mode improves extraction reliability.</p>
+            </section>
           </section>
 
           <aside className="app-card helper-card" id="how-it-works">
+            <div className="panda-guide" aria-live="polite">
+              <img src={mascotState.src} alt="Panda assistant" />
+              <div>
+                <p className="panda-guide-title">Panda assistant</p>
+                <p className="panda-guide-status">{mascotState.label}</p>
+                <p className="panda-guide-copy">{mascotState.copy}</p>
+              </div>
+            </div>
             <h2>How it works</h2>
             <ul className="how-list">
               {HOW_IT_WORKS.map((step) => (
