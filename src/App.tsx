@@ -11,6 +11,7 @@ import { classifyInputUrl } from './lib/xUrl'
 import type { CoverMetaStyle, CoverPageMode, ExtractedArticle, MarginPreset, PaperSize, ThemeMode } from './types/article'
 
 const APP_NAME = 'Xarticle.app'
+const APP_TAGLINE = 'One-link exports for public X articles and statuses.'
 const HOW_IT_WORKS = [
   'Paste one public X status URL or long-form article URL.',
   'Preview the extracted content in your browser.',
@@ -142,107 +143,126 @@ function App() {
 
   return (
     <div className="site-shell">
-      <div className="pixel-noise" aria-hidden="true" />
-
-      <header className="top-dialog pixel-frame">
-        <p className="pixel-title">YOU SEEM A BIT LOST. WANNA EXPORT?</p>
-        <div className="dialog-options">
-          <span className="dialog-option-active">&gt; YES PLEASE</span>
-          <span>NO</span>
+      <header className="site-header">
+        <div className="brand-block">
+          <span className="brand-dot" aria-hidden="true" />
+          <div>
+            <p className="brand-name">{APP_NAME}</p>
+            <p className="brand-sub">{APP_TAGLINE}</p>
+          </div>
         </div>
+        <nav className="top-nav">
+          <a href="#how-it-works">How it works</a>
+          <a href="#faq">FAQ</a>
+        </nav>
       </header>
 
       <main className="content-wrap">
-        <section className="hero-shell pixel-frame">
-          <h1 className="pixel-heading">{APP_NAME}</h1>
-          <p className="hero-copy">Convert public X posts and long-form articles into printable docs, fast.</p>
+        <section className="hero-shell">
+          <p className="hero-kicker">No login required</p>
+          <h1 className="hero-title">Paste one X link. Export a clean, print-ready file.</h1>
+          <p className="hero-copy">
+            Built for speed and clarity. Works with public X posts and long-form article URLs in modern browsers.
+          </p>
+        </section>
 
-          <div className="hero-grid">
-            <section className="controls-panel">
-              <label htmlFor="url">X Article URL</label>
-              <div className="row">
-                <input
-                  id="url"
-                  type="text"
-                  placeholder="https://x.com/<handle>/status/... or /i/articles/..."
-                  value={urlInput}
-                  onChange={(event) => setUrlInput(event.target.value)}
-                />
-                <button onClick={loadArticle} disabled={!canLoad}>
-                  {loading ? 'Loading...' : 'Load Article'}
-                </button>
+        <section className="workbench">
+          <section className="controls-panel app-card">
+            <label htmlFor="url">X URL</label>
+            <div className="row">
+              <input
+                id="url"
+                type="text"
+                placeholder="https://x.com/<handle>/status/... or /i/articles/..."
+                value={urlInput}
+                onChange={(event) => setUrlInput(event.target.value)}
+              />
+              <button className="btn-primary" onClick={loadArticle} disabled={!canLoad}>
+                {loading ? 'Loading...' : 'Load Article'}
+              </button>
+            </div>
+
+            <p className={`url-status url-status-${urlClassification.kind}`}>{urlClassification.reason}</p>
+
+            <div className="status-chip" aria-live="polite">
+              <img src={mascotState.src} alt="" />
+              <div>
+                <p className="status-chip-label">{mascotState.label}</p>
+                <p className="status-chip-copy">{mascotState.copy}</p>
               </div>
+            </div>
 
-              <p className={`url-status url-status-${urlClassification.kind}`}>{urlClassification.reason}</p>
+            <div className="option-grid">
+              <label>
+                Paper
+                <select value={paperSize} onChange={(event) => setPaperSize(event.target.value as PaperSize)}>
+                  <option value="A4">A4</option>
+                  <option value="LETTER">Letter</option>
+                </select>
+              </label>
 
-              <div className="option-grid">
-                <label>
-                  Paper
-                  <select value={paperSize} onChange={(event) => setPaperSize(event.target.value as PaperSize)}>
-                    <option value="A4">A4</option>
-                    <option value="LETTER">Letter</option>
-                  </select>
-                </label>
+              <label>
+                Margin
+                <select value={marginPreset} onChange={(event) => setMarginPreset(event.target.value as MarginPreset)}>
+                  <option value="default">Default</option>
+                  <option value="minimum">Minimum</option>
+                </select>
+              </label>
 
-                <label>
-                  Margin
-                  <select value={marginPreset} onChange={(event) => setMarginPreset(event.target.value as MarginPreset)}>
-                    <option value="default">Default</option>
-                    <option value="minimum">Minimum</option>
-                  </select>
-                </label>
+              <label>
+                Preview
+                <select value={previewTheme} onChange={(event) => setPreviewTheme(event.target.value as ThemeMode)}>
+                  <option value="color">Color</option>
+                  <option value="bw">B/W</option>
+                </select>
+              </label>
 
-                <label>
-                  Preview
-                  <select value={previewTheme} onChange={(event) => setPreviewTheme(event.target.value as ThemeMode)}>
-                    <option value="color">Color</option>
-                    <option value="bw">B/W</option>
-                  </select>
-                </label>
+              <label>
+                Cover Page
+                <select value={coverPageMode} onChange={(event) => setCoverPageMode(event.target.value as CoverPageMode)}>
+                  <option value="always">Always On</option>
+                  <option value="off">Off</option>
+                </select>
+              </label>
 
-                <label>
-                  Cover Page
-                  <select value={coverPageMode} onChange={(event) => setCoverPageMode(event.target.value as CoverPageMode)}>
-                    <option value="always">Always On</option>
-                    <option value="off">Off</option>
-                  </select>
-                </label>
+              <label>
+                Cover Meta
+                <select value={coverMetaStyle} onChange={(event) => setCoverMetaStyle(event.target.value as CoverMetaStyle)}>
+                  <option value="full">Full</option>
+                  <option value="minimal">Minimal</option>
+                </select>
+              </label>
+            </div>
 
-                <label>
-                  Cover Meta
-                  <select value={coverMetaStyle} onChange={(event) => setCoverMetaStyle(event.target.value as CoverMetaStyle)}>
-                    <option value="full">Full</option>
-                    <option value="minimal">Minimal</option>
-                  </select>
-                </label>
-              </div>
+            <div className="button-row">
+              <button className="btn-primary" onClick={() => downloadPdf('color')} disabled={!canDownload}>
+                {downloadState === 'color' ? 'Generating...' : 'Download Color PDF'}
+              </button>
+              <button className="btn-muted" onClick={() => downloadPdf('bw')} disabled={!canDownload}>
+                {downloadState === 'bw' ? 'Generating...' : 'Download B/W PDF'}
+              </button>
+              <button className="btn-muted" onClick={downloadMarkdown} disabled={!canDownload}>
+                {downloadState === 'markdown' ? 'Generating...' : 'Download Markdown'}
+              </button>
+            </div>
 
-              <div className="button-row">
-                <button onClick={() => downloadPdf('color')} disabled={!canDownload}>
-                  {downloadState === 'color' ? 'Generating...' : 'Download Color PDF'}
-                </button>
-                <button onClick={() => downloadPdf('bw')} disabled={!canDownload}>
-                  {downloadState === 'bw' ? 'Generating...' : 'Download B/W PDF'}
-                </button>
-                <button onClick={downloadMarkdown} disabled={!canDownload}>
-                  {downloadState === 'markdown' ? 'Generating...' : 'Download Markdown'}
-                </button>
-              </div>
+            <p className="helper-line">Public links only. Companion extension mode improves extraction reliability.</p>
+          </section>
 
-              <p className="helper-line">Public links only. Companion extension improves reliability across browsers.</p>
-            </section>
-
-            <aside className="mascot-panel pixel-frame">
-              <img src={mascotState.src} alt="Robot panda mascot" />
-              <p className="pixel-subtitle">{mascotState.label}</p>
-              <p>{mascotState.copy}</p>
-            </aside>
-          </div>
+          <aside className="app-card helper-card" id="how-it-works">
+            <h2>How it works</h2>
+            <ul className="how-list">
+              {HOW_IT_WORKS.map((step) => (
+                <li key={step}>{step}</li>
+              ))}
+            </ul>
+          </aside>
         </section>
 
         <section className="preview-band">
-          <div className="preview-content">
-            {error ? <section className="error-box pixel-frame">{error}</section> : null}
+          {error ? <section className="error-box app-card">{error}</section> : null}
+          <div className="preview-content app-card">
+            <h2>Preview</h2>
             {article ? (
               <section className="preview-wrap">
                 <ArticlePreview
@@ -253,23 +273,14 @@ function App() {
                 />
               </section>
             ) : (
-              <section className="empty-state pixel-frame">Paste a link and click &quot;Load Article&quot; to preview.</section>
+              <section className="empty-state">Paste a link and click &quot;Load Article&quot; to preview.</section>
             )}
           </div>
         </section>
 
         <section className="info-grid">
-          <article className="info-card pixel-frame" id="how-it-works">
-            <h2 className="pixel-subtitle">HOW IT WORKS</h2>
-            <ul className="how-list">
-              {HOW_IT_WORKS.map((step) => (
-                <li key={step}>{step}</li>
-              ))}
-            </ul>
-          </article>
-
-          <article className="info-card pixel-frame" id="faq">
-            <h2 className="pixel-subtitle">FAQ</h2>
+          <article className="app-card info-card" id="faq">
+            <h2>FAQ</h2>
             <div className="faq-list">
               {FAQ_ITEMS.map((item) => (
                 <details key={item.question}>
@@ -279,11 +290,20 @@ function App() {
               ))}
             </div>
           </article>
+
+          <article className="app-card info-card">
+            <h2>Why people use this</h2>
+            <ul className="how-list">
+              <li>No account setup.</li>
+              <li>Works fully client-side in browser.</li>
+              <li>Keeps selectable text for print and LLM workflows.</li>
+            </ul>
+          </article>
         </section>
       </main>
 
-      <footer className="grass-footer">
-        <p>{APP_NAME} | Pixel mode</p>
+      <footer className="site-footer">
+        <p>{APP_NAME} • simple export utility</p>
       </footer>
     </div>
   )
