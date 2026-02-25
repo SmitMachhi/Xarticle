@@ -12,7 +12,6 @@ import { classifyInputUrl } from './lib/xUrl'
 import type { ExtractedArticle, MarginPreset, PaperSize } from './types/article'
 
 const APP_NAME = 'Xarticle.app'
-const APP_TAGLINE = 'Fast exports for public X articles and statuses.'
 const HOW_IT_WORKS = [
   'Paste one public X status URL or long-form article URL.',
   'Preview the extracted content in your browser.',
@@ -230,7 +229,6 @@ function App() {
           <span className="brand-dot" aria-hidden="true" />
           <div>
             <p className="brand-name">{APP_NAME}</p>
-            <p className="brand-sub">{APP_TAGLINE}</p>
           </div>
         </div>
         <div className="header-actions">

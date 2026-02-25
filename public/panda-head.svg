@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#dff5e7" />
+      <stop offset="1" stop-color="#b9e6cb" />
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="112" height="112" rx="24" fill="url(#bg)" />
+  <circle cx="37" cy="33" r="13" fill="#2d4968" />
+  <circle cx="91" cy="33" r="13" fill="#2d4968" />
+  <circle cx="37" cy="33" r="6" fill="#6d87a2" />
+  <circle cx="91" cy="33" r="6" fill="#6d87a2" />
+  <circle cx="64" cy="66" r="33" fill="#f8fbff" />
+  <ellipse cx="49" cy="62" rx="11" ry="13" fill="#3f5f80" />
+  <ellipse cx="79" cy="62" rx="11" ry="13" fill="#3f5f80" />
+  <circle cx="49" cy="62" r="5.5" fill="#f8fbff" />
+  <circle cx="79" cy="62" r="5.5" fill="#f8fbff" />
+  <circle cx="49" cy="62" r="2" fill="#1a2f47" />
+  <circle cx="79" cy="62" r="2" fill="#1a2f47" />
+  <ellipse cx="64" cy="78" rx="15" ry="10" fill="#ffffff" />
+  <ellipse cx="64" cy="74" rx="4.3" ry="3.1" fill="#1a2f47" />
+  <path d="M57 82c2.4 3 4.6 4.4 7 4.4 2.4 0 4.6-1.4 7-4.4" fill="none" stroke="#1a2f47" stroke-width="2.6" stroke-linecap="round" />
+  <circle cx="44" cy="74" r="2.2" fill="#f7c2cb" />
+  <circle cx="84" cy="74" r="2.2" fill="#f7c2cb" />
+</svg>
