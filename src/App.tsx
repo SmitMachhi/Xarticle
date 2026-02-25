@@ -450,16 +450,22 @@ function App() {
       </main>
 
       <footer className="site-footer">
-        <p>
-          made with love{' '}
-          <span role="img" aria-label="heart">
-            ❤️
-          </span>{' '}
-          by{' '}
-          <a href="https://x.com/thesmitmachhi" target="_blank" rel="noreferrer">
-            Smit
-          </a>
-        </p>
+        <div className="site-footer-inner">
+          <p className="site-footer-brand">
+            <img className="site-footer-icon" src={pandaFaceIcon} alt="" aria-hidden="true" />
+            <span>{APP_NAME}</span>
+          </p>
+          <p className="site-footer-credit">
+            made with love{' '}
+            <span role="img" aria-label="heart">
+              ❤️
+            </span>{' '}
+            by{' '}
+            <a href="https://x.com/thesmitmachhi" target="_blank" rel="noreferrer">
+              Smit
+            </a>
+          </p>
+        </div>
       </footer>
     </div>
   )
