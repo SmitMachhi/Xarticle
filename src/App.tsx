@@ -11,7 +11,7 @@ import { classifyInputUrl } from './lib/xUrl'
 import type { ExtractedArticle, MarginPreset, PaperSize } from './types/article'
 
 const APP_NAME = 'Xarticle.app'
-const APP_TAGLINE = 'Calm exports for public X articles and statuses.'
+const APP_TAGLINE = 'Fast exports for public X articles and statuses.'
 const HOW_IT_WORKS = [
   'Paste one public X status URL or long-form article URL.',
   'Preview the extracted content in your browser.',
@@ -165,18 +165,18 @@ function App() {
 
       <main className="content-wrap" id="main-content">
         <section className="hero-shell">
-          <p className="hero-kicker">No login. No backend. No clutter.</p>
-          <h1 className="hero-title">Paste one X link. Export a clean, print-ready file.</h1>
+          <p className="hero-kicker">No login. No backend.</p>
+          <h1 className="hero-title">Paste one X link. Export instantly.</h1>
           <p className="hero-copy">
-            Built for speed and clarity. Works with public X posts and long-form article URLs in modern browsers, with a
-            friendly panda helper guiding each step.
+            Built for speed and clarity. Works with public X posts and long-form article URLs in modern browsers.
           </p>
         </section>
 
         <section className="workbench">
           <section className="controls-panel app-card">
             <section className="section-block">
-              <h2 className="section-title">1. Paste URL</h2>
+              <h2 className="section-title">Paste URL</h2>
+              <p className="section-subtitle">Works with public status links and long-form article links.</p>
               <label htmlFor="url">X URL</label>
               <div className="row">
                 <input
@@ -207,7 +207,7 @@ function App() {
             </div>
 
             <section className="section-block">
-              <h2 className="section-title">2. Export settings</h2>
+              <h2 className="section-title">Export Settings</h2>
               <div className="option-grid">
                 <label>
                   Paper Size
@@ -228,7 +228,7 @@ function App() {
             </section>
 
             <section className="section-block">
-              <h2 className="section-title">3. Download</h2>
+              <h2 className="section-title">Download</h2>
               <div className="button-row">
                 <button className="btn-primary" onClick={downloadPdf} disabled={!canDownload}>
                   {downloadState === 'pdf' ? 'Generating...' : 'Download for Humans (PDF)'}
@@ -237,6 +237,7 @@ function App() {
                   {downloadState === 'markdown' ? 'Generating...' : 'Download for LLMs (Markdown)'}
                 </button>
               </div>
+              <p className="download-note">PDF for print readers. Markdown for AI/LLM processing.</p>
             </section>
           </aside>
         </section>
