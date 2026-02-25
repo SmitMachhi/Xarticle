@@ -8,7 +8,7 @@ import { extractArticleFromUrl } from './lib/extractArticle'
 import { downloadArticleMarkdown } from './lib/markdownExport'
 import { downloadArticlePdf } from './lib/pdfExport'
 import { classifyInputUrl } from './lib/xUrl'
-import type { CoverMetaStyle, CoverPageMode, ExtractedArticle, MarginPreset, PaperSize, ThemeMode } from './types/article'
+import type { ExtractedArticle, MarginPreset, PaperSize } from './types/article'
 
 const APP_NAME = 'Xarticle.app'
 const APP_TAGLINE = 'Calm exports for public X articles and statuses.'
@@ -41,9 +41,6 @@ function App() {
   const [urlInput, setUrlInput] = useState('')
   const [paperSize, setPaperSize] = useState<PaperSize>('A4')
   const [marginPreset, setMarginPreset] = useState<MarginPreset>('default')
-  const [previewTheme, setPreviewTheme] = useState<ThemeMode>('color')
-  const [coverPageMode, setCoverPageMode] = useState<CoverPageMode>('always')
-  const [coverMetaStyle, setCoverMetaStyle] = useState<CoverMetaStyle>('full')
   const [article, setArticle] = useState<ExtractedArticle | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -106,7 +103,7 @@ function App() {
     }
   }
 
-  const downloadPdf = async (themeMode: ThemeMode) => {
+  const downloadPdf = async () => {
     if (!article) {
       return
     }
@@ -116,9 +113,9 @@ function App() {
       await downloadArticlePdf(article, {
         paperSize,
         marginPreset,
-        themeMode,
-        coverPageMode,
-        coverMetaStyle,
+        themeMode: 'color',
+        coverPageMode: 'always',
+        coverMetaStyle: 'full',
       })
     } catch (err) {
       const message = err instanceof Error ? err.message : 'PDF generation failed.'
@@ -197,12 +194,23 @@ function App() {
                 {urlClassification.reason}
               </p>
             </section>
+          </section>
+
+          <aside className="app-card helper-card export-panel">
+            <div className={`panda-guide ${loading ? 'is-loading' : ''}`} aria-live="polite">
+              <img src={mascotState.src} alt="Panda assistant" />
+              <div>
+                <p className="panda-guide-title">Panda assistant</p>
+                <p className="panda-guide-status">{mascotState.label}</p>
+                <p className="panda-guide-copy">{mascotState.copy}</p>
+              </div>
+            </div>
 
             <section className="section-block">
               <h2 className="section-title">2. Export settings</h2>
               <div className="option-grid">
                 <label>
-                  Paper
+                  Paper Size
                   <select value={paperSize} onChange={(event) => setPaperSize(event.target.value as PaperSize)}>
                     <option value="A4">A4</option>
                     <option value="LETTER">Letter</option>
@@ -216,62 +224,20 @@ function App() {
                     <option value="minimum">Minimum</option>
                   </select>
                 </label>
-
-                <label>
-                  Preview
-                  <select value={previewTheme} onChange={(event) => setPreviewTheme(event.target.value as ThemeMode)}>
-                    <option value="color">Color</option>
-                    <option value="bw">B/W</option>
-                  </select>
-                </label>
-
-                <label>
-                  Cover Page
-                  <select value={coverPageMode} onChange={(event) => setCoverPageMode(event.target.value as CoverPageMode)}>
-                    <option value="always">Always On</option>
-                    <option value="off">Off</option>
-                  </select>
-                </label>
-
-                <label>
-                  Cover Meta
-                  <select value={coverMetaStyle} onChange={(event) => setCoverMetaStyle(event.target.value as CoverMetaStyle)}>
-                    <option value="full">Full</option>
-                    <option value="minimal">Minimal</option>
-                  </select>
-                </label>
               </div>
             </section>
 
             <section className="section-block">
               <h2 className="section-title">3. Download</h2>
               <div className="button-row">
-                <button className="btn-primary" onClick={() => downloadPdf(previewTheme)} disabled={!canDownload}>
+                <button className="btn-primary" onClick={downloadPdf} disabled={!canDownload}>
                   {downloadState === 'pdf' ? 'Generating...' : 'Download for Humans (PDF)'}
                 </button>
                 <button className="btn-muted" onClick={downloadMarkdown} disabled={!canDownload}>
                   {downloadState === 'markdown' ? 'Generating...' : 'Download for LLMs (Markdown)'}
                 </button>
               </div>
-              <p className="helper-line">Public links only. Companion extension mode improves extraction reliability.</p>
             </section>
-          </section>
-
-          <aside className="app-card helper-card" id="how-it-works">
-            <div className="panda-guide" aria-live="polite">
-              <img src={mascotState.src} alt="Panda assistant" />
-              <div>
-                <p className="panda-guide-title">Panda assistant</p>
-                <p className="panda-guide-status">{mascotState.label}</p>
-                <p className="panda-guide-copy">{mascotState.copy}</p>
-              </div>
-            </div>
-            <h2>How it works</h2>
-            <ul className="how-list">
-              {HOW_IT_WORKS.map((step) => (
-                <li key={step}>{step}</li>
-              ))}
-            </ul>
           </aside>
         </section>
 
@@ -283,9 +249,9 @@ function App() {
               <section className="preview-wrap">
                 <ArticlePreview
                   article={article}
-                  themeMode={previewTheme}
-                  coverPageMode={coverPageMode}
-                  coverMetaStyle={coverMetaStyle}
+                  themeMode="color"
+                  coverPageMode="always"
+                  coverMetaStyle="full"
                 />
               </section>
             ) : (
@@ -307,12 +273,12 @@ function App() {
             </div>
           </article>
 
-          <article className="app-card info-card">
-            <h2>Why people use this</h2>
+          <article className="app-card info-card" id="how-it-works">
+            <h2>How it works</h2>
             <ul className="how-list">
-              <li>No account setup.</li>
-              <li>Works fully client-side in browser.</li>
-              <li>Keeps selectable text for print and LLM workflows.</li>
+              {HOW_IT_WORKS.map((step) => (
+                <li key={step}>{step}</li>
+              ))}
             </ul>
           </article>
         </section>
