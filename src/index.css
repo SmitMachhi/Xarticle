@@ -333,6 +333,46 @@ select {
   align-items: center;
 }
 
+.input-shell {
+  position: relative;
+}
+
+.input-shell input {
+  width: 100%;
+  padding-right: 3rem;
+}
+
+.input-icon-btn {
+  position: absolute;
+  right: 0.48rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  border-radius: 10px;
+  border: 1px solid #bed4c6;
+  background: #edf8f1;
+  color: #295b41;
+  padding: 0;
+  display: grid;
+  place-items: center;
+}
+
+.input-icon-btn:hover:enabled {
+  background: #e2f3e9;
+}
+
+.input-icon-btn:active:enabled {
+  transform: translateY(-50%) scale(0.98);
+}
+
+.input-icon-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
 .option-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
@@ -498,18 +538,6 @@ button:disabled {
 .url-status-unsupported,
 .url-status-invalid {
   color: #a43d4e;
-}
-
-.mini-action-row {
-  margin-top: 0.4rem;
-  display: flex;
-  gap: 0.5rem;
-}
-
-.btn-clipboard {
-  width: fit-content;
-  min-height: 40px;
-  padding: 0.45rem 0.85rem;
 }
 
 .helper-card {

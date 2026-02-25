@@ -321,20 +321,28 @@ function App() {
               <h2 className="section-title">Paste URL</h2>
               <label htmlFor="url">X URL</label>
               <div className="row">
-                <input
-                  id="url"
-                  type="text"
-                  placeholder="https://x.com/<handle>/status/... or /i/articles/..."
-                  value={urlInput}
-                  onChange={(event) => setUrlInput(event.target.value)}
-                />
+                <div className="input-shell">
+                  <input
+                    id="url"
+                    type="text"
+                    placeholder="https://x.com/<handle>/status/... or /i/articles/..."
+                    value={urlInput}
+                    onChange={(event) => setUrlInput(event.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="input-icon-btn"
+                    onClick={pasteFromClipboard}
+                    aria-label="Paste from Clipboard"
+                    title="Paste from Clipboard"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M9 3h6a2 2 0 0 1 2 2v1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2v-1H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h1a2 2 0 0 1 1-2Zm0 3V5H7v11h1V8a2 2 0 0 1 2-2h6V5H9Zm1 2v11h8V8h-8Z" />
+                    </svg>
+                  </button>
+                </div>
                 <button className="btn-primary" onClick={loadArticle} disabled={!canLoad}>
                   {loading ? 'Loading...' : 'Load Article'}
-                </button>
-              </div>
-              <div className="mini-action-row">
-                <button className="btn-muted btn-clipboard" onClick={pasteFromClipboard}>
-                  Paste from Clipboard
                 </button>
               </div>
               {urlClassification.kind !== 'empty' ? (
