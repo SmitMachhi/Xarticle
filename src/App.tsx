@@ -17,6 +17,10 @@ const HOW_IT_WORKS = [
   'Preview the extracted content in your browser.',
   'Download PDF for people or Markdown for LLM workflows.',
 ]
+const EXAMPLE_LINKS = [
+  'https://x.com/elonmusk/status/1890196671229270196',
+  'https://x.com/OpenAI/status/1889706166405652562',
+]
 
 const FAQ_ITEMS = [
   {
@@ -138,6 +142,27 @@ function App() {
     }
   }
 
+  const applyExample = (value: string) => {
+    setUrlInput(value)
+  }
+
+  const pasteFromClipboard = async () => {
+    try {
+      if (!navigator.clipboard?.readText) {
+        throw new Error('Clipboard access is not available in this browser.')
+      }
+      const text = (await navigator.clipboard.readText()).trim()
+      if (!text) {
+        throw new Error('Clipboard is empty.')
+      }
+      setUrlInput(text)
+      setError(null)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Could not read clipboard.'
+      setError(message)
+    }
+  }
+
   return (
     <div className="site-shell">
       <a className="skip-link" href="#main-content">
@@ -167,29 +192,52 @@ function App() {
         </section>
 
         <section className="workbench">
-          <section className="controls-panel app-card">
-            <section className="section-block">
-              <h2 className="section-title">Paste URL</h2>
-              <label htmlFor="url">X URL</label>
-              <div className="row">
-                <input
-                  id="url"
-                  type="text"
-                  placeholder="https://x.com/<handle>/status/... or /i/articles/..."
-                  value={urlInput}
-                  onChange={(event) => setUrlInput(event.target.value)}
-                />
-                <button className="btn-primary" onClick={loadArticle} disabled={!canLoad}>
-                  {loading ? 'Loading...' : 'Load Article'}
+          <div className="left-stack">
+            <section className="controls-panel app-card">
+              <section className="section-block">
+                <h2 className="section-title">Paste URL</h2>
+                <label htmlFor="url">X URL</label>
+                <div className="row">
+                  <input
+                    id="url"
+                    type="text"
+                    placeholder="https://x.com/<handle>/status/... or /i/articles/..."
+                    value={urlInput}
+                    onChange={(event) => setUrlInput(event.target.value)}
+                  />
+                  <button className="btn-primary" onClick={loadArticle} disabled={!canLoad}>
+                    {loading ? 'Loading...' : 'Load Article'}
+                  </button>
+                </div>
+                {urlClassification.kind !== 'empty' ? (
+                  <p className={`url-status url-status-${urlClassification.kind}`} aria-live="polite">
+                    {urlClassification.reason}
+                  </p>
+                ) : null}
+              </section>
+            </section>
+
+            <section className="app-card quick-tools">
+              <h3>Quick Fill</h3>
+              <div className="chip-grid">
+                {EXAMPLE_LINKS.map((link) => (
+                  <button key={link} className="chip-button" onClick={() => applyExample(link)}>
+                    {link}
+                  </button>
+                ))}
+              </div>
+              <div className="mini-action-row">
+                <button className="btn-muted" onClick={pasteFromClipboard}>
+                  Paste from Clipboard
                 </button>
               </div>
-              {urlClassification.kind !== 'empty' ? (
-                <p className={`url-status url-status-${urlClassification.kind}`} aria-live="polite">
-                  {urlClassification.reason}
-                </p>
-              ) : null}
+              <ul className="micro-how">
+                <li>Paste or tap an example link.</li>
+                <li>Click Load Article.</li>
+                <li>Export PDF or Markdown.</li>
+              </ul>
             </section>
-          </section>
+          </div>
 
           <aside className="app-card helper-card export-panel">
             <div

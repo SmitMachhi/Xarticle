@@ -255,6 +255,12 @@ select {
   align-items: start;
 }
 
+.left-stack {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
 .app-card {
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -456,6 +462,78 @@ button:disabled {
 .url-status-unsupported,
 .url-status-invalid {
   color: #a43d4e;
+}
+
+.quick-tools {
+  position: relative;
+  padding: 1rem 1.1rem;
+  overflow: hidden;
+  background:
+    radial-gradient(12rem 7rem at 86% 20%, rgba(109, 199, 148, 0.16) 0%, transparent 66%),
+    color-mix(in srgb, var(--surface) 97%, #eef6f1 3%);
+}
+
+.quick-tools h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: #1f3f2d;
+}
+
+.chip-grid {
+  margin-top: 0.68rem;
+  display: grid;
+  gap: 0.48rem;
+}
+
+.chip-button {
+  min-height: 40px;
+  border-radius: 999px;
+  text-align: left;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid #bdd8c5;
+  background: #f4fbf7;
+  color: #27533b;
+  font-size: 0.82rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chip-button:hover {
+  background: #eaf6ef;
+}
+
+.mini-action-row {
+  margin-top: 0.58rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.micro-how {
+  margin: 0.72rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.42rem;
+}
+
+.micro-how li {
+  position: relative;
+  padding-left: 1rem;
+  font-size: 0.85rem;
+  color: #4b6557;
+}
+
+.micro-how li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.5rem;
+  width: 0.34rem;
+  height: 0.34rem;
+  border-radius: 999px;
+  background: #26a461;
 }
 
 .helper-card {
