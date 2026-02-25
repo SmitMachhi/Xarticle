@@ -77,6 +77,11 @@ html,
 body,
 #root {
   min-height: 100%;
+  height: 100%;
+}
+
+html {
+  background: linear-gradient(180deg, #76c7e8 0%, #9ad8ef 34%, var(--bg) 72%);
 }
 
 body {
