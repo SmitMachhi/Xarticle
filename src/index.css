@@ -93,11 +93,6 @@ html {
   background: #76c7e8;
 }
 
-html,
-body {
-  overscroll-behavior-y: none;
-}
-
 a {
   color: inherit;
 }
