@@ -1,0 +1,6 @@
+site: https://xarticle.co
+name: Xarticle.co
+description: Client-side tool to extract public X/Twitter article or status content and export it as PDF or Markdown.
+content-policy: Public X/Twitter links only. No private or locked account support.
+data-storage: No user account required. Extraction and file generation happen in the browser session.
+contact: https://x.com/thesmitmachhi

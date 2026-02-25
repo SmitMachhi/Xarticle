@@ -450,7 +450,16 @@ function App() {
       </main>
 
       <footer className="site-footer">
-        <p>{APP_NAME} • simple export utility</p>
+        <p>
+          made with love{' '}
+          <span role="img" aria-label="heart">
+            ❤️
+          </span>{' '}
+          by{' '}
+          <a href="https://x.com/thesmitmachhi" target="_blank" rel="noreferrer">
+            Smit
+          </a>
+        </p>
       </footer>
     </div>
   )
