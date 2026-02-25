@@ -1,0 +1,74 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - paragraph [ref=e5]: YOU SEEM A BIT LOST. WANNA EXPORT?
+    - generic [ref=e6]:
+      - generic [ref=e7]: "> YES PLEASE"
+      - generic [ref=e8]: "NO"
+  - main [ref=e9]:
+    - generic [ref=e10]:
+      - heading "X Article Printer" [level=1] [ref=e11]
+      - paragraph [ref=e12]: Convert public X posts and long-form articles into printable docs, fast.
+      - generic [ref=e13]:
+        - generic [ref=e14]:
+          - generic [ref=e15]: X Article URL
+          - generic [ref=e16]:
+            - textbox "X Article URL" [ref=e17]:
+              - /placeholder: https://x.com/<handle>/status/... or /i/articles/...
+            - button "Load Article" [disabled] [ref=e18]
+          - paragraph [ref=e19]: Paste an X URL to begin.
+          - generic [ref=e20]:
+            - generic [ref=e21]:
+              - text: Paper
+              - combobox "Paper" [ref=e22]:
+                - option "A4" [selected]
+                - option "Letter"
+            - generic [ref=e23]:
+              - text: Margin
+              - combobox "Margin" [ref=e24]:
+                - option "Default" [selected]
+                - option "Minimum"
+            - generic [ref=e25]:
+              - text: Preview
+              - combobox "Preview" [ref=e26]:
+                - option "Color" [selected]
+                - option "B/W"
+            - generic [ref=e27]:
+              - text: Cover Page
+              - combobox "Cover Page" [ref=e28]:
+                - option "Always On" [selected]
+                - option "Off"
+            - generic [ref=e29]:
+              - text: Cover Meta
+              - combobox "Cover Meta" [ref=e30]:
+                - option "Full" [selected]
+                - option "Minimal"
+          - generic [ref=e31]:
+            - button "Download Color PDF" [disabled] [ref=e32]
+            - button "Download B/W PDF" [disabled] [ref=e33]
+            - button "Download Markdown" [disabled] [ref=e34]
+          - paragraph [ref=e35]: Public links only. Companion extension improves reliability across browsers.
+        - complementary [ref=e36]:
+          - img "Robot panda mascot" [ref=e37]
+          - paragraph [ref=e38]: DROP A LINK
+          - paragraph [ref=e39]: Paste any public X post or article to begin.
+    - generic [ref=e42]: Paste a link and click "Load Article" to preview.
+    - generic [ref=e43]:
+      - article [ref=e44]:
+        - heading "HOW IT WORKS" [level=2] [ref=e45]
+        - list [ref=e46]:
+          - listitem [ref=e47]: "> Paste one public X status URL or long-form article URL."
+          - listitem [ref=e48]: "> Preview the extracted content in your browser."
+          - listitem [ref=e49]: "> Download Color PDF, B/W PDF, or Markdown instantly."
+      - article [ref=e50]:
+        - heading "FAQ" [level=2] [ref=e51]
+        - generic [ref=e52]:
+          - group [ref=e53]:
+            - generic "Does this support private or locked X accounts? +" [ref=e54] [cursor=pointer]
+          - group [ref=e55]:
+            - generic "Can I use this without creating an account? +" [ref=e56] [cursor=pointer]
+          - group [ref=e57]:
+            - generic "Why is there a companion extension option? +" [ref=e58] [cursor=pointer]
+          - group [ref=e59]:
+            - generic "What export formats are available? +" [ref=e60] [cursor=pointer]
+  - contentinfo [ref=e61]:
+    - paragraph [ref=e62]: X Article Printer | Pixel mode
