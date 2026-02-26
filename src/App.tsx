@@ -38,8 +38,22 @@ const FAQ_ITEMS = [
   },
 ]
 
+const PAPER_SIZE_OPTIONS: ReadonlyArray<{ value: PaperSize; label: string }> = [
+  { value: 'A4', label: 'A4' },
+  { value: 'LETTER', label: 'Letter' },
+]
+
+const MARGIN_PRESET_OPTIONS: ReadonlyArray<{ value: MarginPreset; label: string }> = [
+  { value: 'default', label: 'Default' },
+  { value: 'minimum', label: 'Minimum' },
+]
+
 const isClipboardPermissionGestureError = (error: unknown): boolean => {
   return error instanceof DOMException && (error.name === 'NotAllowedError' || error.name === 'SecurityError')
+}
+
+const getOptionLabel = <T extends string>(options: ReadonlyArray<{ value: T; label: string }>, value: T): string => {
+  return options.find((option) => option.value === value)?.label ?? value
 }
 
 function App() {
@@ -55,8 +69,11 @@ function App() {
   const [markdownNotice, setMarkdownNotice] = useState<string | null>(null)
   const [markdownNoticeLeaving, setMarkdownNoticeLeaving] = useState(false)
   const [clipboardNotice, setClipboardNotice] = useState<string | null>(null)
+  const [openSelectMenu, setOpenSelectMenu] = useState<'paperSize' | 'marginPreset' | null>(null)
   const [edgeNudge, setEdgeNudge] = useState(0)
   const urlInputRef = useRef<HTMLInputElement | null>(null)
+  const paperSizeSelectRef = useRef<HTMLDivElement | null>(null)
+  const marginPresetSelectRef = useRef<HTMLDivElement | null>(null)
   const edgeNudgeResetTimerRef = useRef<number | null>(null)
   const markdownNoticeHideTimerRef = useRef<number | null>(null)
   const markdownNoticeClearTimerRef = useRef<number | null>(null)
@@ -184,6 +201,38 @@ function App() {
       }
     }
   }, [])
+
+  useEffect(() => {
+    if (!openSelectMenu) {
+      return
+    }
+
+    const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node
+      const clickedInsidePaperSize = paperSizeSelectRef.current?.contains(target) ?? false
+      const clickedInsideMarginPreset = marginPresetSelectRef.current?.contains(target) ?? false
+      if (clickedInsidePaperSize || clickedInsideMarginPreset) {
+        return
+      }
+      setOpenSelectMenu(null)
+    }
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpenSelectMenu(null)
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('touchstart', handlePointerDown)
+    document.addEventListener('keydown', handleEscape)
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+      document.removeEventListener('touchstart', handlePointerDown)
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [openSelectMenu])
 
   useEffect(() => {
     return () => {
@@ -395,22 +444,93 @@ function App() {
               <div className="option-grid">
                 <label>
                   Paper Size
-                  <span className="select-shell">
-                    <select value={paperSize} onChange={(event) => setPaperSize(event.target.value as PaperSize)}>
-                      <option value="A4">A4</option>
-                      <option value="LETTER">Letter</option>
-                    </select>
-                  </span>
+                  <div className={`custom-select ${openSelectMenu === 'paperSize' ? 'is-open' : ''}`} ref={paperSizeSelectRef}>
+                    <button
+                      type="button"
+                      className="custom-select-trigger"
+                      aria-haspopup="listbox"
+                      aria-expanded={openSelectMenu === 'paperSize'}
+                      aria-label="Paper size"
+                      onClick={() => setOpenSelectMenu((prev) => (prev === 'paperSize' ? null : 'paperSize'))}
+                    >
+                      <span>{getOptionLabel(PAPER_SIZE_OPTIONS, paperSize)}</span>
+                      <span className="custom-select-caret" aria-hidden="true">
+                        ⌄
+                      </span>
+                    </button>
+                    {openSelectMenu === 'paperSize' ? (
+                      <ul className="custom-select-menu" role="listbox" aria-label="Paper size options">
+                        {PAPER_SIZE_OPTIONS.map((option) => (
+                          <li key={option.value}>
+                            <button
+                              type="button"
+                              className={`custom-select-option ${paperSize === option.value ? 'is-selected' : ''}`}
+                              role="option"
+                              aria-selected={paperSize === option.value}
+                              onClick={() => {
+                                setPaperSize(option.value)
+                                setOpenSelectMenu(null)
+                              }}
+                            >
+                              <span className="custom-select-option-label">
+                                <span className="custom-select-option-check" aria-hidden="true">
+                                  ✓
+                                </span>
+                                {option.label}
+                              </span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
                 </label>
 
                 <label>
                   Margin
-                  <span className="select-shell">
-                    <select value={marginPreset} onChange={(event) => setMarginPreset(event.target.value as MarginPreset)}>
-                      <option value="default">Default</option>
-                      <option value="minimum">Minimum</option>
-                    </select>
-                  </span>
+                  <div
+                    className={`custom-select ${openSelectMenu === 'marginPreset' ? 'is-open' : ''}`}
+                    ref={marginPresetSelectRef}
+                  >
+                    <button
+                      type="button"
+                      className="custom-select-trigger"
+                      aria-haspopup="listbox"
+                      aria-expanded={openSelectMenu === 'marginPreset'}
+                      aria-label="Margin preset"
+                      onClick={() => setOpenSelectMenu((prev) => (prev === 'marginPreset' ? null : 'marginPreset'))}
+                    >
+                      <span>{getOptionLabel(MARGIN_PRESET_OPTIONS, marginPreset)}</span>
+                      <span className="custom-select-caret" aria-hidden="true">
+                        ⌄
+                      </span>
+                    </button>
+                    {openSelectMenu === 'marginPreset' ? (
+                      <ul className="custom-select-menu" role="listbox" aria-label="Margin preset options">
+                        {MARGIN_PRESET_OPTIONS.map((option) => (
+                          <li key={option.value}>
+                            <button
+                              type="button"
+                              className={`custom-select-option ${marginPreset === option.value ? 'is-selected' : ''}`}
+                              role="option"
+                              aria-selected={marginPreset === option.value}
+                              onClick={() => {
+                                setMarginPreset(option.value)
+                                setOpenSelectMenu(null)
+                              }}
+                            >
+                              <span className="custom-select-option-label">
+                                <span className="custom-select-option-check" aria-hidden="true">
+                                  ✓
+                                </span>
+                                {option.label}
+                              </span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
                 </label>
               </div>
               <div className="button-row">
