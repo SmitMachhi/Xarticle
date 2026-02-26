@@ -1,54 +1,90 @@
-# X Article Printer (No Backend)
+# Xarticle.co (no backend, no drama)
 
-Utility webapp for exporting public X/Twitter posts and long-form articles to print-friendly PDFs.
+Turn a public X/Twitter link into a readable export.
 
-- Input: paste one X/Twitter status URL or long-form article URL
-- Output: preview + `Color PDF` and `B/W PDF`
-- Runtime: fully client-side webapp
-- Reliability mode: companion browser extension (recommended)
+You paste one URL.
+The app does the heavy lifting.
+Your browser does the work.
+No server is waiting in a dark room to "help."
 
-## Why companion extension is included
+## What this app does
 
-A pure web page cannot reliably fetch and parse X content due cross-origin and anti-bot behavior. This project still runs as a webapp, but can optionally use a lightweight extension bridge to fetch page HTML from the browser context.
+- Accepts one public X status URL or X long-form article URL.
+- Extracts content with a fallback chain that refuses to panic:
+  - `fxtwitter` first (great for status links)
+  - Companion extension bridge next (most reliable)
+  - `r.jina.ai` fallback last (because hope is a strategy)
+- Shows a clean in-browser preview before you download.
+- Exports PDF for humans.
+- Exports Markdown for LLM workflows.
+- If media exists, Markdown export becomes an offline ZIP (`article.md` + `assets/`).
 
-No backend servers are required.
+## Latest updates
 
-## Features in this MVP
+- Custom dropdowns for `Paper Size` and `Margin`.
+  - No native browser dropdown chaos.
+  - Click outside to close, `Esc` to close.
+- Better clipboard behavior on stricter browsers.
+  - Some browsers (Firefox/Safari) may ask for one extra native "Paste" confirmation.
+  - The app now explains this instead of acting mysterious.
 
-- Status/article URL validation and auto-reject for unsupported links
-- Public extraction pipeline with two modes:
-  - Companion extension mode (preferred)
-  - Fallback mode (`r.jina.ai`) when extension is unavailable
-- Preview with author metadata, metrics, body blocks, inline media
-- PDF download options:
-  - Paper size: `A4` or `Letter`
-  - Margin preset: `Default` or `Minimum`
-  - Theme: `Color` or `B/W`
-- Selectable text in generated PDFs
-
-## Local development
+## Quick start
 
 ```bash
 npm install
 npm run dev
 ```
 
-App runs at `http://localhost:5173`.
+Open `http://localhost:5173`.
 
-## Build
+## Build for production
 
 ```bash
 npm run build
 npm run preview
 ```
 
-## Companion extension (optional but recommended)
+## Main scripts
+
+- `npm run dev` -> start local dev server
+- `npm run build` -> TypeScript + Vite production build
+- `npm run lint` -> lint project
+- `npm run test:run` -> run unit/regression tests once
+- `npm run test:e2e` -> run Playwright tests
+
+## How to use
+
+1. Paste one public X URL.
+2. Click `Load Article`.
+3. Review preview.
+4. Pick PDF settings:
+   - Paper size: `A4` or `Letter`
+   - Margin: `Default` or `Minimum`
+5. Download:
+   - `Download for Humans (PDF)`
+   - `Download for LLMs (Markdown)`
+
+## Companion extension (optional, recommended)
 
 See [extension/README.md](./extension/README.md).
 
-## Notes and limits
+Use it when X decides to be "creative" with anti-bot/cross-origin behavior.
 
-- This tool is designed for **public** X pages only.
-- Bookmark count may be unavailable on public pages.
-- If extraction fails in fallback mode, use the companion extension path.
-- X page structure can change over time; parser updates may be needed.
+## Limits (honest section)
+
+- Public pages only. Private/locked accounts are out.
+- X markup can change at any time, usually at the least convenient moment.
+- Some metrics may be missing depending on source availability.
+- If one extraction provider fails, the app tries the next one automatically.
+
+## Stack
+
+- React + TypeScript + Vite
+- `pdfmake` for PDF export
+- `jszip` for offline Markdown bundles
+- Optional browser extension bridge for reliable page HTML access
+
+## Why this exists
+
+Reading good posts inside infinite scroll is like eating soup with a fork.
+This app is the spoon.
