@@ -7,11 +7,18 @@ import { extractStatusId, isSupportedXInputUrl, normalizeInputUrl } from './xUrl
 const JINA_TIMEOUT_MS = 20000
 const FX_TIMEOUT_MS = 15000
 const FX_THREAD_LIMIT = 40
+const THREADREADER_TIMEOUT_MS = 20000
+const THREADREADER_BASE_URL = 'https://threadreaderapp.com'
 
 interface FxThreadMeta {
   statusId: string | null
   authorHandle: string
   replyingToStatusId: string | null
+}
+
+interface ThreadReaderTweet {
+  statusId: string
+  text: string
 }
 
 const fetchJinaMarkdown = async (url: string): Promise<string> => {
@@ -30,6 +37,95 @@ const fetchJinaMarkdown = async (url: string): Promise<string> => {
     return await response.text()
   } finally {
     window.clearTimeout(timeout)
+  }
+}
+
+const fetchThreadReaderHtml = async (statusId: string): Promise<string> => {
+  const controller = new AbortController()
+  const timeout = window.setTimeout(() => controller.abort(), THREADREADER_TIMEOUT_MS)
+
+  try {
+    const target = `${THREADREADER_BASE_URL}/thread/${statusId}.html`
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`
+    const response = await fetch(proxyUrl, {
+      signal: controller.signal,
+    })
+
+    if (!response.ok) {
+      throw new Error(`Thread Reader fallback HTTP ${response.status}.`)
+    }
+
+    return await response.text()
+  } finally {
+    window.clearTimeout(timeout)
+  }
+}
+
+const htmlToText = (html: string): string => {
+  const withBreaks = html.replace(/<br\s*\/?>/gi, '\n')
+  const temp = document.createElement('div')
+  temp.innerHTML = withBreaks
+  return temp.textContent?.replace(/\u00a0/g, ' ').replace(/\n{3,}/g, '\n\n').trim() || ''
+}
+
+const parseThreadReaderTweets = (html: string): ThreadReaderTweet[] => {
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(html, 'text/html')
+  const nodes = Array.from(doc.querySelectorAll<HTMLElement>('.content-tweet[data-tweet]'))
+  const tweets: ThreadReaderTweet[] = []
+  const seen = new Set<string>()
+
+  for (const node of nodes) {
+    const statusId = node.dataset.tweet?.trim() || ''
+    if (!statusId || seen.has(statusId)) {
+      continue
+    }
+    seen.add(statusId)
+
+    const clone = node.cloneNode(true) as HTMLElement
+    clone.querySelectorAll('sup.tw-permalink').forEach((el) => el.remove())
+    const text = htmlToText(clone.innerHTML)
+    if (!text) {
+      continue
+    }
+    tweets.push({
+      statusId,
+      text,
+    })
+  }
+
+  return tweets
+}
+
+const fallbackThreadPayload = (
+  statusId: string,
+  text: string,
+  sourceUrl: string,
+  authorName: string,
+  authorHandle: string,
+  avatarUrl: string | undefined,
+  createdTimestamp: number,
+): unknown => {
+  return {
+    code: 200,
+    message: 'OK',
+    tweet: {
+      id: statusId,
+      url: `https://x.com/${authorHandle}/status/${statusId}`,
+      text,
+      raw_text: {
+        text,
+      },
+      author: {
+        name: authorName,
+        screen_name: authorHandle,
+        avatar_url: avatarUrl,
+      },
+      created_at: new Date(createdTimestamp * 1000).toUTCString(),
+      created_timestamp: createdTimestamp,
+      replying_to_status: null,
+      source_url: sourceUrl,
+    },
   }
 }
 
@@ -139,6 +235,75 @@ const fetchFxThreadChain = async (
   }
 }
 
+const fetchThreadViaThreadReader = async (
+  seedPayload: unknown,
+): Promise<{ payloads: unknown[]; warnings: string[]; ok: boolean }> => {
+  const seedMeta = getThreadMeta(seedPayload)
+  const seedTweet = (seedPayload as { tweet?: { author?: { name?: string; screen_name?: string; avatar_url?: string }; created_timestamp?: number } })?.tweet
+  const authorName = seedTweet?.author?.name?.trim() || 'Unknown Author'
+  const authorHandle = seedTweet?.author?.screen_name?.trim() || seedMeta.authorHandle || 'unknown'
+  const createdTimestamp = typeof seedTweet?.created_timestamp === 'number' ? seedTweet.created_timestamp : Math.floor(Date.now() / 1000)
+
+  if (!seedMeta.statusId || !authorHandle) {
+    return {
+      payloads: [seedPayload],
+      warnings: ['Thread Reader fallback skipped due to missing status metadata.'],
+      ok: false,
+    }
+  }
+
+  try {
+    const html = await fetchThreadReaderHtml(seedMeta.statusId)
+    const threadTweets = parseThreadReaderTweets(html)
+      .filter((tweet) => Boolean(tweet.statusId))
+      .slice(0, FX_THREAD_LIMIT)
+
+    if (threadTweets.length <= 1) {
+      return {
+        payloads: [seedPayload],
+        warnings: ['Thread Reader fallback did not return multi-post thread data.'],
+        ok: false,
+      }
+    }
+
+    const payloads: unknown[] = []
+    for (let index = 0; index < threadTweets.length; index += 1) {
+      const threadTweet = threadTweets[index]
+      try {
+        const payload = await fetchFxTweetByStatusId(threadTweet.statusId)
+        payloads.push(payload)
+      } catch {
+        payloads.push(
+          fallbackThreadPayload(
+            threadTweet.statusId,
+            threadTweet.text,
+            `https://x.com/${authorHandle}/status/${seedMeta.statusId}`,
+            authorName,
+            authorHandle,
+            seedTweet?.author?.avatar_url,
+            createdTimestamp + index,
+          ),
+        )
+      }
+    }
+
+    return {
+      payloads,
+      warnings: [
+        `Thread resolved via Thread Reader fallback (${threadTweets.length} posts).`,
+      ],
+      ok: true,
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown Thread Reader fallback error.'
+    return {
+      payloads: [seedPayload],
+      warnings: [`Thread Reader fallback failed: ${message}`],
+      ok: false,
+    }
+  }
+}
+
 export const extractArticleFromUrl = async (rawUrl: string): Promise<ExtractRequestResult> => {
   const parsedUrl = validateArticleUrl(rawUrl)
   const sourceUrl = parsedUrl.toString()
@@ -154,15 +319,27 @@ export const extractArticleFromUrl = async (rawUrl: string): Promise<ExtractRequ
 
       const seedPayload = await fetchFxTweetByStatusId(statusId)
       const thread = await fetchFxThreadChain(seedPayload)
+      let payloads = thread.payloads
+      const warningLines = [...thread.warnings]
+      const threadLimitReached = thread.limitReached
+
+      if (payloads.length <= 1) {
+        const threadReaderResult = await fetchThreadViaThreadReader(seedPayload)
+        payloads = threadReaderResult.ok ? threadReaderResult.payloads : payloads
+        warningLines.push(...threadReaderResult.warnings)
+      }
+
       const article =
-        thread.payloads.length > 1
-          ? parseFxTweetThreadResponse(thread.payloads, sourceUrl, { threadLimitReached: thread.limitReached })
+        payloads.length > 1
+          ? parseFxTweetThreadResponse(payloads, sourceUrl, { threadLimitReached })
           : parseFxTweetResponse(seedPayload, sourceUrl)
-      article.warnings.push(...thread.warnings)
+      if (warningLines.length > 0) {
+        article.warnings.push(...warningLines)
+      }
       attempts.push({
         provider: 'fxtwitter',
         ok: true,
-        message: thread.payloads.length > 1 ? 'Public status parser succeeded (thread merged).' : 'Public status parser succeeded.',
+        message: payloads.length > 1 ? 'Public status parser succeeded (thread merged).' : 'Public status parser succeeded.',
       })
       article.providerAttempts = [...attempts]
       return { article }
