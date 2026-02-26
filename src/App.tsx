@@ -38,6 +38,10 @@ const FAQ_ITEMS = [
   },
 ]
 
+const isClipboardPermissionGestureError = (error: unknown): boolean => {
+  return error instanceof DOMException && (error.name === 'NotAllowedError' || error.name === 'SecurityError')
+}
+
 function App() {
   const [urlInput, setUrlInput] = useState('')
   const [paperSize, setPaperSize] = useState<PaperSize>('A4')
@@ -50,10 +54,13 @@ function App() {
   const [manualMascotIndex, setManualMascotIndex] = useState<number | null>(null)
   const [markdownNotice, setMarkdownNotice] = useState<string | null>(null)
   const [markdownNoticeLeaving, setMarkdownNoticeLeaving] = useState(false)
+  const [clipboardNotice, setClipboardNotice] = useState<string | null>(null)
   const [edgeNudge, setEdgeNudge] = useState(0)
+  const urlInputRef = useRef<HTMLInputElement | null>(null)
   const edgeNudgeResetTimerRef = useRef<number | null>(null)
   const markdownNoticeHideTimerRef = useRef<number | null>(null)
   const markdownNoticeClearTimerRef = useRef<number | null>(null)
+  const clipboardNoticeTimerRef = useRef<number | null>(null)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -90,6 +97,17 @@ function App() {
       setMarkdownNoticeLeaving(false)
       markdownNoticeClearTimerRef.current = null
     }, 4300)
+  }
+
+  const showClipboardNotice = (message: string) => {
+    setClipboardNotice(message)
+    if (clipboardNoticeTimerRef.current !== null) {
+      window.clearTimeout(clipboardNoticeTimerRef.current)
+    }
+    clipboardNoticeTimerRef.current = window.setTimeout(() => {
+      setClipboardNotice(null)
+      clipboardNoticeTimerRef.current = null
+    }, 5000)
   }
 
   const mascotVariants = [pandaWave, pandaWrench, pandaSeriousGear, pandaWinkHeart] as const
@@ -175,6 +193,9 @@ function App() {
       if (markdownNoticeClearTimerRef.current !== null) {
         window.clearTimeout(markdownNoticeClearTimerRef.current)
       }
+      if (clipboardNoticeTimerRef.current !== null) {
+        window.clearTimeout(clipboardNoticeTimerRef.current)
+      }
     }
   }, [])
 
@@ -248,6 +269,7 @@ function App() {
   }
 
   const pasteFromClipboard = async () => {
+    setClipboardNotice(null)
     try {
       if (!navigator.clipboard?.readText) {
         throw new Error('Clipboard access is not available in this browser.')
@@ -259,6 +281,11 @@ function App() {
       setUrlInput(text)
       setError(null)
     } catch (err) {
+      if (isClipboardPermissionGestureError(err)) {
+        showClipboardNotice('Your browser requires one extra confirmation tap on "Paste" for clipboard privacy.')
+        urlInputRef.current?.focus()
+        return
+      }
       const message = err instanceof Error ? err.message : 'Could not read clipboard.'
       setError(message)
     }
@@ -323,11 +350,15 @@ function App() {
               <div className="row">
                 <div className="input-shell">
                   <input
+                    ref={urlInputRef}
                     id="url"
                     type="text"
                     placeholder="https://x.com/<handle>/status/... or /i/articles/..."
                     value={urlInput}
-                    onChange={(event) => setUrlInput(event.target.value)}
+                    onChange={(event) => {
+                      setUrlInput(event.target.value)
+                      setClipboardNotice(null)
+                    }}
                   />
                   <button
                     type="button"
@@ -348,6 +379,11 @@ function App() {
               {urlClassification.kind !== 'empty' ? (
                 <p className={`url-status url-status-${urlClassification.kind}`} aria-live="polite">
                   {urlClassification.reason}
+                </p>
+              ) : null}
+              {clipboardNotice ? (
+                <p className="url-status url-status-empty" aria-live="polite">
+                  {clipboardNotice}
                 </p>
               ) : null}
             </section>
