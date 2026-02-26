@@ -1,6 +1,64 @@
-site: https://xarticle.co
-name: Xarticle.co
-description: Client-side tool to extract public X/Twitter article or status content and export it as PDF or Markdown.
-content-policy: Public X/Twitter links only. No private or locked account support.
-data-storage: No user account required. Extraction and file generation happen in the browser session.
-contact: https://x.com/thesmitmachhi
+--------------------------------------------------------------------------------
+title: "Xarticle.co"
+description: "Client-side app for extracting public X/Twitter links and exporting clean PDF or Markdown files."
+last_updated: "2026-02-26"
+source: "https://xarticle.co"
+--------------------------------------------------------------------------------
+
+# Xarticle.co
+
+Xarticle.co is a browser-based tool that turns a public X/Twitter status or long-form article URL into a readable export.
+
+## Product Summary
+
+- Website: https://xarticle.co
+- Type: Client-side web application (no required backend)
+- Main use case: Export public X content into portable formats for reading or LLM workflows
+
+## Supported Inputs
+
+- Public status URLs, for example: `https://x.com/<handle>/status/<id>`
+- Public article URLs, for example: `https://x.com/i/articles/<id>`
+
+## Unsupported Inputs
+
+- Private or locked accounts
+- Non-X URLs
+- Invalid or malformed URLs
+
+## Extraction Flow
+
+Xarticle.co attempts extraction providers in sequence:
+
+1. `fxtwitter` provider (status-first path)
+2. Companion extension bridge (recommended for reliability)
+3. `r.jina.ai` fallback
+
+If one provider fails, the app automatically tries the next provider.
+
+## Exports
+
+- PDF export
+  - Paper size: `A4` or `Letter`
+  - Margin: `Default` or `Minimum`
+- Markdown export
+  - If media is present, output is a ZIP bundle with:
+    - `article.md`
+    - `assets/` folder with downloaded images (when available)
+
+## Data and Privacy
+
+- No login required
+- No account required
+- Extraction and file generation run in the browser session
+- Designed for public page processing only
+
+## Operational Notes
+
+- X page structure can change over time and may affect parsing reliability
+- Some metrics may be unavailable on certain pages
+- Companion browser extension is optional but improves extraction success rates
+
+## Contact
+
+- https://x.com/thesmitmachhi
