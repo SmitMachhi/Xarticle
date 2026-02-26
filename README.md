@@ -2,11 +2,6 @@
 
 Turn a public X/Twitter link into a readable export.
 
-You paste one URL.
-The app does the heavy lifting.
-Your browser does the work.
-No server is waiting in a dark room to "help."
-
 ## What this app does
 
 - Accepts one public X status URL or X long-form article URL.
@@ -58,11 +53,11 @@ npm run preview
 2. Click `Load Article`.
 3. Review preview.
 4. Pick PDF settings:
-   - Paper size: `A4` or `Letter`
-   - Margin: `Default` or `Minimum`
+  - Paper size: `A4` or `Letter`
+  - Margin: `Default` or `Minimum`
 5. Download:
-   - `Download for Humans (PDF)`
-   - `Download for LLMs (Markdown)`
+  - `Download for Humans (PDF)`
+  - `Download for LLMs (Markdown)`
 
 ## Companion extension (optional, recommended)
 
