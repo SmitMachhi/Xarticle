@@ -1,11 +1,18 @@
 import type { ExtractRequestResult, ProviderAttempt } from '../types/article'
 import { parseJinaMarkdown, parseXHtmlDocument } from './articleParser'
 import { requestCompanionHtml } from './companionBridge'
-import { parseFxTweetResponse } from './fxTweetParser'
+import { parseFxTweetResponse, parseFxTweetThreadResponse } from './fxTweetParser'
 import { extractStatusId, isSupportedXInputUrl, normalizeInputUrl } from './xUrl'
 
 const JINA_TIMEOUT_MS = 20000
 const FX_TIMEOUT_MS = 15000
+const FX_THREAD_LIMIT = 40
+
+interface FxThreadMeta {
+  statusId: string | null
+  authorHandle: string
+  replyingToStatusId: string | null
+}
 
 const fetchJinaMarkdown = async (url: string): Promise<string> => {
   const controller = new AbortController()
@@ -41,15 +48,29 @@ const validateArticleUrl = (rawUrl: string): URL => {
   return parsed
 }
 
-const fetchFxTweet = async (statusUrl: string): Promise<unknown> => {
-  const urlObj = new URL(statusUrl)
-  const statusId = extractStatusId(urlObj)
-  if (!statusId) {
-    throw new Error('Could not find status id in URL.')
+const toStatusId = (value: unknown): string | null => {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? String(Math.trunc(value)) : null
   }
+  if (typeof value === 'string') {
+    const normalized = value.trim()
+    return normalized || null
+  }
+  return null
+}
 
-  const handle = urlObj.pathname.split('/').filter(Boolean)[0] || ''
-  const endpoint = `https://api.fxtwitter.com/${handle}/status/${statusId}`
+const getThreadMeta = (payload: unknown): FxThreadMeta => {
+  const tweet = (payload as { tweet?: { id?: unknown; author?: { screen_name?: unknown }; replying_to_status?: unknown } })?.tweet
+  const authorHandle = typeof tweet?.author?.screen_name === 'string' ? tweet.author.screen_name.trim().toLowerCase() : ''
+  return {
+    statusId: toStatusId(tweet?.id),
+    authorHandle,
+    replyingToStatusId: toStatusId(tweet?.replying_to_status),
+  }
+}
+
+const fetchFxTweetByStatusId = async (statusId: string): Promise<unknown> => {
+  const endpoint = `https://api.fxtwitter.com/i/status/${statusId}`
 
   const controller = new AbortController()
   const timeout = window.setTimeout(() => controller.abort(), FX_TIMEOUT_MS)
@@ -65,6 +86,59 @@ const fetchFxTweet = async (statusUrl: string): Promise<unknown> => {
   }
 }
 
+const fetchFxThreadChain = async (
+  seedPayload: unknown,
+): Promise<{ payloads: unknown[]; warnings: string[]; limitReached: boolean }> => {
+  const warnings: string[] = []
+  const payloads: unknown[] = [seedPayload]
+
+  const seedMeta = getThreadMeta(seedPayload)
+  if (!seedMeta.statusId || !seedMeta.authorHandle) {
+    return {
+      payloads,
+      warnings: ['Thread auto-detection skipped due to missing status metadata.'],
+      limitReached: false,
+    }
+  }
+
+  let currentParentId = seedMeta.replyingToStatusId
+  let limitReached = false
+
+  while (currentParentId) {
+    if (payloads.length >= FX_THREAD_LIMIT) {
+      limitReached = true
+      break
+    }
+
+    try {
+      const parentPayload = await fetchFxTweetByStatusId(currentParentId)
+      const parentMeta = getThreadMeta(parentPayload)
+
+      if (!parentMeta.statusId) {
+        warnings.push(`Thread chain stopped early because a parent status payload was incomplete (${currentParentId}).`)
+        break
+      }
+
+      if (!parentMeta.authorHandle || parentMeta.authorHandle !== seedMeta.authorHandle) {
+        break
+      }
+
+      payloads.push(parentPayload)
+      currentParentId = parentMeta.replyingToStatusId
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown status parser error.'
+      warnings.push(`Thread chain stopped early while fetching ${currentParentId}: ${message}`)
+      break
+    }
+  }
+
+  return {
+    payloads: payloads.reverse(),
+    warnings,
+    limitReached,
+  }
+}
+
 export const extractArticleFromUrl = async (rawUrl: string): Promise<ExtractRequestResult> => {
   const parsedUrl = validateArticleUrl(rawUrl)
   const sourceUrl = parsedUrl.toString()
@@ -73,12 +147,22 @@ export const extractArticleFromUrl = async (rawUrl: string): Promise<ExtractRequ
 
   if (extractStatusId(parsedUrl)) {
     try {
-      const payload = await fetchFxTweet(sourceUrl)
-      const article = parseFxTweetResponse(payload, sourceUrl)
+      const statusId = extractStatusId(parsedUrl)
+      if (!statusId) {
+        throw new Error('Could not find status id in URL.')
+      }
+
+      const seedPayload = await fetchFxTweetByStatusId(statusId)
+      const thread = await fetchFxThreadChain(seedPayload)
+      const article =
+        thread.payloads.length > 1
+          ? parseFxTweetThreadResponse(thread.payloads, sourceUrl, { threadLimitReached: thread.limitReached })
+          : parseFxTweetResponse(seedPayload, sourceUrl)
+      article.warnings.push(...thread.warnings)
       attempts.push({
         provider: 'fxtwitter',
         ok: true,
-        message: 'Public status parser succeeded.',
+        message: thread.payloads.length > 1 ? 'Public status parser succeeded (thread merged).' : 'Public status parser succeeded.',
       })
       article.providerAttempts = [...attempts]
       return { article }

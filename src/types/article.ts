@@ -60,6 +60,10 @@ export interface ExtractedArticle {
   mode: ExtractionMode
   providerUsed: ExtractionProvider
   providerAttempts: ProviderAttempt[]
+  isThread?: boolean
+  threadTweetCount?: number
+  threadRootUrl?: string
+  threadUrls?: string[]
 }
 
 export interface ExtractRequestResult {

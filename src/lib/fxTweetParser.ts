@@ -19,6 +19,10 @@ interface FxMediaEntity {
   media_info?: FxMediaInfo
 }
 
+interface FxMediaItem {
+  url?: string
+}
+
 interface FxTweetArticle {
   title?: string
   preview_text?: string
@@ -31,6 +35,7 @@ interface FxTweetArticle {
 }
 
 interface FxTweet {
+  id?: string | number
   url?: string
   text?: string
   raw_text?: {
@@ -43,14 +48,50 @@ interface FxTweet {
   views?: number
   bookmarks?: number
   created_at?: string
+  created_timestamp?: number
+  replying_to_status?: string | number | null
   article?: FxTweetArticle
   media_entities?: FxMediaEntity[]
+  media?: {
+    all?: FxMediaItem[]
+    photos?: FxMediaItem[]
+  }
 }
 
 interface FxTweetResponse {
   code?: number
   message?: string
   tweet?: FxTweet
+}
+
+const asIsoDate = (value: string | undefined): string | undefined => {
+  if (!value) {
+    return undefined
+  }
+  const timestamp = Date.parse(value)
+  if (Number.isNaN(timestamp)) {
+    return undefined
+  }
+  return new Date(timestamp).toISOString()
+}
+
+const toStatusId = (value: string | number | null | undefined): string | null => {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? String(Math.trunc(value)) : null
+  }
+  if (typeof value === 'string') {
+    const normalized = value.trim()
+    return normalized || null
+  }
+  return null
+}
+
+const parseFxTweetPayload = (payload: unknown): FxTweet => {
+  const data = payload as FxTweetResponse
+  if (!data?.tweet) {
+    throw new Error('Status extractor did not return tweet payload.')
+  }
+  return data.tweet
 }
 
 const normalizeText = (value: string): string => value.replace(/\s+/g, ' ').trim()
@@ -142,6 +183,19 @@ const mediaBlocksFromTweet = (tweet: FxTweet): ArticleBlock[] => {
     }
   }
 
+  const mediaItems = [...(tweet.media?.photos || []), ...(tweet.media?.all || [])]
+  for (const media of mediaItems) {
+    const imageUrl = media.url
+    if (imageUrl && !imageUrls.has(imageUrl)) {
+      imageUrls.add(imageUrl)
+      blocks.push({
+        type: 'media',
+        mediaType: 'image',
+        url: imageUrl,
+      })
+    }
+  }
+
   return blocks
 }
 
@@ -211,21 +265,9 @@ const dedupeAdjacentParagraphs = (blocks: ArticleBlock[]): ArticleBlock[] => {
   return deduped
 }
 
-export const parseFxTweetResponse = (payload: unknown, sourceUrl: string): ExtractedArticle => {
-  const data = payload as FxTweetResponse
-
-  if (!data?.tweet) {
-    throw new Error('Status extractor did not return tweet payload.')
-  }
-
-  const tweet = data.tweet
-  const authorName = tweet.author?.name?.trim() || 'Unknown Author'
-  const authorHandle = tweet.author?.screen_name?.trim() || 'unknown'
-
+const buildSingleTweetBlocks = (tweet: FxTweet): ArticleBlock[] => {
   const contentBlocks = articleBlocksFromTweet(tweet)
   const mediaBlocks = mediaBlocksFromTweet(tweet)
-
-  const title = tweet.article?.title?.trim() || `${authorName} on X`
 
   const rawBlocks: ArticleBlock[] = []
   if (contentBlocks.length === 0 && tweet.article?.preview_text) {
@@ -233,11 +275,126 @@ export const parseFxTweetResponse = (payload: unknown, sourceUrl: string): Extra
   }
   rawBlocks.push(...contentBlocks)
   rawBlocks.push(...mediaBlocks)
-  const blocks = dedupeAdjacentParagraphs(rawBlocks)
+  return dedupeAdjacentParagraphs(rawBlocks)
+}
+
+const metricSnapshot = (tweet: FxTweet): ExtractedArticle['metrics'] => ({
+  likes: tweet.likes ?? null,
+  replies: tweet.replies ?? null,
+  reposts: tweet.retweets ?? null,
+  views: tweet.views ?? null,
+  bookmarks: tweet.bookmarks ?? null,
+})
+
+const toChronologicalTweets = (tweets: FxTweet[]): FxTweet[] => {
+  return [...tweets].sort((a, b) => {
+    const aTimestamp = typeof a.created_timestamp === 'number' ? a.created_timestamp : Number.NaN
+    const bTimestamp = typeof b.created_timestamp === 'number' ? b.created_timestamp : Number.NaN
+
+    if (!Number.isNaN(aTimestamp) && !Number.isNaN(bTimestamp)) {
+      return aTimestamp - bTimestamp
+    }
+    if (!Number.isNaN(aTimestamp)) {
+      return -1
+    }
+    if (!Number.isNaN(bTimestamp)) {
+      return 1
+    }
+
+    const aDate = Date.parse(a.created_at || '')
+    const bDate = Date.parse(b.created_at || '')
+    if (!Number.isNaN(aDate) && !Number.isNaN(bDate)) {
+      return aDate - bDate
+    }
+    return 0
+  })
+}
+
+export const parseFxTweetThreadResponse = (
+  payloads: unknown[],
+  sourceUrl: string,
+  options?: { threadLimitReached?: boolean },
+): ExtractedArticle => {
+  if (payloads.length === 0) {
+    throw new Error('No status payloads were provided for thread parsing.')
+  }
+
+  const tweetsById = new Map<string, FxTweet>()
+  payloads.forEach((payload, index) => {
+    const tweet = parseFxTweetPayload(payload)
+    const fallbackId = `tweet-${index}`
+    const id = toStatusId(tweet.id) || fallbackId
+    if (!tweetsById.has(id)) {
+      tweetsById.set(id, tweet)
+    }
+  })
+
+  const chronologicalTweets = toChronologicalTweets(Array.from(tweetsById.values()))
+  if (chronologicalTweets.length === 0) {
+    throw new Error('No printable content found for this status URL.')
+  }
+
+  const rootTweet = chronologicalTweets[0]
+  const latestTweet = chronologicalTweets[chronologicalTweets.length - 1]
+  const authorName = rootTweet.author?.name?.trim() || latestTweet.author?.name?.trim() || 'Unknown Author'
+  const authorHandle = rootTweet.author?.screen_name?.trim() || latestTweet.author?.screen_name?.trim() || 'unknown'
+
+  const blocks: ArticleBlock[] = []
+  chronologicalTweets.forEach((tweet, index) => {
+    const sectionBlocks = buildSingleTweetBlocks(tweet)
+    if (sectionBlocks.length === 0) {
+      return
+    }
+
+    blocks.push({
+      type: 'heading',
+      level: 2,
+      text: `Post ${index + 1}`,
+    })
+    blocks.push(...sectionBlocks)
+  })
 
   if (blocks.length === 0) {
     throw new Error('No printable content found for this status URL.')
   }
+
+  const warnings = [
+    `Auto-detected thread: ${chronologicalTweets.length} posts merged. Metrics shown are from the root post.`,
+    'Extracted via public status parser.',
+  ]
+  if (options?.threadLimitReached) {
+    warnings.push('Thread parsing hit the 40-post cap and may be incomplete.')
+  }
+
+  return {
+    sourceUrl,
+    canonicalUrl: rootTweet.url || sourceUrl,
+    title: rootTweet.article?.title?.trim() || `${authorName} thread on X`,
+    authorName,
+    authorHandle,
+    authorAvatarUrl: rootTweet.author?.avatar_url || latestTweet.author?.avatar_url,
+    publishedAt: asIsoDate(rootTweet.created_at),
+    metrics: metricSnapshot(rootTweet),
+    blocks,
+    warnings,
+    extractedAt: new Date().toISOString(),
+    mode: 'fallback',
+    providerUsed: 'fxtwitter',
+    providerAttempts: [],
+    isThread: true,
+    threadTweetCount: chronologicalTweets.length,
+    threadRootUrl: rootTweet.url || sourceUrl,
+    threadUrls: chronologicalTweets.map((tweet) => tweet.url).filter((url): url is string => Boolean(url)),
+  }
+}
+
+export const parseFxTweetResponse = (payload: unknown, sourceUrl: string): ExtractedArticle => {
+  const tweet = parseFxTweetPayload(payload)
+  const authorName = tweet.author?.name?.trim() || 'Unknown Author'
+  const authorHandle = tweet.author?.screen_name?.trim() || 'unknown'
+  const blocks = buildSingleTweetBlocks(tweet)
+
+  const title = tweet.article?.title?.trim() || `${authorName} on X`
 
   return {
     sourceUrl,
@@ -246,14 +403,8 @@ export const parseFxTweetResponse = (payload: unknown, sourceUrl: string): Extra
     authorName,
     authorHandle,
     authorAvatarUrl: tweet.author?.avatar_url,
-    publishedAt: tweet.created_at ? new Date(tweet.created_at).toISOString() : undefined,
-    metrics: {
-      likes: tweet.likes ?? null,
-      replies: tweet.replies ?? null,
-      reposts: tweet.retweets ?? null,
-      views: tweet.views ?? null,
-      bookmarks: tweet.bookmarks ?? null,
-    },
+    publishedAt: asIsoDate(tweet.created_at),
+    metrics: metricSnapshot(tweet),
     blocks,
     warnings: ['Extracted via public status parser.'],
     extractedAt: new Date().toISOString(),
