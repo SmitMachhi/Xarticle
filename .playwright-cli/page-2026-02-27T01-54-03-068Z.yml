@@ -1,0 +1,88 @@
+- generic [ref=e3]:
+  - link "Skip to main content" [ref=e4] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=e5]:
+    - generic [ref=e6]:
+      - img [ref=e7]
+      - paragraph [ref=e9]: Xarticle.co
+    - navigation [ref=e11]:
+      - link "How it works" [ref=e12] [cursor=pointer]:
+        - /url: "#how-it-works"
+      - link "FAQ" [ref=e13] [cursor=pointer]:
+        - /url: "#faq"
+  - main [ref=e14]:
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - paragraph [ref=e18]: No login required.
+        - heading "Paste link. Download Article." [level=1] [ref=e19]
+        - paragraph [ref=e20]: Paste one public X link, and get a clean PDF for humans or Markdown for LLMs in seconds.
+      - button "Cycle panda mascot" [ref=e22] [cursor=pointer]:
+        - generic: ✦
+        - generic: ✦
+        - img "Panda mascot" [ref=e23]
+    - generic [ref=e26]:
+      - generic [ref=e28]:
+        - heading "Paste URL" [level=2] [ref=e29]
+        - generic [ref=e30]: X URL
+        - generic [ref=e31]:
+          - generic [ref=e32]:
+            - textbox "X URL" [ref=e33]:
+              - /placeholder: https://x.com/<handle>/status/... or /i/articles/...
+              - text: https://x.com/skirani/status/2025978884970398025
+            - button "Paste from Clipboard" [ref=e34] [cursor=pointer]:
+              - img [ref=e35]
+          - button "Loading..." [disabled] [ref=e93]
+        - paragraph [ref=e38]: Detected status URL. Thread auto-detection is enabled.
+      - complementary [ref=e39]:
+        - generic [ref=e40]:
+          - heading "PDF Export Settings" [level=2] [ref=e41]
+          - generic [ref=e42]:
+            - generic [ref=e43]:
+              - text: Paper Size
+              - button "Paper size" [ref=e45] [cursor=pointer]:
+                - generic [ref=e46]: A4
+                - generic [ref=e47]: ⌄
+            - generic [ref=e48]:
+              - text: Margin
+              - button "Margin preset" [ref=e50] [cursor=pointer]:
+                - generic [ref=e51]: Default
+                - generic [ref=e52]: ⌄
+          - button "Download for Humans (PDF)" [disabled] [ref=e54]
+        - generic [ref=e55]:
+          - heading "Markdown Export" [level=2] [ref=e56]
+          - generic [ref=e58]:
+            - button "Download for LLMs (Markdown (.md))" [disabled] [ref=e59]
+            - button "Toggle markdown format options" [disabled] [ref=e60]:
+              - generic [ref=e61]: ⌄
+    - generic [ref=e63]:
+      - heading "Preview" [level=2] [ref=e64]
+      - region "Loading preview" [ref=e94]
+    - generic [ref=e67]:
+      - article [ref=e68]:
+        - heading "FAQ" [level=2] [ref=e69]
+        - generic [ref=e70]:
+          - group [ref=e71]:
+            - generic "Does this support private or locked X accounts? +" [ref=e72] [cursor=pointer]
+          - group [ref=e73]:
+            - generic "Can I use this without creating an account? +" [ref=e74] [cursor=pointer]
+          - group [ref=e75]:
+            - generic "Do you store my links or exports? +" [ref=e76] [cursor=pointer]
+          - group [ref=e77]:
+            - generic "What export formats are available? +" [ref=e78] [cursor=pointer]
+      - article [ref=e79]:
+        - heading "How it works" [level=2] [ref=e80]
+        - list [ref=e81]:
+          - listitem [ref=e82]: Paste one public X status URL or long-form article URL.
+          - listitem [ref=e83]: Preview the extracted content in your browser.
+          - listitem [ref=e84]: Download PDF for people or Markdown for LLM workflows.
+  - contentinfo [ref=e85]:
+    - generic [ref=e86]:
+      - paragraph [ref=e87]:
+        - img [ref=e88]
+        - generic [ref=e89]: Xarticle.co
+      - paragraph [ref=e90]:
+        - text: made with
+        - img "heart" [ref=e91]: ❤️
+        - text: by
+        - link "Smit" [ref=e92] [cursor=pointer]:
+          - /url: https://x.com/thesmitmachhi
