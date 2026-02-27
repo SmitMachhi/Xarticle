@@ -1,3 +1,8 @@
 name = "xarticle-extract-worker"
 main = "worker/index.js"
 compatibility_date = "2026-02-27"
+
+[vars]
+# Point this to your self-hosted FxEmbed/FixTweet API origin (no trailing slash).
+# Example: "https://fx.yourdomain.com/api"
+FXTWITTER_API_BASE_URL = ""

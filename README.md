@@ -6,7 +6,7 @@ Turn a public X/Twitter link into a readable export.
 
 - Accepts one public X status URL or X long-form article URL.
 - Uses a minimal stateless backend endpoint (`/api/extract`) for extraction.
-- Resolves statuses/threads through `fxtwitter` from backend only (not browser-direct).
+- Resolves statuses/threads through your self-hosted `fxtwitter`-compatible API from backend only (not browser-direct).
 - Resolves long-form article URLs by fetching HTML server-side and parsing client-side.
 - Shows a clean in-browser preview before you download.
 - Exports PDF for humans.
@@ -43,6 +43,19 @@ wrangler dev
 By default, the frontend calls `/api/extract` on the same origin.  
 For custom environments, set `VITE_EXTRACT_API_URL` to a full endpoint URL.
 
+### Required env var
+
+Set `FXTWITTER_API_BASE_URL` in your Worker environment to your own hosted FxEmbed/FixTweet API base.
+
+Example:
+
+```toml
+[vars]
+FXTWITTER_API_BASE_URL = "https://fx.yourdomain.com/api"
+```
+
+The worker does not call public `api.fxtwitter.com` anymore.
+
 ## Build for production
 
 ```bash
@@ -74,7 +87,7 @@ npm run preview
 
 - Public pages only. Private/locked accounts are out.
 - X markup/upstream behavior can change at any time.
-- Some metrics may be missing depending on upstream payload availability.
+- Some metrics may be missing depending on your Fx instance payload availability.
 - No login/auth is implemented.
 
 ## Stack

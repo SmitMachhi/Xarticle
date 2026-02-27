@@ -80,8 +80,18 @@ const fetchWithTimeout = async (url, init, timeoutMs) => {
   }
 }
 
-const fetchFxStatus = async (statusId) => {
-  const endpoint = `https://api.fxtwitter.com/i/status/${statusId}`
+const normalizeBaseUrl = baseUrl => {
+  const normalized = baseUrl.trim()
+  return normalized.endsWith('/') ? normalized.slice(0, -1) : normalized
+}
+
+const fetchFxStatus = async (statusId, env) => {
+  const configuredBase = typeof env?.FXTWITTER_API_BASE_URL === 'string' ? env.FXTWITTER_API_BASE_URL : ''
+  if (!configuredBase.trim()) {
+    throw new Error('FXTWITTER_API_BASE_URL is not configured.')
+  }
+
+  const endpoint = `${normalizeBaseUrl(configuredBase)}/i/status/${statusId}`
   const response = await fetchWithTimeout(endpoint, {}, FX_TIMEOUT_MS)
   if (!response.ok) {
     throw new Error(`status parser HTTP ${response.status}`)
@@ -89,9 +99,9 @@ const fetchFxStatus = async (statusId) => {
   return await response.json()
 }
 
-const fetchStatusWithThreadChain = async (statusId) => {
+const fetchStatusWithThreadChain = async (statusId, env) => {
   const warnings = []
-  const seedPayload = await fetchFxStatus(statusId)
+  const seedPayload = await fetchFxStatus(statusId, env)
   const payloads = [seedPayload]
   const seedMeta = getThreadMeta(seedPayload)
 
@@ -113,7 +123,7 @@ const fetchStatusWithThreadChain = async (statusId) => {
     }
 
     try {
-      const parentPayload = await fetchFxStatus(currentParentId)
+      const parentPayload = await fetchFxStatus(currentParentId, env)
       const parentMeta = getThreadMeta(parentPayload)
       if (!parentMeta.statusId) {
         warnings.push(`Thread chain stopped early because a parent payload was incomplete (${currentParentId}).`)
@@ -146,7 +156,7 @@ const parseInputUrl = (value) => {
   return new URL(withProtocol)
 }
 
-const handleExtract = async (request) => {
+const handleExtract = async (request, env) => {
   const body = await request.json().catch(() => null)
   const parsedUrl = parseInputUrl(body ? body.url : '')
 
@@ -156,7 +166,7 @@ const handleExtract = async (request) => {
 
   const statusId = extractStatusId(parsedUrl)
   if (statusId) {
-    const result = await fetchStatusWithThreadChain(statusId)
+    const result = await fetchStatusWithThreadChain(statusId, env)
     return jsonResponse({
       kind: 'status',
       payloads: result.payloads,
@@ -200,7 +210,7 @@ const handleExtract = async (request) => {
 }
 
 export default {
-  async fetch(request) {
+  async fetch(request, env) {
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: CORS_HEADERS })
     }
@@ -208,7 +218,7 @@ export default {
     const url = new URL(request.url)
     if (request.method === 'POST' && url.pathname === '/api/extract') {
       try {
-        return await handleExtract(request)
+        return await handleExtract(request, env)
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Extraction failed.'
         return jsonResponse({ error: message }, 400)
