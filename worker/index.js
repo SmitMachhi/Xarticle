@@ -1,16 +1,20 @@
 const STATUS_TIMEOUT_MS = 15000
 const ARTICLE_TIMEOUT_MS = 20000
 const FX_THREAD_LIMIT = 40
+const MAX_TIMELINE_FETCH = 40
+const MAX_TIMELINE_PAGES = 8
 
 const TWITTER_ROOT = 'https://x.com'
+const X_API_ROOT = 'https://api.x.com'
 const TWITTER_API_ROOT = 'https://api.twitter.com'
 const MAIN_SCRIPT_URL = 'https://x.com'
 const QUERY_CACHE_TTL_MS = 6 * 60 * 60 * 1000
 const GUEST_TOKEN_TTL_MS = 2 * 60 * 60 * 1000
+const TRANSACTION_CACHE_TTL_MS = 6 * 60 * 60 * 1000
 
 const USER_AGENT =
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36'
-const SEC_CH_UA = '"Not?A_Brand";v="8", "Chromium";v="140", "Google Chrome";v="140"'
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36'
+const SEC_CH_UA = '"Not?A_Brand";v="8", "Chromium";v="145", "Google Chrome";v="145"'
 
 const DEFAULT_BEARER_TOKEN =
   'AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA'
@@ -56,11 +60,53 @@ const QUERY_FEATURES = {
   responsive_web_enhance_cards_enabled: false,
 }
 
+const USER_TIMELINE_FEATURES = {
+  rweb_video_screen_enabled: false,
+  profile_label_improvements_pcf_label_in_post_enabled: true,
+  responsive_web_profile_redirect_enabled: false,
+  rweb_tipjar_consumption_enabled: false,
+  verified_phone_label_enabled: false,
+  creator_subscriptions_tweet_preview_api_enabled: true,
+  responsive_web_graphql_timeline_navigation_enabled: true,
+  responsive_web_graphql_skip_user_profile_image_extensions_enabled: false,
+  premium_content_api_read_enabled: false,
+  communities_web_enable_tweet_community_results_fetch: true,
+  c9s_tweet_anatomy_moderator_badge_enabled: true,
+  responsive_web_grok_analyze_button_fetch_trends_enabled: false,
+  responsive_web_grok_analyze_post_followups_enabled: false,
+  responsive_web_jetfuel_frame: true,
+  responsive_web_grok_share_attachment_enabled: true,
+  responsive_web_grok_annotations_enabled: true,
+  articles_preview_enabled: true,
+  responsive_web_edit_tweet_api_enabled: true,
+  graphql_is_translatable_rweb_tweet_is_translatable_enabled: true,
+  view_counts_everywhere_api_enabled: true,
+  longform_notetweets_consumption_enabled: true,
+  responsive_web_twitter_article_tweet_consumption_enabled: true,
+  tweet_awards_web_tipping_enabled: false,
+  responsive_web_grok_show_grok_translated_post: false,
+  responsive_web_grok_analysis_button_from_backend: true,
+  post_ctas_fetch_enabled: true,
+  freedom_of_speech_not_reach_fetch_enabled: true,
+  standardized_nudges_misinfo: true,
+  tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled: true,
+  longform_notetweets_rich_text_read_enabled: true,
+  longform_notetweets_inline_media_enabled: true,
+  responsive_web_grok_image_annotation_enabled: true,
+  responsive_web_grok_imagine_annotation_enabled: true,
+  responsive_web_grok_community_note_auto_translation_is_enabled: false,
+  responsive_web_enhance_cards_enabled: false,
+}
+
 const QUERY_FIELD_TOGGLES = {
   withArticleRichContentState: true,
   withArticlePlainText: false,
   withGrokAnalyze: false,
   withDisallowedReplyControls: false,
+}
+
+const USER_TIMELINE_FIELD_TOGGLES = {
+  withArticlePlainText: false,
 }
 
 const STATUS_PATH_PATTERNS = [/\/[^/]+\/status\/(\d+)/i, /\/i\/status\/(\d+)/i]
@@ -80,10 +126,15 @@ const JSON_HEADERS = {
 
 const state = {
   bearerToken: null,
-  queryId: null,
+  tweetResultQueryId: null,
+  userTweetsAndRepliesQueryId: null,
+  userTweetsQueryId: null,
+  tweetDetailQueryId: null,
   queryResolvedAt: 0,
   guestToken: null,
   guestTokenExpiresAt: 0,
+  transactionContext: null,
+  transactionResolvedAt: 0,
 }
 
 const jsonResponse = (payload, status = 200) => {
@@ -219,11 +270,300 @@ const stripUrlFromTail = (text, expandedUrls) => {
   return normalized
 }
 
+const extractMetaContent = (html, name) => {
+  const regexes = [
+    new RegExp(`<meta[^>]+name=["']${name}["'][^>]+content=["']([^"']+)["']`, 'i'),
+    new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+name=["']${name}["']`, 'i'),
+  ]
+  for (const regex of regexes) {
+    const match = html.match(regex)
+    if (match && match[1]) {
+      return match[1]
+    }
+  }
+  return null
+}
+
+const interpolate = (from, to, factor) => {
+  return from.map((value, index) => value * (1 - factor) + to[index] * factor)
+}
+
+const convertRotationToMatrix = degrees => {
+  const radians = degrees * Math.PI / 180
+  return [Math.cos(radians), -Math.sin(radians), Math.sin(radians), Math.cos(radians)]
+}
+
+const isOdd = value => (value % 2 ? -1 : 0)
+
+const floatToHex = valueInput => {
+  const result = []
+  let value = valueInput
+  let quotient = Math.floor(value)
+  const fraction = value - quotient
+
+  while (quotient > 0) {
+    const q = Math.floor(value / 16)
+    const remainder = Math.floor(value - q * 16)
+    if (remainder > 9) {
+      result.unshift(String.fromCharCode(remainder + 55))
+    } else {
+      result.unshift(String(remainder))
+    }
+    value = q
+    quotient = Math.floor(value)
+  }
+
+  if (fraction === 0) {
+    return result.join('')
+  }
+
+  result.push('.')
+  let frac = fraction
+  let guard = 0
+  while (frac > 0 && guard < 32) {
+    frac *= 16
+    const integer = Math.floor(frac)
+    frac -= integer
+    if (integer > 9) {
+      result.push(String.fromCharCode(integer + 55))
+    } else {
+      result.push(String(integer))
+    }
+    guard += 1
+  }
+
+  return result.join('')
+}
+
+class Cubic {
+  constructor(curves) {
+    this.curves = curves
+  }
+
+  static calculate(a, b, m) {
+    return 3 * a * (1 - m) * (1 - m) * m + 3 * b * (1 - m) * m * m + m * m * m
+  }
+
+  getValue(time) {
+    let start = 0
+    let end = 1
+    let mid = 0
+
+    if (time <= 0) {
+      const startGrad = this.curves[0] > 0
+        ? this.curves[1] / this.curves[0]
+        : this.curves[1] === 0 && this.curves[2] > 0
+          ? this.curves[3] / this.curves[2]
+          : 0
+      return startGrad * time
+    }
+
+    if (time >= 1) {
+      const endGrad = this.curves[2] < 1
+        ? (this.curves[3] - 1) / (this.curves[2] - 1)
+        : this.curves[2] === 1 && this.curves[0] < 1
+          ? (this.curves[1] - 1) / (this.curves[0] - 1)
+          : 0
+      return 1 + endGrad * (time - 1)
+    }
+
+    for (let i = 0; i < 64; i += 1) {
+      mid = (start + end) / 2
+      const estimate = Cubic.calculate(this.curves[0], this.curves[2], mid)
+      if (Math.abs(time - estimate) < 0.00001) {
+        return Cubic.calculate(this.curves[1], this.curves[3], mid)
+      }
+      if (estimate < time) {
+        start = mid
+      } else {
+        end = mid
+      }
+    }
+
+    return Cubic.calculate(this.curves[1], this.curves[3], mid)
+  }
+}
+
+const parseTransactionContext = async homeHtml => {
+  const key = extractMetaContent(homeHtml, 'twitter-site-verification')
+  const ondemandMatch = homeHtml.match(/["']ondemand\.s["']:\s*["']([\w]+)["']/i)
+  if (!key || !ondemandMatch?.[1]) {
+    return null
+  }
+
+  const onDemandResponse = await fetchWithTimeout(
+    `https://abs.twimg.com/responsive-web/client-web/ondemand.s.${ondemandMatch[1]}a.js`,
+    {
+      headers: {
+        'user-agent': USER_AGENT,
+        accept: '*/*',
+      },
+    },
+    STATUS_TIMEOUT_MS,
+  )
+
+  if (!onDemandResponse.ok) {
+    return null
+  }
+
+  const onDemandText = await onDemandResponse.text()
+  const indices = []
+  let indexMatch
+  const indicesRegex = /\(\w\[(\d{1,2})\],\s*16\)/g
+  while ((indexMatch = indicesRegex.exec(onDemandText)) !== null) {
+    indices.push(Number.parseInt(indexMatch[1], 10))
+  }
+
+  if (indices.length < 2) {
+    return null
+  }
+
+  const keyBytes = Array.from(Uint8Array.from(atob(key), char => char.charCodeAt(0)))
+
+  const frameMatches = Array.from(homeHtml.matchAll(/<svg[^>]*id=["']loading-x-anim-(\d+)["'][^>]*>([\s\S]*?)<\/svg>/g))
+  if (frameMatches.length < 4) {
+    return null
+  }
+
+  const frameById = new Map(frameMatches.map(match => [Number.parseInt(match[1], 10), match[2]]))
+  const selectedFrameIndex = keyBytes[5] % 4
+  const selectedFrame = frameById.get(selectedFrameIndex) || frameMatches[selectedFrameIndex]?.[2]
+  if (!selectedFrame) {
+    return null
+  }
+
+  const paths = Array.from(selectedFrame.matchAll(/<path[^>]*d=["']([^"']+)["']/g)).map(match => match[1])
+  if (paths.length < 2) {
+    return null
+  }
+
+  const grid = paths[1]
+    .slice(9)
+    .split('C')
+    .map(item => item.replace(/[^\d]+/g, ' ').trim())
+    .filter(Boolean)
+    .map(item => item.split(/\s+/).map(part => Number.parseInt(part, 10)))
+
+  const rowIndex = indices[0]
+  const keyByteIndices = indices.slice(1)
+  const row = grid[keyBytes[rowIndex] % 16]
+
+  if (!row || row.length < 8) {
+    return null
+  }
+
+  const total = 4096
+  const frameTime = keyByteIndices.map(index => keyBytes[index] % 16).reduce((acc, value) => acc * value, 1)
+  const frameFactor = frameTime / total
+
+  const solve = (value, minValue, maxValue, round) => {
+    const result = value * (maxValue - minValue) / 255 + minValue
+    return round ? Math.floor(result) : Number(result.toFixed(2))
+  }
+
+  const fromColor = [...row.slice(0, 3), 1]
+  const toColor = [...row.slice(3, 6), 1]
+  const toRotation = [solve(row[6], 60, 360, true)]
+  const curves = row.slice(7).map((value, index) => solve(value, isOdd(index), 1, false))
+  const cubic = new Cubic(curves)
+  const interpolation = cubic.getValue(frameFactor)
+  const color = interpolate(fromColor, toColor, interpolation).map(value => (value > 0 ? value : 0))
+  const rotation = interpolate([0], toRotation, interpolation)
+  const matrix = convertRotationToMatrix(rotation[0])
+
+  const hex = []
+  color.slice(0, -1).forEach(value => hex.push(Math.round(value).toString(16)))
+  matrix.forEach(value => {
+    let normalized = Number(value.toFixed(2))
+    if (normalized < 0) {
+      normalized = -normalized
+    }
+    const hexValue = floatToHex(normalized)
+    if (!hexValue) {
+      hex.push('0')
+    } else if (hexValue.startsWith('.')) {
+      hex.push(`0${hexValue}`.toLowerCase())
+    } else {
+      hex.push(hexValue.toLowerCase())
+    }
+  })
+  hex.push('0', '0')
+
+  const animationKey = hex.join('').replace(/[.-]/g, '')
+
+  return {
+    keyBytes,
+    animationKey,
+    keyword: 'obfiowerehiring',
+    additionalRandom: 3,
+  }
+}
+
+const resolveTransactionContext = async () => {
+  const now = Date.now()
+  if (state.transactionContext && now - state.transactionResolvedAt < TRANSACTION_CACHE_TTL_MS) {
+    return state.transactionContext
+  }
+
+  const homeResponse = await fetchWithTimeout(
+    MAIN_SCRIPT_URL,
+    {
+      headers: {
+        'user-agent': USER_AGENT,
+        accept: 'text/html,application/xhtml+xml',
+      },
+    },
+    STATUS_TIMEOUT_MS,
+  )
+
+  if (!homeResponse.ok) {
+    return null
+  }
+
+  const homeHtml = await homeResponse.text()
+  const context = await parseTransactionContext(homeHtml)
+  if (!context) {
+    return null
+  }
+
+  state.transactionContext = context
+  state.transactionResolvedAt = now
+  return context
+}
+
+const generateTransactionId = async (method, path) => {
+  const context = await resolveTransactionContext()
+  if (!context) {
+    return null
+  }
+
+  const now = Math.floor(Date.now() / 1000 - 1682924400)
+  const timeBytes = [0, 1, 2, 3].map(index => (now >> (index * 8)) & 0xff)
+  const hashInput = `${method}!${path}!${now}${context.keyword}${context.animationKey}`
+
+  const hashData = new TextEncoder().encode(hashInput)
+  const hashBytes = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', hashData)).slice(0, 16))
+  const randomByte = Math.floor(Math.random() * 256)
+  const combined = [...context.keyBytes, ...timeBytes, ...hashBytes, context.additionalRandom]
+  const xored = combined.map(value => value ^ randomByte)
+  const output = Uint8Array.from([randomByte, ...xored])
+
+  return btoa(String.fromCharCode(...output)).replace(/=+$/g, '')
+}
+
 const resolveQueryAndBearer = async () => {
   const now = Date.now()
-  if (state.queryId && state.bearerToken && now - state.queryResolvedAt < QUERY_CACHE_TTL_MS) {
+  if (
+    state.tweetResultQueryId &&
+    (state.userTweetsAndRepliesQueryId || state.userTweetsQueryId) &&
+    state.bearerToken &&
+    now - state.queryResolvedAt < QUERY_CACHE_TTL_MS
+  ) {
     return {
-      queryId: state.queryId,
+      tweetResultQueryId: state.tweetResultQueryId,
+      userTweetsAndRepliesQueryId: state.userTweetsAndRepliesQueryId,
+      userTweetsQueryId: state.userTweetsQueryId,
+      tweetDetailQueryId: state.tweetDetailQueryId,
       bearerToken: state.bearerToken,
     }
   }
@@ -266,17 +606,27 @@ const resolveQueryAndBearer = async () => {
 
   const scriptText = await scriptResponse.text()
   const bearerMatch = scriptText.match(/AAAAA[0-9A-Za-z%]{30,220}/)
-  const queryMatch = scriptText.match(/queryId:"([^"]+)",operationName:"TweetResultByRestId"/)
-  if (!queryMatch) {
-    throw new Error('Could not resolve TweetResultByRestId query id.')
+  const tweetResultMatch = scriptText.match(/queryId:"([^"]+)",operationName:"TweetResultByRestId"/)
+  const userTweetsAndRepliesMatch = scriptText.match(/queryId:"([^"]+)",operationName:"UserTweetsAndReplies"/)
+  const userTweetsMatch = scriptText.match(/queryId:"([^"]+)",operationName:"UserTweets"/)
+  const tweetDetailMatch = scriptText.match(/queryId:"([^"]+)",operationName:"TweetDetail"/)
+
+  if (!tweetResultMatch || (!userTweetsAndRepliesMatch && !userTweetsMatch)) {
+    throw new Error('Could not resolve required query IDs.')
   }
 
-  state.queryId = queryMatch[1]
+  state.tweetResultQueryId = tweetResultMatch[1]
+  state.userTweetsAndRepliesQueryId = userTweetsAndRepliesMatch?.[1] || null
+  state.userTweetsQueryId = userTweetsMatch?.[1] || null
+  state.tweetDetailQueryId = tweetDetailMatch?.[1] || null
   state.bearerToken = bearerMatch?.[0] || DEFAULT_BEARER_TOKEN
   state.queryResolvedAt = now
 
   return {
-    queryId: state.queryId,
+    tweetResultQueryId: state.tweetResultQueryId,
+    userTweetsAndRepliesQueryId: state.userTweetsAndRepliesQueryId,
+    userTweetsQueryId: state.userTweetsQueryId,
+    tweetDetailQueryId: state.tweetDetailQueryId,
     bearerToken: state.bearerToken,
   }
 }
@@ -328,81 +678,166 @@ const activateGuestToken = async bearerToken => {
   return state.guestToken
 }
 
-const graphqlFetchTweetById = async (statusId, queryId, bearerToken, guestToken) => {
-  const variables = {
-    ...QUERY_VARIABLES,
-    tweetId: statusId,
-  }
-
-  let url = `${TWITTER_API_ROOT}/graphql/${queryId}/TweetResultByRestId`
-  url += `?variables=${encodeURIComponent(JSON.stringify(variables))}`
-  url += `&features=${encodeURIComponent(JSON.stringify(QUERY_FEATURES))}`
-  url += `&fieldToggles=${encodeURIComponent(JSON.stringify(QUERY_FIELD_TOGGLES))}`
-
+const buildGraphqlHeaders = async ({ bearerToken, guestToken, rootUrl, requestPath, includeTransaction }) => {
   const csrfToken = crypto.randomUUID().replace(/-/g, '')
-  const response = await fetchWithTimeout(
-    url,
-    {
-      headers: {
-        authorization: `Bearer ${bearerToken}`,
-        'x-twitter-client-language': 'en',
-        'x-twitter-active-user': 'yes',
-        'x-guest-token': guestToken,
-        'x-csrf-token': csrfToken,
-        cookie: `guest_id=v1%3A${guestToken}; guest_id_ads=v1%3A${guestToken}; guest_id_marketing=v1%3A${guestToken}; gt=${guestToken}; ct0=${csrfToken};`,
-        'user-agent': USER_AGENT,
-        'sec-ch-ua': SEC_CH_UA,
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"Windows"',
-        origin: TWITTER_ROOT,
-        referer: `${TWITTER_ROOT}/home`,
-        accept: '*/*',
-        'cache-control': 'no-cache',
-        pragma: 'no-cache',
-        'sec-fetch-site': 'same-site',
-        'sec-fetch-mode': 'cors',
-        'sec-fetch-dest': 'empty',
-      },
-    },
-    STATUS_TIMEOUT_MS,
-  )
-
-  if (response.status === 429) {
-    state.guestToken = null
-    state.guestTokenExpiresAt = 0
-    throw new Error('Rate limited by X (HTTP 429).')
+  const headers = {
+    authorization: `Bearer ${bearerToken}`,
+    'x-twitter-client-language': 'en',
+    'x-twitter-active-user': 'yes',
+    'x-guest-token': guestToken,
+    'x-csrf-token': csrfToken,
+    'x-client-uuid': crypto.randomUUID(),
+    cookie: `guest_id=v1%3A${guestToken}; guest_id_ads=v1%3A${guestToken}; guest_id_marketing=v1%3A${guestToken}; gt=${guestToken}; ct0=${csrfToken};`,
+    'user-agent': USER_AGENT,
+    'sec-ch-ua': SEC_CH_UA,
+    'sec-ch-ua-mobile': '?0',
+    'sec-ch-ua-platform': '"Windows"',
+    origin: TWITTER_ROOT,
+    referer: `${TWITTER_ROOT}/`,
+    accept: '*/*',
+    'cache-control': 'no-cache',
+    pragma: 'no-cache',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    'content-type': 'application/json',
   }
 
-  if (!response.ok) {
-    const text = await response.text().catch(() => '')
-    throw new Error(`Tweet query failed (HTTP ${response.status}). ${text.slice(0, 180)}`.trim())
+  if (includeTransaction) {
+    try {
+      const transactionId = await generateTransactionId('GET', requestPath)
+      if (transactionId) {
+        headers['x-client-transaction-id'] = transactionId
+      }
+    } catch {
+      // Transaction generation is best-effort; fallback still works for api.twitter.com routes.
+    }
   }
 
-  return await response.json()
+  return headers
 }
 
-const unwrapTweetResult = raw => {
-  let node = raw?.data?.tweetResult?.result || raw?.tweetResult?.result || raw?.data?.tweetResult || null
+const graphqlFetch = async ({
+  root,
+  queryId,
+  queryName,
+  variables,
+  features,
+  fieldToggles,
+  bearerToken,
+  guestToken,
+  includeTransaction,
+}) => {
+  const requestPath = `/graphql/${queryId}/${queryName}`
+  let url = `${root}${requestPath}`
+  url += `?variables=${encodeURIComponent(JSON.stringify(variables))}`
+  if (features) {
+    url += `&features=${encodeURIComponent(JSON.stringify(features))}`
+  }
+  if (fieldToggles) {
+    url += `&fieldToggles=${encodeURIComponent(JSON.stringify(fieldToggles))}`
+  }
 
-  if (!node) {
+  const headers = await buildGraphqlHeaders({
+    bearerToken,
+    guestToken,
+    rootUrl: root,
+    requestPath,
+    includeTransaction,
+  })
+
+  return await fetchWithTimeout(url, { headers }, STATUS_TIMEOUT_MS)
+}
+
+const parseGraphqlTweetNode = rawNode => {
+  let node = rawNode
+
+  if (!node || typeof node !== 'object') {
     return null
   }
 
-  if (node?.result) {
+  if (node.result) {
     node = node.result
   }
-  if (node?.tweet) {
+  if (node.tweet) {
     node = node.tweet
   }
-  if (node?.__typename === 'TweetWithVisibilityResults' && node?.tweet) {
+  if (node.__typename === 'TweetWithVisibilityResults' && node.tweet) {
     node = node.tweet
   }
-
-  if (node?.legacy?.retweeted_status_result?.result) {
+  if (node.legacy?.retweeted_status_result?.result) {
     node = node.legacy.retweeted_status_result.result
   }
 
   return node
+}
+
+const unwrapTweetResult = raw => {
+  return parseGraphqlTweetNode(raw?.data?.tweetResult?.result || raw?.tweetResult?.result || raw?.data?.tweetResult)
+}
+
+const parseTimelineEntries = instructions => {
+  const statuses = []
+  const cursors = []
+
+  const pushTimelineItem = itemContent => {
+    if (!itemContent || typeof itemContent !== 'object') {
+      return
+    }
+
+    const itemType = itemContent.__typename
+    if (itemType === 'TimelineTweet') {
+      const parsed = parseGraphqlTweetNode(itemContent.tweet_results?.result)
+      if (parsed) {
+        statuses.push(parsed)
+      }
+      return
+    }
+
+    if (itemType === 'TimelineTimelineCursor' && typeof itemContent.value === 'string') {
+      cursors.push({
+        cursorType: itemContent.cursorType || 'Unknown',
+        value: itemContent.value,
+      })
+    }
+  }
+
+  const processContent = content => {
+    if (!content || typeof content !== 'object') {
+      return
+    }
+
+    if (content.__typename === 'TimelineTimelineItem') {
+      pushTimelineItem(content.itemContent)
+      return
+    }
+
+    if (content.__typename === 'TimelineTimelineModule' && Array.isArray(content.items)) {
+      for (const moduleItem of content.items) {
+        pushTimelineItem(moduleItem?.item?.itemContent)
+      }
+    }
+  }
+
+  for (const instruction of instructions || []) {
+    if (!instruction || typeof instruction !== 'object') {
+      continue
+    }
+
+    if (Array.isArray(instruction.entries)) {
+      for (const entry of instruction.entries) {
+        processContent(entry?.content)
+      }
+    }
+
+    if (Array.isArray(instruction.moduleItems)) {
+      for (const moduleItem of instruction.moduleItems) {
+        processContent(moduleItem?.item)
+      }
+    }
+  }
+
+  return { statuses, cursors }
 }
 
 const toAuthor = tweetNode => {
@@ -414,6 +849,7 @@ const toAuthor = tweetNode => {
   const profileImage = firstString(user?.avatar?.image_url, legacy?.profile_image_url_https)
 
   return {
+    id: firstString(user?.rest_id),
     name: firstString(core?.name, legacy?.name) || 'Unknown Author',
     screen_name: screenName,
     avatar_url: profileImage ? profileImage.replace('_normal.', '_400x400.') : undefined,
@@ -514,11 +950,113 @@ const toTweetPayload = (tweetNode, requestedStatusId) => {
     created_at: createdAt,
     created_timestamp: createdTimestamp ?? null,
     replying_to_status: firstString(legacy?.in_reply_to_status_id_str) || null,
+    conversation_id: firstString(legacy?.conversation_id_str) || null,
     source_url: statusUrl,
     article,
     media_entities: media.media_entities,
     media: media.media,
   }
+}
+
+const toStatusPayload = tweetNode => {
+  const statusId = firstString(tweetNode?.rest_id, tweetNode?.legacy?.id_str)
+  return {
+    code: 200,
+    message: 'OK',
+    tweet: toTweetPayload(tweetNode, statusId || 'unknown'),
+  }
+}
+
+const graphqlFetchTweetById = async (statusId, queryId, bearerToken, guestToken) => {
+  const variables = {
+    ...QUERY_VARIABLES,
+    tweetId: statusId,
+  }
+
+  const attempts = [
+    { root: X_API_ROOT, includeTransaction: true },
+    { root: TWITTER_API_ROOT, includeTransaction: false },
+  ]
+
+  const errors = []
+
+  for (const attempt of attempts) {
+    const response = await graphqlFetch({
+      root: attempt.root,
+      queryId,
+      queryName: 'TweetResultByRestId',
+      variables,
+      features: QUERY_FEATURES,
+      fieldToggles: QUERY_FIELD_TOGGLES,
+      bearerToken,
+      guestToken,
+      includeTransaction: attempt.includeTransaction,
+    })
+
+    if (response.status === 429) {
+      state.guestToken = null
+      state.guestTokenExpiresAt = 0
+      errors.push(`rate limited at ${attempt.root}`)
+      continue
+    }
+
+    if (!response.ok) {
+      errors.push(`${attempt.root} HTTP ${response.status}`)
+      continue
+    }
+
+    return await response.json()
+  }
+
+  throw new Error(`Tweet query failed. ${errors.join(' | ')}`)
+}
+
+const graphqlFetchUserTweetsAndReplies = async ({ authorId, cursor, queryId, bearerToken, guestToken }) => {
+  const variables = {
+    userId: authorId,
+    count: MAX_TIMELINE_FETCH,
+    includePromotedContent: true,
+    withCommunity: true,
+    withVoice: true,
+    ...(cursor ? { cursor } : {}),
+  }
+
+  const attempts = [
+    { root: X_API_ROOT, includeTransaction: true, queryName: 'UserTweetsAndReplies' },
+    { root: TWITTER_API_ROOT, includeTransaction: false, queryName: 'UserTweetsAndReplies' },
+    { root: TWITTER_API_ROOT, includeTransaction: false, queryName: 'UserTweets' },
+  ]
+  const errors = []
+
+  for (const attempt of attempts) {
+    const response = await graphqlFetch({
+      root: attempt.root,
+      queryId,
+      queryName: attempt.queryName,
+      variables,
+      features: USER_TIMELINE_FEATURES,
+      fieldToggles: USER_TIMELINE_FIELD_TOGGLES,
+      bearerToken,
+      guestToken,
+      includeTransaction: attempt.includeTransaction,
+    })
+
+    if (response.status === 429) {
+      state.guestToken = null
+      state.guestTokenExpiresAt = 0
+      errors.push(`rate limited at ${attempt.root}`)
+      continue
+    }
+
+    if (!response.ok) {
+      errors.push(`${attempt.queryName} on ${attempt.root} HTTP ${response.status}`)
+      continue
+    }
+
+    return await response.json()
+  }
+
+  throw new Error(`User timeline query failed. ${errors.join(' | ')}`)
 }
 
 const fetchThreadloomStatus = async statusId => {
@@ -528,32 +1066,16 @@ const fetchThreadloomStatus = async statusId => {
   }
 
   try {
-    const { queryId, bearerToken } = await resolveQueryAndBearer()
-    let guestToken = await activateGuestToken(bearerToken)
-    let raw
-
-    try {
-      raw = await graphqlFetchTweetById(normalizedStatusId, queryId, bearerToken, guestToken)
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown query error.'
-      if (message.includes('HTTP 429')) {
-        guestToken = await activateGuestToken(bearerToken)
-        raw = await graphqlFetchTweetById(normalizedStatusId, queryId, bearerToken, guestToken)
-      } else {
-        throw error
-      }
-    }
-
+    const { tweetResultQueryId, bearerToken } = await resolveQueryAndBearer()
+    const guestToken = await activateGuestToken(bearerToken)
+    const raw = await graphqlFetchTweetById(normalizedStatusId, tweetResultQueryId, bearerToken, guestToken)
     const tweetNode = unwrapTweetResult(raw)
+
     if (!tweetNode || !tweetNode.legacy) {
       throw new Error('status parser HTTP 404')
     }
 
-    return {
-      code: 200,
-      message: 'OK',
-      tweet: toTweetPayload(tweetNode, normalizedStatusId),
-    }
+    return toStatusPayload(tweetNode)
   } catch (error) {
     const message = error instanceof Error ? error.message : ''
     if (message.startsWith('status parser HTTP ')) {
@@ -569,7 +1091,113 @@ const getThreadMeta = payload => {
   return {
     statusId: toStatusId(tweet ? tweet.id : null),
     authorHandle: screenName,
+    authorId: typeof tweet?.author?.id === 'string' ? tweet.author.id : null,
     replyingToStatusId: toStatusId(tweet ? tweet.replying_to_status : null),
+  }
+}
+
+const dedupePayloads = payloads => {
+  const byId = new Map()
+  for (const payload of payloads) {
+    const id = toStatusId(payload?.tweet?.id)
+    if (!id || byId.has(id)) {
+      continue
+    }
+    byId.set(id, payload)
+  }
+  return Array.from(byId.values())
+}
+
+const fetchForwardThreadFromAuthorTimeline = async (seedPayload, warnings) => {
+  const seedMeta = getThreadMeta(seedPayload)
+  if (!seedMeta.authorId || !seedMeta.statusId) {
+    return []
+  }
+
+  try {
+    const { userTweetsAndRepliesQueryId, userTweetsQueryId, bearerToken } = await resolveQueryAndBearer()
+    const timelineQueryId = userTweetsAndRepliesQueryId || userTweetsQueryId
+    if (!timelineQueryId) {
+      return []
+    }
+
+    const guestToken = await activateGuestToken(bearerToken)
+    const descendants = []
+    const seedConversationId = firstString(seedPayload?.tweet?.conversation_id) || seedMeta.statusId
+    const seen = new Set([seedMeta.statusId, ...(seedPayload?.tweet?.id ? [seedPayload.tweet.id] : [])])
+    const byReplyTo = new Map()
+    let current = seedMeta.statusId
+    let cursor = null
+    let pageCount = 0
+
+    while (descendants.length < FX_THREAD_LIMIT - 1 && pageCount < MAX_TIMELINE_PAGES) {
+      const timelineRaw = await graphqlFetchUserTweetsAndReplies({
+        authorId: seedMeta.authorId,
+        cursor,
+        queryId: timelineQueryId,
+        bearerToken,
+        guestToken,
+      })
+      const instructions =
+        timelineRaw?.data?.user?.result?.timeline_v2?.timeline?.instructions ||
+        timelineRaw?.data?.user?.result?.timeline?.timeline?.instructions ||
+        []
+      const { statuses, cursors } = parseTimelineEntries(instructions)
+
+      for (const node of statuses) {
+        const authorId = firstString(node?.core?.user_results?.result?.rest_id)
+        if (!authorId || authorId !== seedMeta.authorId) {
+          continue
+        }
+
+        const id = firstString(node?.rest_id, node?.legacy?.id_str)
+        const replyTo = firstString(node?.legacy?.in_reply_to_status_id_str)
+        const conversationId = firstString(node?.legacy?.conversation_id_str, id)
+        if (!id || !replyTo || conversationId !== seedConversationId || seen.has(id) || byReplyTo.has(replyTo)) {
+          continue
+        }
+        byReplyTo.set(replyTo, node)
+      }
+
+      let chainedInThisPage = false
+      let nextNode = byReplyTo.get(current)
+      if (nextNode) {
+        let nextId = firstString(nextNode?.rest_id, nextNode?.legacy?.id_str)
+        while (nextNode && nextId && !seen.has(nextId) && descendants.length < FX_THREAD_LIMIT - 1) {
+          descendants.push(toStatusPayload(nextNode))
+          seen.add(nextId)
+          current = nextId
+          chainedInThisPage = true
+          nextNode = byReplyTo.get(current)
+          nextId = firstString(nextNode?.rest_id, nextNode?.legacy?.id_str)
+          if (!nextNode || !nextId || seen.has(nextId)) {
+            break
+          }
+        }
+      }
+
+      if (descendants.length >= FX_THREAD_LIMIT - 1) {
+        break
+      }
+
+      const nextCursor = cursors.find(item => item.cursorType === 'Bottom' || item.cursorType === 'ShowMore')
+      if (!nextCursor?.value) {
+        break
+      }
+
+      if (!chainedInThisPage && cursor === nextCursor.value) {
+        break
+      }
+
+      cursor = nextCursor.value
+      pageCount += 1
+    }
+
+    return descendants
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'unknown timeline fetch error'
+    warnings.push(`Forward thread discovery skipped: ${message}`)
+    return []
   }
 }
 
@@ -615,8 +1243,21 @@ const fetchStatusWithThreadChain = async statusId => {
     }
   }
 
+  const forwardPayloads = await fetchForwardThreadFromAuthorTimeline(seedPayload, warnings)
+  for (const payload of forwardPayloads) {
+    if (payloads.length >= FX_THREAD_LIMIT) {
+      threadLimitReached = true
+      break
+    }
+    payloads.push(payload)
+  }
+
   return {
-    payloads: payloads.reverse(),
+    payloads: dedupePayloads(payloads).sort((a, b) => {
+      const aTime = Number(a?.tweet?.created_timestamp || 0)
+      const bTime = Number(b?.tweet?.created_timestamp || 0)
+      return aTime - bTime
+    }),
     warnings,
     threadLimitReached,
   }
