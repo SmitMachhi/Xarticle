@@ -121,17 +121,7 @@ const parseMedia = (mediaNode: HTMLImageElement | HTMLVideoElement): ArticleBloc
     }
   }
 
-  const poster = mediaNode.poster
-  if (!poster) {
-    return null
-  }
-
-  return {
-    type: 'media',
-    mediaType: 'video-thumbnail',
-    url: poster,
-    caption: 'Video thumbnail',
-  }
+  return null
 }
 
 const parseCodeBlock = (codeNode: HTMLPreElement): ArticleBlock | null => {

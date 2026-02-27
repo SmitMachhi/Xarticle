@@ -1,133 +1,30 @@
 import type { ExtractRequestResult, ProviderAttempt } from '../types/article'
-import { parseJinaMarkdown, parseXHtmlDocument } from './articleParser'
-import { requestCompanionHtml } from './companionBridge'
+import { parseXHtmlDocument } from './articleParser'
 import { parseFxTweetResponse, parseFxTweetThreadResponse } from './fxTweetParser'
 import { extractStatusId, isSupportedXInputUrl, normalizeInputUrl } from './xUrl'
 
-const JINA_TIMEOUT_MS = 20000
-const FX_TIMEOUT_MS = 15000
-const FX_THREAD_LIMIT = 40
-const THREADREADER_TIMEOUT_MS = 20000
-const THREADREADER_BASE_URL = 'https://threadreaderapp.com'
+const EXTRACT_ENDPOINT = import.meta.env.VITE_EXTRACT_API_URL?.trim() || '/api/extract'
+const EXTRACT_TIMEOUT_MS = 25000
 
-interface FxThreadMeta {
-  statusId: string | null
-  authorHandle: string
-  replyingToStatusId: string | null
+interface StatusExtractResponse {
+  kind: 'status'
+  payloads: unknown[]
+  warnings?: string[]
+  threadLimitReached?: boolean
 }
 
-interface ThreadReaderTweet {
-  statusId: string
-  text: string
+interface ArticleHtmlExtractResponse {
+  kind: 'article-html'
+  html: string
+  finalUrl?: string
+  warnings?: string[]
 }
 
-const fetchJinaMarkdown = async (url: string): Promise<string> => {
-  const controller = new AbortController()
-  const timeout = window.setTimeout(() => controller.abort(), JINA_TIMEOUT_MS)
-
-  try {
-    const response = await fetch(`https://r.jina.ai/http://${url.replace(/^https?:\/\//i, '')}`, {
-      signal: controller.signal,
-    })
-
-    if (!response.ok) {
-      throw new Error(`Fallback extractor returned HTTP ${response.status}.`)
-    }
-
-    return await response.text()
-  } finally {
-    window.clearTimeout(timeout)
-  }
+interface ExtractErrorResponse {
+  error?: string
 }
 
-const fetchThreadReaderHtml = async (statusId: string): Promise<string> => {
-  const controller = new AbortController()
-  const timeout = window.setTimeout(() => controller.abort(), THREADREADER_TIMEOUT_MS)
-
-  try {
-    const target = `${THREADREADER_BASE_URL}/thread/${statusId}.html`
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`
-    const response = await fetch(proxyUrl, {
-      signal: controller.signal,
-    })
-
-    if (!response.ok) {
-      throw new Error(`Thread Reader fallback HTTP ${response.status}.`)
-    }
-
-    return await response.text()
-  } finally {
-    window.clearTimeout(timeout)
-  }
-}
-
-const htmlToText = (html: string): string => {
-  const withBreaks = html.replace(/<br\s*\/?>/gi, '\n')
-  const temp = document.createElement('div')
-  temp.innerHTML = withBreaks
-  return temp.textContent?.replace(/\u00a0/g, ' ').replace(/\n{3,}/g, '\n\n').trim() || ''
-}
-
-const parseThreadReaderTweets = (html: string): ThreadReaderTweet[] => {
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(html, 'text/html')
-  const nodes = Array.from(doc.querySelectorAll<HTMLElement>('.content-tweet[data-tweet]'))
-  const tweets: ThreadReaderTweet[] = []
-  const seen = new Set<string>()
-
-  for (const node of nodes) {
-    const statusId = node.dataset.tweet?.trim() || ''
-    if (!statusId || seen.has(statusId)) {
-      continue
-    }
-    seen.add(statusId)
-
-    const clone = node.cloneNode(true) as HTMLElement
-    clone.querySelectorAll('sup.tw-permalink').forEach((el) => el.remove())
-    const text = htmlToText(clone.innerHTML)
-    if (!text) {
-      continue
-    }
-    tweets.push({
-      statusId,
-      text,
-    })
-  }
-
-  return tweets
-}
-
-const fallbackThreadPayload = (
-  statusId: string,
-  text: string,
-  sourceUrl: string,
-  authorName: string,
-  authorHandle: string,
-  avatarUrl: string | undefined,
-  createdTimestamp: number,
-): unknown => {
-  return {
-    code: 200,
-    message: 'OK',
-    tweet: {
-      id: statusId,
-      url: `https://x.com/${authorHandle}/status/${statusId}`,
-      text,
-      raw_text: {
-        text,
-      },
-      author: {
-        name: authorName,
-        screen_name: authorHandle,
-        avatar_url: avatarUrl,
-      },
-      created_at: new Date(createdTimestamp * 1000).toUTCString(),
-      created_timestamp: createdTimestamp,
-      replying_to_status: null,
-      source_url: sourceUrl,
-    },
-  }
-}
+type ExtractBackendResponse = StatusExtractResponse | ArticleHtmlExtractResponse
 
 const validateArticleUrl = (rawUrl: string): URL => {
   let parsed: URL
@@ -144,261 +41,115 @@ const validateArticleUrl = (rawUrl: string): URL => {
   return parsed
 }
 
-const toStatusId = (value: unknown): string | null => {
-  if (typeof value === 'number') {
-    return Number.isFinite(value) ? String(Math.trunc(value)) : null
-  }
-  if (typeof value === 'string') {
-    const normalized = value.trim()
-    return normalized || null
-  }
-  return null
-}
-
-const getThreadMeta = (payload: unknown): FxThreadMeta => {
-  const tweet = (payload as { tweet?: { id?: unknown; author?: { screen_name?: unknown }; replying_to_status?: unknown } })?.tweet
-  const authorHandle = typeof tweet?.author?.screen_name === 'string' ? tweet.author.screen_name.trim().toLowerCase() : ''
-  return {
-    statusId: toStatusId(tweet?.id),
-    authorHandle,
-    replyingToStatusId: toStatusId(tweet?.replying_to_status),
-  }
-}
-
-const fetchFxTweetByStatusId = async (statusId: string): Promise<unknown> => {
-  const endpoint = `https://api.fxtwitter.com/i/status/${statusId}`
-
+const fetchBackendExtract = async (sourceUrl: string): Promise<ExtractBackendResponse> => {
   const controller = new AbortController()
-  const timeout = window.setTimeout(() => controller.abort(), FX_TIMEOUT_MS)
+  const timeout = window.setTimeout(() => controller.abort(), EXTRACT_TIMEOUT_MS)
 
   try {
-    const response = await fetch(endpoint, { signal: controller.signal })
-    if (!response.ok) {
-      throw new Error(`Status parser HTTP ${response.status}.`)
+    const response = await fetch(EXTRACT_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ url: sourceUrl }),
+      cache: 'no-store',
+      signal: controller.signal,
+    })
+
+    const raw = await response.text()
+    let payload: unknown = null
+    if (raw) {
+      try {
+        payload = JSON.parse(raw)
+      } catch {
+        payload = null
+      }
     }
-    return await response.json()
+
+    if (!response.ok) {
+      const message = (payload as ExtractErrorResponse | null)?.error
+      throw new Error(typeof message === 'string' && message ? message : `Extraction backend HTTP ${response.status}.`)
+    }
+
+    if (!payload || typeof payload !== 'object' || !('kind' in payload)) {
+      throw new Error('Extraction backend returned an invalid payload.')
+    }
+
+    const extracted = payload as ExtractBackendResponse
+    if (extracted.kind === 'status') {
+      if (!Array.isArray(extracted.payloads)) {
+        throw new Error('Status extraction payload was malformed.')
+      }
+      return extracted
+    }
+
+    if (extracted.kind === 'article-html') {
+      if (typeof extracted.html !== 'string') {
+        throw new Error('Article extraction payload was malformed.')
+      }
+      return extracted
+    }
+
+    throw new Error('Unsupported extraction payload.')
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('Extraction request timed out.')
+    }
+    throw error
   } finally {
     window.clearTimeout(timeout)
-  }
-}
-
-const fetchFxThreadChain = async (
-  seedPayload: unknown,
-): Promise<{ payloads: unknown[]; warnings: string[]; limitReached: boolean }> => {
-  const warnings: string[] = []
-  const payloads: unknown[] = [seedPayload]
-
-  const seedMeta = getThreadMeta(seedPayload)
-  if (!seedMeta.statusId || !seedMeta.authorHandle) {
-    return {
-      payloads,
-      warnings: ['Thread auto-detection skipped due to missing status metadata.'],
-      limitReached: false,
-    }
-  }
-
-  let currentParentId = seedMeta.replyingToStatusId
-  let limitReached = false
-
-  while (currentParentId) {
-    if (payloads.length >= FX_THREAD_LIMIT) {
-      limitReached = true
-      break
-    }
-
-    try {
-      const parentPayload = await fetchFxTweetByStatusId(currentParentId)
-      const parentMeta = getThreadMeta(parentPayload)
-
-      if (!parentMeta.statusId) {
-        warnings.push(`Thread chain stopped early because a parent status payload was incomplete (${currentParentId}).`)
-        break
-      }
-
-      if (!parentMeta.authorHandle || parentMeta.authorHandle !== seedMeta.authorHandle) {
-        break
-      }
-
-      payloads.push(parentPayload)
-      currentParentId = parentMeta.replyingToStatusId
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown status parser error.'
-      warnings.push(`Thread chain stopped early while fetching ${currentParentId}: ${message}`)
-      break
-    }
-  }
-
-  return {
-    payloads: payloads.reverse(),
-    warnings,
-    limitReached,
-  }
-}
-
-const fetchThreadViaThreadReader = async (
-  seedPayload: unknown,
-): Promise<{ payloads: unknown[]; warnings: string[]; ok: boolean }> => {
-  const seedMeta = getThreadMeta(seedPayload)
-  const seedTweet = (seedPayload as { tweet?: { author?: { name?: string; screen_name?: string; avatar_url?: string }; created_timestamp?: number } })?.tweet
-  const authorName = seedTweet?.author?.name?.trim() || 'Unknown Author'
-  const authorHandle = seedTweet?.author?.screen_name?.trim() || seedMeta.authorHandle || 'unknown'
-  const createdTimestamp = typeof seedTweet?.created_timestamp === 'number' ? seedTweet.created_timestamp : Math.floor(Date.now() / 1000)
-
-  if (!seedMeta.statusId || !authorHandle) {
-    return {
-      payloads: [seedPayload],
-      warnings: ['Thread Reader fallback skipped due to missing status metadata.'],
-      ok: false,
-    }
-  }
-
-  try {
-    const html = await fetchThreadReaderHtml(seedMeta.statusId)
-    const threadTweets = parseThreadReaderTweets(html)
-      .filter((tweet) => Boolean(tweet.statusId))
-      .slice(0, FX_THREAD_LIMIT)
-
-    if (threadTweets.length <= 1) {
-      return {
-        payloads: [seedPayload],
-        warnings: ['Thread Reader fallback did not return multi-post thread data.'],
-        ok: false,
-      }
-    }
-
-    const payloads: unknown[] = []
-    for (let index = 0; index < threadTweets.length; index += 1) {
-      const threadTweet = threadTweets[index]
-      try {
-        const payload = await fetchFxTweetByStatusId(threadTweet.statusId)
-        payloads.push(payload)
-      } catch {
-        payloads.push(
-          fallbackThreadPayload(
-            threadTweet.statusId,
-            threadTweet.text,
-            `https://x.com/${authorHandle}/status/${seedMeta.statusId}`,
-            authorName,
-            authorHandle,
-            seedTweet?.author?.avatar_url,
-            createdTimestamp + index,
-          ),
-        )
-      }
-    }
-
-    return {
-      payloads,
-      warnings: [
-        `Thread resolved via Thread Reader fallback (${threadTweets.length} posts).`,
-      ],
-      ok: true,
-    }
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown Thread Reader fallback error.'
-    return {
-      payloads: [seedPayload],
-      warnings: [`Thread Reader fallback failed: ${message}`],
-      ok: false,
-    }
   }
 }
 
 export const extractArticleFromUrl = async (rawUrl: string): Promise<ExtractRequestResult> => {
   const parsedUrl = validateArticleUrl(rawUrl)
   const sourceUrl = parsedUrl.toString()
-  const warnings: string[] = []
   const attempts: ProviderAttempt[] = []
+  const isStatusUrl = Boolean(extractStatusId(parsedUrl))
 
-  if (extractStatusId(parsedUrl)) {
-    try {
-      const statusId = extractStatusId(parsedUrl)
-      if (!statusId) {
-        throw new Error('Could not find status id in URL.')
-      }
-
-      const seedPayload = await fetchFxTweetByStatusId(statusId)
-      const thread = await fetchFxThreadChain(seedPayload)
-      let payloads = thread.payloads
-      const warningLines = [...thread.warnings]
-      const threadLimitReached = thread.limitReached
-
-      if (payloads.length <= 1) {
-        const threadReaderResult = await fetchThreadViaThreadReader(seedPayload)
-        payloads = threadReaderResult.ok ? threadReaderResult.payloads : payloads
-        warningLines.push(...threadReaderResult.warnings)
+  try {
+    const backendResult = await fetchBackendExtract(sourceUrl)
+    if (backendResult.kind === 'status') {
+      const payloads = backendResult.payloads
+      if (payloads.length === 0) {
+        throw new Error('No status payloads were returned.')
       }
 
       const article =
         payloads.length > 1
-          ? parseFxTweetThreadResponse(payloads, sourceUrl, { threadLimitReached })
-          : parseFxTweetResponse(seedPayload, sourceUrl)
-      if (warningLines.length > 0) {
-        article.warnings.push(...warningLines)
+          ? parseFxTweetThreadResponse(payloads, sourceUrl, { threadLimitReached: backendResult.threadLimitReached })
+          : parseFxTweetResponse(payloads[0], sourceUrl)
+      if (backendResult.warnings && backendResult.warnings.length > 0) {
+        article.warnings.push(...backendResult.warnings)
       }
       attempts.push({
         provider: 'fxtwitter',
         ok: true,
-        message: payloads.length > 1 ? 'Public status parser succeeded (thread merged).' : 'Public status parser succeeded.',
+        message: payloads.length > 1 ? 'Status parser succeeded (thread merged).' : 'Status parser succeeded.',
       })
       article.providerAttempts = [...attempts]
       return { article }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Status parser failed.'
-      attempts.push({
-        provider: 'fxtwitter',
-        ok: false,
-        message,
-      })
-      warnings.push(`fxtwitter failed: ${message}`)
     }
-  }
 
-  try {
-    const companionResult = await requestCompanionHtml(sourceUrl)
-    const article = parseXHtmlDocument(companionResult.html, companionResult.finalUrl || sourceUrl)
+    const article = parseXHtmlDocument(backendResult.html, backendResult.finalUrl || sourceUrl)
+    if (backendResult.warnings && backendResult.warnings.length > 0) {
+      article.warnings.push(...backendResult.warnings)
+    }
     attempts.push({
       provider: 'companion',
       ok: true,
-      message: 'Companion extension extraction succeeded.',
+      message: 'Article HTML extraction succeeded.',
     })
-    article.warnings.push(...warnings)
     article.providerAttempts = [...attempts]
     return { article }
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Companion extension unavailable.'
+    const message = error instanceof Error ? error.message : 'Extraction backend failed.'
     attempts.push({
-      provider: 'companion',
-      ok: false,
-      message,
-    })
-    warnings.push(`companion failed: ${message}`)
-  }
-
-  try {
-    const raw = await fetchJinaMarkdown(sourceUrl)
-    const article = parseJinaMarkdown(raw, sourceUrl)
-    if (article.blocks.length < 3) {
-      throw new Error('Could not extract enough content from this page.')
-    }
-
-    attempts.push({
-      provider: 'jina',
-      ok: true,
-      message: 'Jina fallback extraction succeeded.',
-    })
-    article.warnings = [...warnings, ...article.warnings]
-    article.providerAttempts = [...attempts]
-
-    return { article }
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Jina fallback failed.'
-    attempts.push({
-      provider: 'jina',
+      provider: isStatusUrl ? 'fxtwitter' : 'companion',
       ok: false,
       message,
     })
     const debugLines = attempts.map((attempt) => `${attempt.provider}: ${attempt.ok ? 'ok' : `failed (${attempt.message})`}`).join(' | ')
-    throw new Error(`All extraction providers failed. ${debugLines}`)
+    throw new Error(`Extraction failed. ${debugLines}`)
   }
 }

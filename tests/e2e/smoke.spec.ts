@@ -21,36 +21,40 @@ const fixtureForE2E = {
   },
 }
 
-test('status url renders preview and downloads both pdfs', async ({ page }) => {
+test('status url renders preview and downloads pdf and markdown', async ({ page }) => {
   await page.addInitScript(() => {
     ;(window as unknown as { __xapDownloads: string[] }).__xapDownloads = []
   })
 
-  await page.route('https://api.fxtwitter.com/**', async (route) => {
+  await page.route('**/api/extract', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify(fixtureForE2E),
+      body: JSON.stringify({
+        kind: 'status',
+        payloads: [fixtureForE2E],
+        warnings: [],
+        threadLimitReached: false,
+      }),
     })
   })
 
   await page.goto('/')
 
-  await page.getByRole('textbox', { name: 'X Article URL' }).fill('https://x.com/elvissun/status/2025920521871716562?s=20')
+  await page.getByRole('textbox', { name: 'X URL' }).fill('https://x.com/elvissun/status/2025920521871716562?s=20')
   await page.getByRole('button', { name: 'Load Article' }).click()
 
   await expect(page.getByRole('heading', { name: /openclaw/i })).toBeVisible()
 
-  const colorButton = page.getByRole('button', { name: 'Download Color PDF' })
-  const bwButton = page.getByRole('button', { name: 'Download B/W PDF' })
+  const pdfButton = page.getByRole('button', { name: 'Download for Humans (PDF)' })
+  const markdownButton = page.getByRole('button', { name: /Download for LLMs/i })
 
-  await expect(colorButton).toBeEnabled()
-  await expect(bwButton).toBeEnabled()
+  await expect(pdfButton).toBeEnabled()
+  await expect(markdownButton).toBeEnabled()
 
-  await colorButton.click()
-  await bwButton.click()
+  await pdfButton.click()
+  await markdownButton.click({ modifiers: ['Shift'] })
 
   const requestedDownloads = await page.evaluate(() => (window as unknown as { __xapDownloads: string[] }).__xapDownloads)
-  expect(requestedDownloads.some((name) => name.includes('-color.pdf'))).toBe(true)
-  expect(requestedDownloads.some((name) => name.includes('-bw.pdf'))).toBe(true)
+  expect(requestedDownloads.some((name) => name.endsWith('.pdf'))).toBe(true)
 })

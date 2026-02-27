@@ -1,18 +1,18 @@
-# Xarticle.co (no backend, no drama)
+# Xarticle.co
 
 Turn a public X/Twitter link into a readable export.
 
 ## What this app does
 
 - Accepts one public X status URL or X long-form article URL.
-- Extracts content with a fallback chain that refuses to panic:
-  - `fxtwitter` first (great for status links)
-  - Companion extension bridge next (most reliable)
-  - `r.jina.ai` fallback last (because hope is a strategy)
+- Uses a minimal stateless backend endpoint (`/api/extract`) for extraction.
+- Resolves statuses/threads through `fxtwitter` from backend only (not browser-direct).
+- Resolves long-form article URLs by fetching HTML server-side and parsing client-side.
 - Shows a clean in-browser preview before you download.
 - Exports PDF for humans.
 - Exports Markdown for LLM workflows.
 - If media exists, Markdown export becomes an offline ZIP (`article.md` + `assets/`).
+- Keeps extracted data in-memory on the client session only.
 
 ## Latest updates
 
@@ -31,6 +31,17 @@ npm run dev
 ```
 
 Open `http://localhost:5173`.
+
+## Backend (Cloudflare Worker)
+
+This project now expects a Worker endpoint at `/api/extract`.
+
+```bash
+wrangler dev
+```
+
+By default, the frontend calls `/api/extract` on the same origin.  
+For custom environments, set `VITE_EXTRACT_API_URL` to a full endpoint URL.
 
 ## Build for production
 
@@ -59,25 +70,19 @@ npm run preview
   - `Download for Humans (PDF)`
   - `Download for LLMs (Markdown)`
 
-## Companion extension (optional, recommended)
-
-See [extension/README.md](./extension/README.md).
-
-Use it when X decides to be "creative" with anti-bot/cross-origin behavior.
-
 ## Limits (honest section)
 
 - Public pages only. Private/locked accounts are out.
-- X markup can change at any time, usually at the least convenient moment.
-- Some metrics may be missing depending on source availability.
-- If one extraction provider fails, the app tries the next one automatically.
+- X markup/upstream behavior can change at any time.
+- Some metrics may be missing depending on upstream payload availability.
+- No login/auth is implemented.
 
 ## Stack
 
 - React + TypeScript + Vite
+- Cloudflare Worker (stateless extract API)
 - `pdfmake` for PDF export
 - `jszip` for offline Markdown bundles
-- Optional browser extension bridge for reliable page HTML access
 
 ## Why this exists
 

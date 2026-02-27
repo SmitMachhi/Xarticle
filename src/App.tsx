@@ -30,7 +30,7 @@ const FAQ_ITEMS = [
   },
   {
     question: 'Do you store my links or exports?',
-    answer: 'No. Extraction and file generation run in your browser session.',
+    answer: 'No. Extraction is stateless and exports are generated in your current browser session.',
   },
   {
     question: 'What export formats are available?',
@@ -49,30 +49,6 @@ const MARGIN_PRESET_OPTIONS: ReadonlyArray<{ value: MarginPreset; label: string 
 ]
 
 type MarkdownChoice = Extract<MarkdownDownloadMode, 'online-md' | 'offline-zip'>
-
-const MARKDOWN_PREF_STORAGE_KEY = 'xarticle.markdown-preference.v1'
-
-const isMarkdownChoice = (value: unknown): value is MarkdownChoice => value === 'online-md' || value === 'offline-zip'
-
-const loadMarkdownPreference = (): MarkdownChoice | null => {
-  try {
-    const raw = window.localStorage.getItem(MARKDOWN_PREF_STORAGE_KEY)
-    if (isMarkdownChoice(raw)) {
-      return raw
-    }
-  } catch {
-    return null
-  }
-  return null
-}
-
-const saveMarkdownPreference = (choice: MarkdownChoice): void => {
-  try {
-    window.localStorage.setItem(MARKDOWN_PREF_STORAGE_KEY, choice)
-  } catch {
-    // Ignore storage failures (private mode/storage restrictions).
-  }
-}
 
 const formatApproxSize = (bytes: number): string => {
   if (bytes >= 1_000_000) {
@@ -109,7 +85,7 @@ function App() {
   const [clipboardNotice, setClipboardNotice] = useState<string | null>(null)
   const [openSelectMenu, setOpenSelectMenu] = useState<'paperSize' | 'marginPreset' | null>(null)
   const [markdownMenuOpen, setMarkdownMenuOpen] = useState(false)
-  const [markdownPreference, setMarkdownPreference] = useState<MarkdownChoice | null>(() => loadMarkdownPreference())
+  const [markdownPreference, setMarkdownPreference] = useState<MarkdownChoice | null>(null)
   const [edgeNudge, setEdgeNudge] = useState(0)
   const urlInputRef = useRef<HTMLInputElement | null>(null)
   const paperSizeSelectRef = useRef<HTMLDivElement | null>(null)
@@ -401,7 +377,6 @@ function App() {
     setDownloadState('markdown')
     setMarkdownMenuOpen(false)
     setMarkdownPreference(choice)
-    saveMarkdownPreference(choice)
     try {
       const result = await downloadArticleMarkdownWithMode(article, choice)
       if (result.format === 'zip') {
