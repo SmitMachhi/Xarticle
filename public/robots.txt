@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
 
+# canonical sitemap
 Sitemap: https://xarticle.co/sitemap.xml

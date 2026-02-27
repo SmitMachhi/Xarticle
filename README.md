@@ -1,29 +1,30 @@
 # Xarticle.co
 
-Turn a public X/Twitter link into a readable export.
+Turn one public X/Twitter URL into clean exports.
 
-## What this app does
+## What It Does
 
-- Accepts one public X status URL or X long-form article URL.
-- Uses a minimal stateless backend endpoint (`/api/extract`) for extraction.
-- Resolves statuses/threads through a built-in self-hosted status extractor.
-- Resolves long-form article URLs by fetching HTML server-side and parsing client-side.
-- Shows a clean in-browser preview before you download.
-- Exports PDF for humans.
-- Exports Markdown for LLM workflows.
-- If media exists, Markdown export becomes an offline ZIP (`article.md` + `assets/`).
-- Keeps extracted data in-memory on the client session only.
+- Accepts one public X status URL or long-form article URL.
+- Calls a single stateless backend endpoint: `POST /api/extract`.
+- Extracts status/article content and renders an in-browser preview.
+- Exports:
+  - PDF for human reading
+  - Markdown for LLM workflows
+  - Offline Markdown ZIP (`article.md` + `assets/`) when media exists
 
-## Latest updates
+## Current Architecture
 
-- Custom dropdowns for `Paper Size` and `Margin`.
-  - No native browser dropdown chaos.
-  - Click outside to close, `Esc` to close.
-- Better clipboard behavior on stricter browsers.
-  - Some browsers (Firefox/Safari) may ask for one extra native "Paste" confirmation.
-  - The app now explains this instead of acting mysterious.
+- Frontend: React + TypeScript + Vite
+- Worker backend: Cloudflare Worker at `worker/src/index.ts`
+  - Routes: `POST /api/extract`, `GET /health`
+- Parsing and exports are modularized under `src/lib/*`:
+  - article parsing
+  - thread/status parsing
+  - markdown export pipeline
+  - pdf export pipeline
+- Browser extension companion scripts are TypeScript under `extension/`
 
-## Quick start
+## Quick Start
 
 ```bash
 npm install
@@ -32,59 +33,47 @@ npm run dev
 
 Open `http://localhost:5173`.
 
-## Backend (Cloudflare Worker)
-
-This project now expects a Worker endpoint at `/api/extract`.
+## Backend Local Dev
 
 ```bash
 wrangler dev
 ```
 
-By default, the frontend calls `/api/extract` on the same origin.  
-For custom environments, set `VITE_EXTRACT_API_URL` to a full endpoint URL.
+Frontend defaults to same-origin `/api/extract`. Override with:
 
-## Build for production
+- `VITE_EXTRACT_API_URL=<full-endpoint-url>`
 
-```bash
-npm run build
-npm run preview
-```
+## Scripts
 
-## Main scripts
+- `npm run dev` -> start Vite dev server
+- `npm run build` -> type-check + production build
+- `npm run preview` -> preview production build
+- `npm run lint` -> strict lint gates
+- `npm run test:run` -> unit/regression tests
+- `npm run test:e2e` -> Playwright smoke test
 
-- `npm run dev` -> start local dev server
-- `npm run build` -> TypeScript + Vite production build
-- `npm run lint` -> lint project
-- `npm run test:run` -> run unit/regression tests once
-- `npm run test:e2e` -> run Playwright tests
+## Input Support
 
-## How to use
+Supported:
 
-1. Paste one public X URL.
-2. Click `Load Article`.
-3. Review preview.
-4. Pick PDF settings:
-  - Paper size: `A4` or `Letter`
-  - Margin: `Default` or `Minimum`
-5. Download:
-  - `Download for Humans (PDF)`
-  - `Download for LLMs (Markdown)`
+- `https://x.com/<handle>/status/<id>`
+- `https://x.com/i/articles/<id>`
 
-## Limits (honest section)
+Not supported:
 
-- Public pages only. Private/locked accounts are out.
-- X markup/upstream behavior can change at any time.
-- Some metrics may be missing depending on upstream payload availability.
-- No login/auth is implemented.
+- private/locked accounts
+- non-X URLs
+- malformed URLs
 
-## Stack
+## Privacy and Limits
 
-- React + TypeScript + Vite
-- Cloudflare Worker (stateless extract API)
-- `pdfmake` for PDF export
-- `jszip` for offline Markdown bundles
+- No login required.
+- No persistent storage of extracted content in app runtime.
+- Public pages only.
+- Upstream X markup/API behavior can change and affect extraction quality.
+- Some metrics may be unavailable depending on upstream payloads.
 
-## Why this exists
+## Why It Exists
 
-Reading good posts inside infinite scroll is like eating soup with a fork.
-This app is the spoon.
+Reading long posts in timeline UI is painful.
+Xarticle.co makes them portable and readable.
