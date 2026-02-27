@@ -4,35 +4,36 @@ interface BridgeRequestPayload {
 }
 
 interface BridgeRequestMessage {
-  type: 'XAP_COMPANION_REQUEST'
-  requestId: string
   payload: BridgeRequestPayload
+  requestId: string
+  type: 'XAP_COMPANION_REQUEST'
 }
 
 interface BridgeResponseMessage {
-  type: 'XAP_COMPANION_RESPONSE'
-  requestId: string
+  error?: string
   ok: boolean
   payload?: {
-    html: string
     finalUrl: string
+    html: string
     statusCode?: number
   }
-  error?: string
+  requestId: string
+  type: 'XAP_COMPANION_RESPONSE'
 }
 
-const BRIDGE_TIMEOUT_MS = 8000
+const BRIDGE_TIMEOUT_MS = 8_000
+const RANDOM_BASE = 36
+const RANDOM_SLICE_INDEX = 2
 
 const randomId = (): string => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID()
   }
-  return `xap-${Date.now()}-${Math.random().toString(36).slice(2)}`
+  return `xap-${Date.now()}-${Math.random().toString(RANDOM_BASE).slice(RANDOM_SLICE_INDEX)}`
 }
 
-export const requestCompanionHtml = async (url: string): Promise<{ html: string; finalUrl: string }> => {
+export const requestCompanionHtml = async (url: string): Promise<{ finalUrl: string; html: string }> => {
   const requestId = randomId()
-
   const response = await new Promise<BridgeResponseMessage>((resolve, reject) => {
     const timer = window.setTimeout(() => {
       cleanup()

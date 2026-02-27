@@ -1,0 +1,5 @@
+export type PaperSize = 'A4' | 'LETTER'
+export type MarginPreset = 'default' | 'minimum'
+export type ThemeMode = 'color' | 'bw'
+export type CoverPageMode = 'always' | 'off'
+export type CoverMetaStyle = 'full' | 'minimal'

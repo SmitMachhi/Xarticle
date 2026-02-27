@@ -1,9 +1,11 @@
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+
 import { describe, expect, it } from 'vitest'
-import { parseThreadloomStatusResponse } from '../threadloomParser'
+
 import { buildArticlePdfDefinition, type PdfExportOptions } from '../pdfExport'
+import { parseThreadloomStatusResponse } from '../threadloomParser'
 
 const loadFixture = (name: string): unknown => {
   const currentDir = dirname(fileURLToPath(import.meta.url))

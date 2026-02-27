@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+
 import { expect, test } from '@playwright/test'
 
 const fixture = JSON.parse(

@@ -1,30 +1,31 @@
 import js from '@eslint/js'
-import globals from 'globals'
+import { defineConfig, globalIgnores } from 'eslint/config'
 import importPlugin from 'eslint-plugin-import'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import simpleImportSort from 'eslint-plugin-simple-import-sort'
 import sonarjs from 'eslint-plugin-sonarjs'
+import globals from 'globals'
 import tseslint from 'typescript-eslint'
-import { defineConfig, globalIgnores } from 'eslint/config'
 
 const structuralRules = {
-  'max-lines': ['warn', { max: 200, skipBlankLines: true, skipComments: true }],
-  'max-lines-per-function': ['warn', { max: 50, skipBlankLines: true, skipComments: true, IIFEs: true }],
-  complexity: ['warn', 10],
-  'max-depth': ['warn', 3],
+  'max-lines': ['error', { max: 200, skipBlankLines: true, skipComments: true }],
+  'max-lines-per-function': ['error', { max: 50, skipBlankLines: true, skipComments: true, IIFEs: true }],
+  complexity: ['error', 10],
+  'max-depth': ['error', 3],
 }
 
 const hygieneRules = {
   'no-console': 'error',
   'no-eval': 'error',
   'no-magic-numbers': [
-    'warn',
+    'error',
     {
       ignore: [-1, 0, 1, 2],
       ignoreArrayIndexes: true,
       ignoreDefaultValues: true,
       ignoreClassFieldInitialValues: true,
+      ignoreNumericLiteralTypes: true,
       enforceConst: true,
       detectObjects: false,
     },
@@ -37,8 +38,8 @@ const importRules = {
   'import/no-cycle': 'error',
   'import/no-default-export': 'error',
   'import/no-duplicates': 'error',
-  'simple-import-sort/exports': 'warn',
-  'simple-import-sort/imports': 'warn',
+  'simple-import-sort/exports': 'error',
+  'simple-import-sort/imports': 'error',
 }
 
 export default defineConfig([
@@ -62,7 +63,7 @@ export default defineConfig([
       ...structuralRules,
       ...hygieneRules,
       ...importRules,
-      'sonarjs/no-identical-functions': 'warn',
+      'sonarjs/no-identical-functions': 'error',
       'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     },
   },
@@ -88,12 +89,12 @@ export default defineConfig([
       },
     },
     rules: {
-      '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/no-misused-promises': ['warn', { checksVoidReturn: false }],
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/no-misused-promises': ['error', { checksVoidReturn: false }],
     },
   },
   {
-    files: ['worker/**/*.js', 'services/**/*.js'],
+    files: ['worker/**/*.{js,ts}', 'services/**/*.{js,ts}'],
     languageOptions: {
       ecmaVersion: 2022,
       globals: {
@@ -103,7 +104,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['extension/**/*.js'],
+    files: ['extension/**/*.{js,ts}'],
     languageOptions: {
       ecmaVersion: 2022,
       globals: {
@@ -116,9 +117,8 @@ export default defineConfig([
   {
     files: [
       'src/main.tsx',
-      'src/App.tsx',
-      'worker/index.js',
-      'services/threadloom/src/worker.js',
+      'src/app/App.tsx',
+      'worker/src/index.ts',
       'playwright.config.ts',
       'eslint.config.js',
       'vite.config.ts',
@@ -128,9 +128,18 @@ export default defineConfig([
     },
   },
   {
-    files: ['worker/index.js'],
+    files: ['eslint.config.js', 'vite.config.ts', 'playwright.config.ts'],
     rules: {
-      'no-unused-vars': 'warn',
+      'no-magic-numbers': 'off',
+      'max-lines': 'off',
+      'max-lines-per-function': 'off',
+      complexity: 'off',
+    },
+  },
+  {
+    files: ['**/constants.{js,ts}'],
+    rules: {
+      'no-magic-numbers': 'off',
     },
   },
   {
@@ -144,15 +153,15 @@ export default defineConfig([
     },
   },
   {
-    files: ['src/features/**/*.{ts,tsx,js}'],
+    files: ['src/features/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': [
-        'warn',
+        'error',
         {
           patterns: [
             {
               group: ['src/features/*/*'],
-              message: 'Import through feature public entrypoints to preserve feature boundaries.',
+              message: 'Import via feature public entrypoints only.',
             },
           ],
         },

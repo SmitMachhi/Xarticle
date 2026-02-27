@@ -6,13 +6,13 @@
   "permissions": ["contextMenus", "tabs"],
   "host_permissions": ["https://x.com/*", "https://twitter.com/*", "https://www.x.com/*", "https://www.twitter.com/*"],
   "background": {
-    "service_worker": "background.js",
+    "service_worker": "background.ts",
     "type": "module"
   },
   "content_scripts": [
     {
       "matches": ["http://localhost:5173/*", "https://xarticleprinter.app/*", "https://*.xarticleprinter.app/*"],
-      "js": ["content-bridge.js"],
+      "js": ["content-bridge.ts"],
       "run_at": "document_start"
     }
   ]
