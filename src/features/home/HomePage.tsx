@@ -1,5 +1,6 @@
 import pandaFaceIcon from '../../assets/panda-face-nobg.png'
 import { ExportSection } from './components/ExportSection'
+import { FooterSection } from './components/FooterSection'
 import { HeroSection } from './components/HeroSection'
 import { InfoSection } from './components/InfoSection'
 import { PreviewSection } from './components/PreviewSection'
@@ -27,6 +28,7 @@ export const HomePage = () => {
         <PreviewSection article={extraction.article} error={extraction.error} loading={extraction.loading} />
         <InfoSection />
       </main>
+      <FooterSection />
     </div>
   )
 }

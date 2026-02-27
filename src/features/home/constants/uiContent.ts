@@ -6,6 +6,9 @@ export const HERO_IDLE_LABEL = 'Drop Link'
 export const HERO_IDLE_COPY = 'Paste a public X status or article URL to start.'
 export const HERO_WORKING_LABEL = 'Working'
 export const HERO_WORKING_COPY = 'Fetching and parsing the article now...'
+export const FOOTER_CREDIT_LABEL = 'built by'
+export const FOOTER_CREDIT_NAME = 'Smit'
+export const FOOTER_CREDIT_URL = 'https://x.com/thesmitmachhi'
 
 export const HOW_IT_WORKS = [
   'Paste one public X Article link.',
