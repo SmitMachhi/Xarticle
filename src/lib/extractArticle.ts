@@ -34,7 +34,7 @@ const validateArticleUrl = (rawUrl: string): URL => {
   }
 
   if (!isSupportedXInputUrl(parsed)) {
-    throw new Error('This URL is not a supported X article or status link.')
+    throw new Error('This URL is not a supported X Article link.')
   }
 
   return parsed

@@ -14,7 +14,7 @@ import type { ExtractedArticle, MarginPreset, PaperSize } from './types/article'
 
 const APP_NAME = 'Xarticle.co'
 const HOW_IT_WORKS = [
-  'Paste one public X status URL or long-form article URL.',
+  'Paste one public X Article link (status with X Article or long-form article URL).',
   'Preview the extracted content in your browser.',
   'Download PDF for people or Markdown for LLM workflows.',
 ]
@@ -463,7 +463,7 @@ function App() {
             <div className="hero-copy-block">
               <p className="hero-kicker">No login required.</p>
               <h1 className="hero-title">Paste link. Download Article.</h1>
-              <p className="hero-copy">Paste one public X link, and get a clean PDF for humans or Markdown for LLMs in seconds.</p>
+              <p className="hero-copy">Paste one public X Article link, and get a clean PDF for humans or Markdown for LLMs in seconds.</p>
             </div>
 
             <div className="hero-mascot-wrap">
@@ -499,7 +499,7 @@ function App() {
                     ref={urlInputRef}
                     id="url"
                     type="text"
-                    placeholder="https://x.com/<handle>/status/... or /i/articles/..."
+                    placeholder="https://x.com/<handle>/status/... (with article) or /i/articles/..."
                     value={urlInput}
                     onChange={(event) => {
                       setUrlInput(event.target.value)
@@ -739,7 +739,7 @@ function App() {
               </section>
             ) : (
               <section className="empty-state">
-                <p>Paste one public X link, then click Load Article.</p>
+                <p>Paste one public X Article link, then click Load Article.</p>
               </section>
             )}
           </div>

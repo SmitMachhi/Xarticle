@@ -1,8 +1,5 @@
 const STATUS_TIMEOUT_MS = 15000
 const ARTICLE_TIMEOUT_MS = 20000
-const FX_THREAD_LIMIT = 40
-const MAX_TIMELINE_FETCH = 40
-const MAX_TIMELINE_PAGES = 8
 
 const TWITTER_ROOT = 'https://x.com'
 const X_API_ROOT = 'https://api.x.com'
@@ -60,53 +57,11 @@ const QUERY_FEATURES = {
   responsive_web_enhance_cards_enabled: false,
 }
 
-const USER_TIMELINE_FEATURES = {
-  rweb_video_screen_enabled: false,
-  profile_label_improvements_pcf_label_in_post_enabled: true,
-  responsive_web_profile_redirect_enabled: false,
-  rweb_tipjar_consumption_enabled: false,
-  verified_phone_label_enabled: false,
-  creator_subscriptions_tweet_preview_api_enabled: true,
-  responsive_web_graphql_timeline_navigation_enabled: true,
-  responsive_web_graphql_skip_user_profile_image_extensions_enabled: false,
-  premium_content_api_read_enabled: false,
-  communities_web_enable_tweet_community_results_fetch: true,
-  c9s_tweet_anatomy_moderator_badge_enabled: true,
-  responsive_web_grok_analyze_button_fetch_trends_enabled: false,
-  responsive_web_grok_analyze_post_followups_enabled: false,
-  responsive_web_jetfuel_frame: true,
-  responsive_web_grok_share_attachment_enabled: true,
-  responsive_web_grok_annotations_enabled: true,
-  articles_preview_enabled: true,
-  responsive_web_edit_tweet_api_enabled: true,
-  graphql_is_translatable_rweb_tweet_is_translatable_enabled: true,
-  view_counts_everywhere_api_enabled: true,
-  longform_notetweets_consumption_enabled: true,
-  responsive_web_twitter_article_tweet_consumption_enabled: true,
-  tweet_awards_web_tipping_enabled: false,
-  responsive_web_grok_show_grok_translated_post: false,
-  responsive_web_grok_analysis_button_from_backend: true,
-  post_ctas_fetch_enabled: true,
-  freedom_of_speech_not_reach_fetch_enabled: true,
-  standardized_nudges_misinfo: true,
-  tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled: true,
-  longform_notetweets_rich_text_read_enabled: true,
-  longform_notetweets_inline_media_enabled: true,
-  responsive_web_grok_image_annotation_enabled: true,
-  responsive_web_grok_imagine_annotation_enabled: true,
-  responsive_web_grok_community_note_auto_translation_is_enabled: false,
-  responsive_web_enhance_cards_enabled: false,
-}
-
 const QUERY_FIELD_TOGGLES = {
   withArticleRichContentState: true,
   withArticlePlainText: true,
   withGrokAnalyze: false,
   withDisallowedReplyControls: false,
-}
-
-const USER_TIMELINE_FIELD_TOGGLES = {
-  withArticlePlainText: true,
 }
 
 const STATUS_PATH_PATTERNS = [/\/[^/]+\/status\/(\d+)/i, /\/i\/status\/(\d+)/i]
@@ -127,9 +82,6 @@ const JSON_HEADERS = {
 const state = {
   bearerToken: null,
   tweetResultQueryId: null,
-  userTweetsAndRepliesQueryId: null,
-  userTweetsQueryId: null,
-  tweetDetailQueryId: null,
   queryResolvedAt: 0,
   guestToken: null,
   guestTokenExpiresAt: 0,
@@ -163,17 +115,6 @@ const normalizeStatusId = value => {
     return null
   }
   return cleaned
-}
-
-const toStatusId = value => {
-  if (typeof value === 'number') {
-    return Number.isFinite(value) ? String(Math.trunc(value)) : null
-  }
-  if (typeof value === 'string') {
-    const normalized = value.trim()
-    return normalized || null
-  }
-  return null
 }
 
 const isXDomain = url => {
@@ -553,17 +494,9 @@ const generateTransactionId = async (method, path) => {
 
 const resolveQueryAndBearer = async () => {
   const now = Date.now()
-  if (
-    state.tweetResultQueryId &&
-    (state.userTweetsAndRepliesQueryId || state.userTweetsQueryId) &&
-    state.bearerToken &&
-    now - state.queryResolvedAt < QUERY_CACHE_TTL_MS
-  ) {
+  if (state.tweetResultQueryId && state.bearerToken && now - state.queryResolvedAt < QUERY_CACHE_TTL_MS) {
     return {
       tweetResultQueryId: state.tweetResultQueryId,
-      userTweetsAndRepliesQueryId: state.userTweetsAndRepliesQueryId,
-      userTweetsQueryId: state.userTweetsQueryId,
-      tweetDetailQueryId: state.tweetDetailQueryId,
       bearerToken: state.bearerToken,
     }
   }
@@ -607,26 +540,17 @@ const resolveQueryAndBearer = async () => {
   const scriptText = await scriptResponse.text()
   const bearerMatch = scriptText.match(/AAAAA[0-9A-Za-z%]{30,220}/)
   const tweetResultMatch = scriptText.match(/queryId:"([^"]+)",operationName:"TweetResultByRestId"/)
-  const userTweetsAndRepliesMatch = scriptText.match(/queryId:"([^"]+)",operationName:"UserTweetsAndReplies"/)
-  const userTweetsMatch = scriptText.match(/queryId:"([^"]+)",operationName:"UserTweets"/)
-  const tweetDetailMatch = scriptText.match(/queryId:"([^"]+)",operationName:"TweetDetail"/)
 
-  if (!tweetResultMatch || (!userTweetsAndRepliesMatch && !userTweetsMatch)) {
+  if (!tweetResultMatch) {
     throw new Error('Could not resolve required query IDs.')
   }
 
   state.tweetResultQueryId = tweetResultMatch[1]
-  state.userTweetsAndRepliesQueryId = userTweetsAndRepliesMatch?.[1] || null
-  state.userTweetsQueryId = userTweetsMatch?.[1] || null
-  state.tweetDetailQueryId = tweetDetailMatch?.[1] || null
   state.bearerToken = bearerMatch?.[0] || DEFAULT_BEARER_TOKEN
   state.queryResolvedAt = now
 
   return {
     tweetResultQueryId: state.tweetResultQueryId,
-    userTweetsAndRepliesQueryId: state.userTweetsAndRepliesQueryId,
-    userTweetsQueryId: state.userTweetsQueryId,
-    tweetDetailQueryId: state.tweetDetailQueryId,
     bearerToken: state.bearerToken,
   }
 }
@@ -683,36 +607,7 @@ const buildGraphqlHeaders = async ({
   guestToken,
   requestPath,
   includeTransaction,
-  minimalBrowserHeaders = false,
 }) => {
-  if (minimalBrowserHeaders) {
-    const headers = {
-      authorization: `Bearer ${bearerToken}`,
-      referer: `${TWITTER_ROOT}/`,
-      'x-twitter-client-language': 'en',
-      'x-twitter-active-user': 'yes',
-      'x-guest-token': guestToken,
-      'user-agent': USER_AGENT,
-      'sec-ch-ua': '"Not:A-Brand";v="99", "HeadlessChrome";v="145", "Chromium";v="145"',
-      'sec-ch-ua-mobile': '?0',
-      'sec-ch-ua-platform': '"Windows"',
-      'content-type': 'application/json',
-    }
-
-    if (includeTransaction) {
-      try {
-        const transactionId = await generateTransactionId('GET', requestPath)
-        if (transactionId) {
-          headers['x-client-transaction-id'] = transactionId
-        }
-      } catch {
-        // Best-effort only.
-      }
-    }
-
-    return headers
-  }
-
   const csrfToken = crypto.randomUUID().replace(/-/g, '')
   const headers = {
     authorization: `Bearer ${bearerToken}`,
@@ -761,7 +656,6 @@ const graphqlFetch = async ({
   bearerToken,
   guestToken,
   includeTransaction,
-  minimalBrowserHeaders,
 }) => {
   const requestPath = `/graphql/${queryId}/${queryName}`
   let url = `${root}${requestPath}`
@@ -778,7 +672,6 @@ const graphqlFetch = async ({
     guestToken,
     requestPath,
     includeTransaction,
-    minimalBrowserHeaders: Boolean(minimalBrowserHeaders),
   })
 
   return await fetchWithTimeout(url, { headers }, STATUS_TIMEOUT_MS)
@@ -1062,55 +955,6 @@ const graphqlFetchTweetById = async (statusId, queryId, bearerToken, guestToken)
   throw new Error(`Tweet query failed. ${errors.join(' | ')}`)
 }
 
-const graphqlFetchUserTweetsAndReplies = async ({ authorId, cursor, queryId, bearerToken, guestToken }) => {
-  const variables = {
-    userId: authorId,
-    count: MAX_TIMELINE_FETCH,
-    includePromotedContent: true,
-    withCommunity: true,
-    withVoice: true,
-    ...(cursor ? { cursor } : {}),
-  }
-
-  const attempts = [
-    { root: X_API_ROOT, includeTransaction: true, queryName: 'UserTweetsAndReplies', minimalBrowserHeaders: true },
-    { root: TWITTER_API_ROOT, includeTransaction: false, queryName: 'UserTweetsAndReplies' },
-    { root: TWITTER_API_ROOT, includeTransaction: false, queryName: 'UserTweets' },
-  ]
-  const errors = []
-
-  for (const attempt of attempts) {
-    const response = await graphqlFetch({
-      root: attempt.root,
-      queryId,
-      queryName: attempt.queryName,
-      variables,
-      features: USER_TIMELINE_FEATURES,
-      fieldToggles: USER_TIMELINE_FIELD_TOGGLES,
-      bearerToken,
-      guestToken,
-      includeTransaction: attempt.includeTransaction,
-      minimalBrowserHeaders: attempt.minimalBrowserHeaders,
-    })
-
-    if (response.status === 429) {
-      state.guestToken = null
-      state.guestTokenExpiresAt = 0
-      errors.push(`rate limited at ${attempt.root}`)
-      continue
-    }
-
-    if (!response.ok) {
-      errors.push(`${attempt.queryName} on ${attempt.root} HTTP ${response.status}`)
-      continue
-    }
-
-    return await response.json()
-  }
-
-  throw new Error(`User timeline query failed. ${errors.join(' | ')}`)
-}
-
 const fetchThreadloomStatus = async statusId => {
   const normalizedStatusId = normalizeStatusId(statusId)
   if (!normalizedStatusId) {
@@ -1137,197 +981,6 @@ const fetchThreadloomStatus = async statusId => {
   }
 }
 
-const getThreadMeta = payload => {
-  const tweet = payload && typeof payload === 'object' ? payload.tweet : undefined
-  const screenName = tweet && tweet.author && typeof tweet.author.screen_name === 'string' ? tweet.author.screen_name.trim().toLowerCase() : ''
-  return {
-    statusId: toStatusId(tweet ? tweet.id : null),
-    authorHandle: screenName,
-    authorId: typeof tweet?.author?.id === 'string' ? tweet.author.id : null,
-    replyingToStatusId: toStatusId(tweet ? tweet.replying_to_status : null),
-  }
-}
-
-const dedupePayloads = payloads => {
-  const byId = new Map()
-  for (const payload of payloads) {
-    const id = toStatusId(payload?.tweet?.id)
-    if (!id || byId.has(id)) {
-      continue
-    }
-    byId.set(id, payload)
-  }
-  return Array.from(byId.values())
-}
-
-const fetchForwardThreadFromAuthorTimeline = async (seedPayload, warnings) => {
-  const seedMeta = getThreadMeta(seedPayload)
-  if (!seedMeta.authorId || !seedMeta.statusId) {
-    return []
-  }
-
-  try {
-    const { userTweetsAndRepliesQueryId, userTweetsQueryId, bearerToken } = await resolveQueryAndBearer()
-    const timelineQueryId = userTweetsAndRepliesQueryId || userTweetsQueryId
-    if (!timelineQueryId) {
-      return []
-    }
-
-    const guestToken = await activateGuestToken(bearerToken)
-    const descendants = []
-    const seedConversationId = firstString(seedPayload?.tweet?.conversation_id) || seedMeta.statusId
-    const seen = new Set([seedMeta.statusId, ...(seedPayload?.tweet?.id ? [seedPayload.tweet.id] : [])])
-    const byReplyTo = new Map()
-    let current = seedMeta.statusId
-    let cursor = null
-    let pageCount = 0
-    let sawTimelineStatuses = false
-
-    while (descendants.length < FX_THREAD_LIMIT - 1 && pageCount < MAX_TIMELINE_PAGES) {
-      const timelineRaw = await graphqlFetchUserTweetsAndReplies({
-        authorId: seedMeta.authorId,
-        cursor,
-        queryId: timelineQueryId,
-        bearerToken,
-        guestToken,
-      })
-      const instructions =
-        timelineRaw?.data?.user?.result?.timeline_v2?.timeline?.instructions ||
-        timelineRaw?.data?.user?.result?.timeline?.timeline?.instructions ||
-        []
-      const { statuses, cursors } = parseTimelineEntries(instructions)
-      if (statuses.length > 0) {
-        sawTimelineStatuses = true
-      }
-
-      for (const node of statuses) {
-        const authorId = firstString(node?.core?.user_results?.result?.rest_id)
-        if (!authorId || authorId !== seedMeta.authorId) {
-          continue
-        }
-
-        const id = firstString(node?.rest_id, node?.legacy?.id_str)
-        const replyTo = firstString(node?.legacy?.in_reply_to_status_id_str)
-        const conversationId = firstString(node?.legacy?.conversation_id_str, id)
-        if (!id || !replyTo || conversationId !== seedConversationId || seen.has(id) || byReplyTo.has(replyTo)) {
-          continue
-        }
-        byReplyTo.set(replyTo, node)
-      }
-
-      let chainedInThisPage = false
-      let nextNode = byReplyTo.get(current)
-      if (nextNode) {
-        let nextId = firstString(nextNode?.rest_id, nextNode?.legacy?.id_str)
-        while (nextNode && nextId && !seen.has(nextId) && descendants.length < FX_THREAD_LIMIT - 1) {
-          descendants.push(toStatusPayload(nextNode))
-          seen.add(nextId)
-          current = nextId
-          chainedInThisPage = true
-          nextNode = byReplyTo.get(current)
-          nextId = firstString(nextNode?.rest_id, nextNode?.legacy?.id_str)
-          if (!nextNode || !nextId || seen.has(nextId)) {
-            break
-          }
-        }
-      }
-
-      if (descendants.length >= FX_THREAD_LIMIT - 1) {
-        break
-      }
-
-      const nextCursor = cursors.find(item => item.cursorType === 'Bottom' || item.cursorType === 'ShowMore')
-      if (!nextCursor?.value) {
-        break
-      }
-
-      if (!chainedInThisPage && cursor === nextCursor.value) {
-        break
-      }
-
-      cursor = nextCursor.value
-      pageCount += 1
-    }
-
-    if (!sawTimelineStatuses) {
-      warnings.push('Forward thread discovery returned no public timeline entries for this author.')
-    }
-
-    return descendants
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'unknown timeline fetch error'
-    warnings.push(`Forward thread discovery skipped: ${message}`)
-    return []
-  }
-}
-
-const fetchStatusWithThreadChain = async statusId => {
-  const warnings = []
-  const seedPayload = await fetchThreadloomStatus(statusId)
-  const payloads = [seedPayload]
-  const seedMeta = getThreadMeta(seedPayload)
-
-  if (!seedMeta.statusId || !seedMeta.authorHandle) {
-    return {
-      payloads,
-      warnings: ['Thread auto-detection skipped due to missing status metadata.'],
-      threadLimitReached: false,
-    }
-  }
-
-  let currentParentId = seedMeta.replyingToStatusId
-  let threadLimitReached = false
-
-  while (currentParentId) {
-    if (payloads.length >= FX_THREAD_LIMIT) {
-      threadLimitReached = true
-      break
-    }
-
-    try {
-      const parentPayload = await fetchThreadloomStatus(currentParentId)
-      const parentMeta = getThreadMeta(parentPayload)
-      if (!parentMeta.statusId) {
-        warnings.push(`Thread chain stopped early because a parent payload was incomplete (${currentParentId}).`)
-        break
-      }
-      if (!parentMeta.authorHandle || parentMeta.authorHandle !== seedMeta.authorHandle) {
-        break
-      }
-      payloads.push(parentPayload)
-      currentParentId = parentMeta.replyingToStatusId
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'unknown status parser error'
-      warnings.push(`Thread chain stopped early while fetching ${currentParentId}: ${message}`)
-      break
-    }
-  }
-
-  const forwardPayloads = await fetchForwardThreadFromAuthorTimeline(seedPayload, warnings)
-  for (const payload of forwardPayloads) {
-    if (payloads.length >= FX_THREAD_LIMIT) {
-      threadLimitReached = true
-      break
-    }
-    payloads.push(payload)
-  }
-
-  const seedReplies = Number(seedPayload?.tweet?.replies || 0)
-  if (!seedMeta.replyingToStatusId && forwardPayloads.length === 0 && seedReplies > 0) {
-    warnings.push('Could not fetch descendant self-replies from public X endpoints. Paste the last post in the thread to reconstruct the full chain.')
-  }
-
-  return {
-    payloads: dedupePayloads(payloads).sort((a, b) => {
-      const aTime = Number(a?.tweet?.created_timestamp || 0)
-      const bTime = Number(b?.tweet?.created_timestamp || 0)
-      return aTime - bTime
-    }),
-    warnings,
-    threadLimitReached,
-  }
-}
-
 const parseInputUrl = value => {
   if (typeof value !== 'string' || !value.trim()) {
     throw new Error('Missing URL.')
@@ -1347,6 +1000,9 @@ const handleExtract = async request => {
   const statusId = extractStatusId(parsedUrl)
   if (statusId) {
     const payload = await fetchThreadloomStatus(statusId)
+    if (!payload?.tweet?.article) {
+      throw new Error('This status does not include an X Article.')
+    }
     return jsonResponse({
       kind: 'status',
       payloads: [payload],

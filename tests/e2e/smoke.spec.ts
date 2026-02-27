@@ -34,7 +34,6 @@ test('status url renders preview and downloads pdf and markdown', async ({ page 
         kind: 'status',
         payloads: [fixtureForE2E],
         warnings: [],
-        threadLimitReached: false,
       }),
     })
   })

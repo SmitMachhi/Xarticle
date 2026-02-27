@@ -75,17 +75,6 @@ const asIsoDate = (value: string | undefined): string | undefined => {
   return new Date(timestamp).toISOString()
 }
 
-const toStatusId = (value: string | number | null | undefined): string | null => {
-  if (typeof value === 'number') {
-    return Number.isFinite(value) ? String(Math.trunc(value)) : null
-  }
-  if (typeof value === 'string') {
-    const normalized = value.trim()
-    return normalized || null
-  }
-  return null
-}
-
 const parseStatusPayload = (payload: unknown): ThreadloomTweet => {
   const data = payload as ThreadloomTweetResponse
   if (!data?.tweet) {
@@ -217,11 +206,6 @@ const articleBlocksFromTweet = (tweet: ThreadloomTweet): ArticleBlock[] => {
     return merged
   }
 
-  const fallbackText = normalizeText(tweet.raw_text?.text || tweet.text || '')
-  if (fallbackText) {
-    return [{ type: 'paragraph', text: fallbackText }]
-  }
-
   return []
 }
 
@@ -286,113 +270,17 @@ const metricSnapshot = (tweet: ThreadloomTweet): ExtractedArticle['metrics'] => 
   bookmarks: tweet.bookmarks ?? null,
 })
 
-const toChronologicalTweets = (tweets: ThreadloomTweet[]): ThreadloomTweet[] => {
-  return [...tweets].sort((a, b) => {
-    const aTimestamp = typeof a.created_timestamp === 'number' ? a.created_timestamp : Number.NaN
-    const bTimestamp = typeof b.created_timestamp === 'number' ? b.created_timestamp : Number.NaN
-
-    if (!Number.isNaN(aTimestamp) && !Number.isNaN(bTimestamp)) {
-      return aTimestamp - bTimestamp
-    }
-    if (!Number.isNaN(aTimestamp)) {
-      return -1
-    }
-    if (!Number.isNaN(bTimestamp)) {
-      return 1
-    }
-
-    const aDate = Date.parse(a.created_at || '')
-    const bDate = Date.parse(b.created_at || '')
-    if (!Number.isNaN(aDate) && !Number.isNaN(bDate)) {
-      return aDate - bDate
-    }
-    return 0
-  })
-}
-
-export const parseThreadloomThreadResponse = (
-  payloads: unknown[],
-  sourceUrl: string,
-  options?: { threadLimitReached?: boolean },
-): ExtractedArticle => {
-  if (payloads.length === 0) {
-    throw new Error('No status payloads were provided for thread parsing.')
-  }
-
-  const tweetsById = new Map<string, ThreadloomTweet>()
-  payloads.forEach((payload, index) => {
-    const tweet = parseStatusPayload(payload)
-    const fallbackId = `tweet-${index}`
-    const id = toStatusId(tweet.id) || fallbackId
-    if (!tweetsById.has(id)) {
-      tweetsById.set(id, tweet)
-    }
-  })
-
-  const chronologicalTweets = toChronologicalTweets(Array.from(tweetsById.values()))
-  if (chronologicalTweets.length === 0) {
-    throw new Error('No printable content found for this status URL.')
-  }
-
-  const rootTweet = chronologicalTweets[0]
-  const latestTweet = chronologicalTweets[chronologicalTweets.length - 1]
-  const authorName = rootTweet.author?.name?.trim() || latestTweet.author?.name?.trim() || 'Unknown Author'
-  const authorHandle = rootTweet.author?.screen_name?.trim() || latestTweet.author?.screen_name?.trim() || 'unknown'
-
-  const blocks: ArticleBlock[] = []
-  chronologicalTweets.forEach((tweet, index) => {
-    const sectionBlocks = buildSingleTweetBlocks(tweet)
-    if (sectionBlocks.length === 0) {
-      return
-    }
-
-    blocks.push({
-      type: 'heading',
-      level: 2,
-      text: `Post ${index + 1}`,
-    })
-    blocks.push(...sectionBlocks)
-  })
-
-  if (blocks.length === 0) {
-    throw new Error('No printable content found for this status URL.')
-  }
-
-  const warnings = [
-    `Auto-detected thread: ${chronologicalTweets.length} posts merged. Metrics shown are from the root post.`,
-    'Extracted via public status parser.',
-  ]
-  if (options?.threadLimitReached) {
-    warnings.push('Thread parsing hit the 40-post cap and may be incomplete.')
-  }
-
-  return {
-    sourceUrl,
-    canonicalUrl: rootTweet.url || sourceUrl,
-    title: rootTweet.article?.title?.trim() || `${authorName} thread on X`,
-    authorName,
-    authorHandle,
-    authorAvatarUrl: rootTweet.author?.avatar_url || latestTweet.author?.avatar_url,
-    publishedAt: asIsoDate(rootTweet.created_at),
-    metrics: metricSnapshot(rootTweet),
-    blocks,
-    warnings,
-    extractedAt: new Date().toISOString(),
-    mode: 'fallback',
-    providerUsed: 'threadloom',
-    providerAttempts: [],
-    isThread: true,
-    threadTweetCount: chronologicalTweets.length,
-    threadRootUrl: rootTweet.url || sourceUrl,
-    threadUrls: chronologicalTweets.map((tweet) => tweet.url).filter((url): url is string => Boolean(url)),
-  }
-}
-
 export const parseThreadloomStatusResponse = (payload: unknown, sourceUrl: string): ExtractedArticle => {
   const tweet = parseStatusPayload(payload)
+  if (!tweet.article) {
+    throw new Error('This status does not include an X Article.')
+  }
   const authorName = tweet.author?.name?.trim() || 'Unknown Author'
   const authorHandle = tweet.author?.screen_name?.trim() || 'unknown'
   const blocks = buildSingleTweetBlocks(tweet)
+  if (blocks.length === 0) {
+    throw new Error('No article content found on this status.')
+  }
 
   const title = tweet.article?.title?.trim() || `${authorName} on X`
 

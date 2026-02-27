@@ -108,14 +108,14 @@ export const classifyInputUrl = (raw: string): UrlClassificationResult => {
   if (extractStatusId(parsed)) {
     return {
       kind: 'status',
-      reason: 'Detected status URL.',
+      reason: 'Detected status URL. Only X Article statuses are supported.',
       normalizedUrl: parsed.toString(),
     }
   }
 
   return {
     kind: 'unsupported',
-    reason: 'This X URL does not point to a status or article.',
+    reason: 'This X URL does not point to a supported X Article.',
     normalizedUrl: parsed.toString(),
   }
 }
