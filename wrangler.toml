@@ -1,8 +1,3 @@
 name = "xarticle-extract-worker"
 main = "worker/index.js"
 compatibility_date = "2026-02-27"
-
-[vars]
-# Point this to your Threadloom API origin (no trailing slash).
-# Example: "https://threadloom.yourdomain.com"
-THREADLOOM_API_BASE_URL = ""

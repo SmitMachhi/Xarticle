@@ -6,7 +6,7 @@ Turn a public X/Twitter link into a readable export.
 
 - Accepts one public X status URL or X long-form article URL.
 - Uses a minimal stateless backend endpoint (`/api/extract`) for extraction.
-- Resolves statuses/threads through **Threadloom**, a minimal self-hosted status extractor.
+- Resolves statuses/threads through a built-in self-hosted status extractor.
 - Resolves long-form article URLs by fetching HTML server-side and parsing client-side.
 - Shows a clean in-browser preview before you download.
 - Exports PDF for humans.
@@ -43,31 +43,6 @@ wrangler dev
 By default, the frontend calls `/api/extract` on the same origin.  
 For custom environments, set `VITE_EXTRACT_API_URL` to a full endpoint URL.
 
-### Required env var
-
-Set `THREADLOOM_API_BASE_URL` in your Worker environment to your deployed Threadloom origin.
-
-Example:
-
-```toml
-[vars]
-THREADLOOM_API_BASE_URL = "https://threadloom.yourdomain.com"
-```
-
-### Run Threadloom locally
-
-Threadloom source lives at `services/threadloom`.
-
-```bash
-npm run threadloom:dev
-```
-
-### Deploy Threadloom
-
-```bash
-npm run threadloom:deploy
-```
-
 ## Build for production
 
 ```bash
@@ -82,8 +57,6 @@ npm run preview
 - `npm run lint` -> lint project
 - `npm run test:run` -> run unit/regression tests once
 - `npm run test:e2e` -> run Playwright tests
-- `npm run threadloom:dev` -> run Threadloom worker locally
-- `npm run threadloom:deploy` -> deploy Threadloom worker
 
 ## How to use
 
@@ -101,7 +74,7 @@ npm run preview
 
 - Public pages only. Private/locked accounts are out.
 - X markup/upstream behavior can change at any time.
-- Some metrics may be missing depending on Threadloom payload availability.
+- Some metrics may be missing depending on upstream payload availability.
 - No login/auth is implemented.
 
 ## Stack
