@@ -108,7 +108,7 @@ export const classifyInputUrl = (raw: string): UrlClassificationResult => {
   if (extractStatusId(parsed)) {
     return {
       kind: 'status',
-      reason: 'Detected status URL. Thread auto-detection is enabled.',
+      reason: 'Detected status URL.',
       normalizedUrl: parsed.toString(),
     }
   }

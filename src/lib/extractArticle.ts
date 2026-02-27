@@ -1,6 +1,6 @@
 import type { ExtractRequestResult, ProviderAttempt } from '../types/article'
 import { parseXHtmlDocument } from './articleParser'
-import { parseThreadloomStatusResponse, parseThreadloomThreadResponse } from './threadloomParser'
+import { parseThreadloomStatusResponse } from './threadloomParser'
 import { extractStatusId, isSupportedXInputUrl, normalizeInputUrl } from './xUrl'
 
 const EXTRACT_ENDPOINT = import.meta.env.VITE_EXTRACT_API_URL?.trim() || '/api/extract'
@@ -10,7 +10,6 @@ interface StatusExtractResponse {
   kind: 'status'
   payloads: unknown[]
   warnings?: string[]
-  threadLimitReached?: boolean
 }
 
 interface ArticleHtmlExtractResponse {
@@ -115,17 +114,14 @@ export const extractArticleFromUrl = async (rawUrl: string): Promise<ExtractRequ
         throw new Error('No status payloads were returned.')
       }
 
-      const article =
-        payloads.length > 1
-          ? parseThreadloomThreadResponse(payloads, sourceUrl, { threadLimitReached: backendResult.threadLimitReached })
-          : parseThreadloomStatusResponse(payloads[0], sourceUrl)
+      const article = parseThreadloomStatusResponse(payloads[0], sourceUrl)
       if (backendResult.warnings && backendResult.warnings.length > 0) {
         article.warnings.push(...backendResult.warnings)
       }
       attempts.push({
         provider: 'threadloom',
         ok: true,
-        message: payloads.length > 1 ? 'Status parser succeeded (thread merged).' : 'Status parser succeeded.',
+        message: 'Status parser succeeded.',
       })
       article.providerAttempts = [...attempts]
       return { article }

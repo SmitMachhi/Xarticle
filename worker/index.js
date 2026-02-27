@@ -1346,12 +1346,11 @@ const handleExtract = async request => {
 
   const statusId = extractStatusId(parsedUrl)
   if (statusId) {
-    const result = await fetchStatusWithThreadChain(statusId)
+    const payload = await fetchThreadloomStatus(statusId)
     return jsonResponse({
       kind: 'status',
-      payloads: result.payloads,
-      warnings: result.warnings,
-      threadLimitReached: result.threadLimitReached,
+      payloads: [payload],
+      warnings: [],
     })
   }
 
