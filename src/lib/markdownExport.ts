@@ -19,6 +19,8 @@ export interface MarkdownDownloadResult {
   assetsFailed: number
 }
 
+export type MarkdownDownloadMode = 'auto' | 'online-md' | 'offline-zip'
+
 const fileExtensionFromContentType = (contentType: string | null): string => {
   if (!contentType) {
     return ''
@@ -215,10 +217,21 @@ const downloadOfflineMarkdownZip = async (
 }
 
 export const downloadArticleMarkdown = async (article: ExtractedArticle): Promise<MarkdownDownloadResult> => {
+  return downloadArticleMarkdownWithMode(article, 'auto')
+}
+
+export const downloadArticleMarkdownWithMode = async (
+  article: ExtractedArticle,
+  mode: MarkdownDownloadMode,
+): Promise<MarkdownDownloadResult> => {
   const baseFilename = buildBaseFilename(article)
   const mediaUrls = collectUniqueMediaUrls(article.blocks)
 
-  if (mediaUrls.length > 0) {
+  if (mode === 'offline-zip') {
+    return downloadOfflineMarkdownZip(article, baseFilename, mediaUrls)
+  }
+
+  if (mode === 'auto' && mediaUrls.length > 0) {
     return downloadOfflineMarkdownZip(article, baseFilename, mediaUrls)
   }
 

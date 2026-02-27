@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, MouseEvent as ReactMouseEvent } from 'react'
 import pandaFaceIcon from './assets/panda-face-nobg.png'
 import pandaSeriousGear from './assets/panda_pose_serious_gear.png'
 import pandaWave from './assets/panda_pose_wave.png'
@@ -7,7 +7,7 @@ import pandaWinkHeart from './assets/panda_pose_wink_heart.png'
 import pandaWrench from './assets/panda_pose_wrench.png'
 import { ArticlePreview } from './components/ArticlePreview'
 import { extractArticleFromUrl } from './lib/extractArticle'
-import { downloadArticleMarkdown } from './lib/markdownExport'
+import { downloadArticleMarkdownWithMode, type MarkdownDownloadMode } from './lib/markdownExport'
 import { downloadArticlePdf } from './lib/pdfExport'
 import { classifyInputUrl } from './lib/xUrl'
 import type { ExtractedArticle, MarginPreset, PaperSize } from './types/article'
@@ -48,6 +48,44 @@ const MARGIN_PRESET_OPTIONS: ReadonlyArray<{ value: MarginPreset; label: string 
   { value: 'minimum', label: 'Minimum' },
 ]
 
+type MarkdownChoice = Extract<MarkdownDownloadMode, 'online-md' | 'offline-zip'>
+
+const MARKDOWN_PREF_STORAGE_KEY = 'xarticle.markdown-preference.v1'
+
+const isMarkdownChoice = (value: unknown): value is MarkdownChoice => value === 'online-md' || value === 'offline-zip'
+
+const loadMarkdownPreference = (): MarkdownChoice | null => {
+  try {
+    const raw = window.localStorage.getItem(MARKDOWN_PREF_STORAGE_KEY)
+    if (isMarkdownChoice(raw)) {
+      return raw
+    }
+  } catch {
+    return null
+  }
+  return null
+}
+
+const saveMarkdownPreference = (choice: MarkdownChoice): void => {
+  try {
+    window.localStorage.setItem(MARKDOWN_PREF_STORAGE_KEY, choice)
+  } catch {
+    // Ignore storage failures (private mode/storage restrictions).
+  }
+}
+
+const formatApproxSize = (bytes: number): string => {
+  if (bytes >= 1_000_000) {
+    return `~${(bytes / 1_000_000).toFixed(1)} MB`
+  }
+  if (bytes >= 1_000) {
+    return `~${Math.max(1, Math.round(bytes / 1_000))} KB`
+  }
+  return `~${Math.max(1, bytes)} B`
+}
+
+const labelForMarkdownChoice = (choice: MarkdownChoice): string => (choice === 'online-md' ? 'Markdown (.md)' : 'Offline bundle (.zip)')
+
 const isClipboardPermissionGestureError = (error: unknown): boolean => {
   return error instanceof DOMException && (error.name === 'NotAllowedError' || error.name === 'SecurityError')
 }
@@ -70,10 +108,13 @@ function App() {
   const [markdownNoticeLeaving, setMarkdownNoticeLeaving] = useState(false)
   const [clipboardNotice, setClipboardNotice] = useState<string | null>(null)
   const [openSelectMenu, setOpenSelectMenu] = useState<'paperSize' | 'marginPreset' | null>(null)
+  const [markdownMenuOpen, setMarkdownMenuOpen] = useState(false)
+  const [markdownPreference, setMarkdownPreference] = useState<MarkdownChoice | null>(() => loadMarkdownPreference())
   const [edgeNudge, setEdgeNudge] = useState(0)
   const urlInputRef = useRef<HTMLInputElement | null>(null)
   const paperSizeSelectRef = useRef<HTMLDivElement | null>(null)
   const marginPresetSelectRef = useRef<HTMLDivElement | null>(null)
+  const markdownChoiceRef = useRef<HTMLDivElement | null>(null)
   const edgeNudgeResetTimerRef = useRef<number | null>(null)
   const markdownNoticeHideTimerRef = useRef<number | null>(null)
   const markdownNoticeClearTimerRef = useRef<number | null>(null)
@@ -90,6 +131,28 @@ function App() {
   const canDownload = useMemo(() => Boolean(article) && downloadState === 'idle', [article, downloadState])
   const urlClassification = useMemo(() => classifyInputUrl(urlInput), [urlInput])
   const canLoad = !loading && (urlClassification.kind === 'status' || urlClassification.kind === 'article')
+  const markdownMediaCount = useMemo(
+    () => (article?.blocks.filter((block) => block.type === 'media').map((block) => block.url).filter(Boolean).length ?? 0),
+    [article],
+  )
+  const recommendedMarkdownChoice: MarkdownChoice = markdownMediaCount > 0 ? 'offline-zip' : 'online-md'
+  const effectiveMarkdownChoice = markdownPreference ?? recommendedMarkdownChoice
+  const markdownEstimate = useMemo(() => {
+    if (!article) {
+      return {
+        onlineBytes: 0,
+        offlineBytes: 0,
+      }
+    }
+    const textBytes = Math.max(1200, Math.round(article.blocks.length * 180 + article.title.length * 2))
+    const mediaLinkBytes = markdownMediaCount * 180
+    const onlineBytes = textBytes + mediaLinkBytes
+    const offlineBytes = onlineBytes + markdownMediaCount * 700_000
+    return {
+      onlineBytes,
+      offlineBytes,
+    }
+  }, [article, markdownMediaCount])
 
   const triggerCelebrate = () => {
     setCelebratePanda(true)
@@ -235,6 +298,42 @@ function App() {
   }, [openSelectMenu])
 
   useEffect(() => {
+    if (!markdownMenuOpen) {
+      return
+    }
+
+    const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node
+      const clickedInside = markdownChoiceRef.current?.contains(target) ?? false
+      if (!clickedInside) {
+        setMarkdownMenuOpen(false)
+      }
+    }
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMarkdownMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('touchstart', handlePointerDown)
+    document.addEventListener('keydown', handleEscape)
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+      document.removeEventListener('touchstart', handlePointerDown)
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [markdownMenuOpen])
+
+  useEffect(() => {
+    if (!canDownload || downloadState === 'markdown') {
+      setMarkdownMenuOpen(false)
+    }
+  }, [canDownload, downloadState])
+
+  useEffect(() => {
     return () => {
       if (markdownNoticeHideTimerRef.current !== null) {
         window.clearTimeout(markdownNoticeHideTimerRef.current)
@@ -294,19 +393,24 @@ function App() {
     }
   }
 
-  const downloadMarkdown = async () => {
+  const performMarkdownDownload = async (choice: MarkdownChoice) => {
     if (!article) {
       return
     }
 
     setDownloadState('markdown')
+    setMarkdownMenuOpen(false)
+    setMarkdownPreference(choice)
+    saveMarkdownPreference(choice)
     try {
-      const result = await downloadArticleMarkdown(article)
+      const result = await downloadArticleMarkdownWithMode(article, choice)
       if (result.format === 'zip') {
         const assetSummary = result.assetsIncluded > 0 ? `${result.assetsIncluded} image file(s)` : 'no downloadable image files'
         const failureSummary =
           result.assetsFailed > 0 ? ` ${result.assetsFailed} media file(s) could not be bundled and remain linked online.` : ''
         showMarkdownNotice(`Downloaded offline Markdown ZIP with article.md and ${assetSummary} in assets/.${failureSummary}`)
+      } else {
+        showMarkdownNotice('Downloaded Markdown (.md) with online media links.')
       }
       triggerCelebrate()
     } catch (err) {
@@ -315,6 +419,24 @@ function App() {
     } finally {
       setDownloadState('idle')
     }
+  }
+
+  const handleMarkdownPrimaryClick = (event: ReactMouseEvent<HTMLButtonElement>) => {
+    if (!canDownload) {
+      return
+    }
+    if (event.shiftKey) {
+      void performMarkdownDownload(effectiveMarkdownChoice)
+      return
+    }
+    setMarkdownMenuOpen((prev) => !prev)
+  }
+
+  const chooseMarkdownMode = (choice: MarkdownChoice) => {
+    if (!canDownload) {
+      return
+    }
+    void performMarkdownDownload(choice)
   }
 
   const pasteFromClipboard = async () => {
@@ -542,10 +664,69 @@ function App() {
 
             <section className="section-block">
               <h2 className="section-title">Markdown Export</h2>
-              <div className="button-row">
-                <button className="btn-muted" onClick={downloadMarkdown} disabled={!canDownload}>
-                  {downloadState === 'markdown' ? 'Generating...' : 'Download for LLMs (Markdown)'}
-                </button>
+              <div className="button-row markdown-export" ref={markdownChoiceRef}>
+                <div className={`split-download ${markdownMenuOpen ? 'is-open' : ''}`}>
+                  <button
+                    className="btn-muted split-download-main"
+                    onClick={handleMarkdownPrimaryClick}
+                    disabled={!canDownload}
+                    aria-expanded={markdownMenuOpen}
+                    aria-haspopup="dialog"
+                    title="Click to choose format. Hold Shift for quick download using your preferred option."
+                  >
+                    {downloadState === 'markdown'
+                      ? 'Generating...'
+                      : `Download for LLMs (${labelForMarkdownChoice(effectiveMarkdownChoice)})`}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-muted split-download-caret"
+                    onClick={() => setMarkdownMenuOpen((prev) => !prev)}
+                    disabled={!canDownload || downloadState === 'markdown'}
+                    aria-label="Toggle markdown format options"
+                    aria-expanded={markdownMenuOpen}
+                    aria-haspopup="dialog"
+                  >
+                    <span aria-hidden="true">⌄</span>
+                  </button>
+                </div>
+                {markdownMenuOpen ? (
+                  <div className="markdown-choice-panel" role="dialog" aria-label="Choose markdown format">
+                    <button
+                      type="button"
+                      className={`markdown-choice-option ${effectiveMarkdownChoice === 'online-md' ? 'is-preferred' : ''}`}
+                      onClick={() => chooseMarkdownMode('online-md')}
+                      disabled={downloadState === 'markdown'}
+                    >
+                      <span className="markdown-choice-header">
+                        <strong>Markdown (.md)</strong>
+                        {recommendedMarkdownChoice === 'online-md' ? <em className="markdown-choice-badge">Recommended</em> : null}
+                      </span>
+                      <span className="markdown-choice-sub">Fastest. Keeps online image links.</span>
+                      <span className="markdown-choice-meta">{formatApproxSize(markdownEstimate.onlineBytes)}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className={`markdown-choice-option ${effectiveMarkdownChoice === 'offline-zip' ? 'is-preferred' : ''}`}
+                      onClick={() => chooseMarkdownMode('offline-zip')}
+                      disabled={downloadState === 'markdown'}
+                    >
+                      <span className="markdown-choice-header">
+                        <strong>Offline bundle (.zip)</strong>
+                        {recommendedMarkdownChoice === 'offline-zip' ? <em className="markdown-choice-badge">Recommended</em> : null}
+                      </span>
+                      <span className="markdown-choice-sub">
+                        Includes article.md + assets/
+                        {markdownMediaCount > 0 ? ` (${markdownMediaCount} media item${markdownMediaCount > 1 ? 's' : ''})` : ''}
+                      </span>
+                      <span className="markdown-choice-meta">{formatApproxSize(markdownEstimate.offlineBytes)}</span>
+                    </button>
+                    <p className="markdown-choice-hint">
+                      Tip: hold <kbd>Shift</kbd> and click download to instantly use your preferred format.
+                    </p>
+                  </div>
+                ) : null}
                 {markdownNotice ? (
                   <p
                     className={`markdown-notice ${markdownNoticeLeaving ? 'is-leaving' : 'is-entering'}`}
