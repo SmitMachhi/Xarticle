@@ -100,13 +100,13 @@ const USER_TIMELINE_FEATURES = {
 
 const QUERY_FIELD_TOGGLES = {
   withArticleRichContentState: true,
-  withArticlePlainText: false,
+  withArticlePlainText: true,
   withGrokAnalyze: false,
   withDisallowedReplyControls: false,
 }
 
 const USER_TIMELINE_FIELD_TOGGLES = {
-  withArticlePlainText: false,
+  withArticlePlainText: true,
 }
 
 const STATUS_PATH_PATTERNS = [/\/[^/]+\/status\/(\d+)/i, /\/i\/status\/(\d+)/i]
@@ -899,8 +899,24 @@ const toArticle = tweetNode => {
     ),
   )
 
-  const plainText = firstString(rawArticle?.content_state?.plain_text, rawArticle?.preview_text) || ''
-  const blocks = chunkParagraphs(plainText).map(block => ({ type: 'unstyled', text: block.text }))
+  const stateBlocks = Array.isArray(rawArticle?.content_state?.blocks) ? rawArticle.content_state.blocks : []
+  const blocksFromState = stateBlocks
+    .map(block => {
+      const text = firstString(block?.text)
+      if (!text) {
+        return null
+      }
+      return {
+        type: firstString(block?.type) || 'unstyled',
+        text,
+      }
+    })
+    .filter(Boolean)
+
+  const plainText = firstString(rawArticle?.plain_text, rawArticle?.content_state?.plain_text, rawArticle?.preview_text) || ''
+  const blocks = blocksFromState.length > 0
+    ? blocksFromState
+    : chunkParagraphs(plainText).map(block => ({ type: 'unstyled', text: block.text }))
 
   return {
     title: firstString(rawArticle?.title) || undefined,
