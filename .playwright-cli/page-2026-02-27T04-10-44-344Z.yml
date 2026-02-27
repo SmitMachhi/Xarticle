@@ -1,0 +1,118 @@
+- generic [ref=e3]:
+  - link "Skip to main content" [ref=e4] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=e5]:
+    - generic [ref=e6]:
+      - img [ref=e7]
+      - paragraph [ref=e9]: Xarticle.co
+    - navigation [ref=e11]:
+      - link "How it works" [ref=e12] [cursor=pointer]:
+        - /url: "#how-it-works"
+      - link "FAQ" [ref=e13] [cursor=pointer]:
+        - /url: "#faq"
+  - main [ref=e14]:
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - paragraph [ref=e18]: No login required.
+        - heading "Paste link. Download Article." [level=1] [ref=e19]
+        - paragraph [ref=e20]: Paste one public X link, and get a clean PDF for humans or Markdown for LLMs in seconds.
+      - button "Cycle panda mascot" [ref=e22] [cursor=pointer]:
+        - generic: ✦
+        - generic: ✦
+        - img "Panda mascot" [ref=e23]
+    - generic [ref=e26]:
+      - generic [ref=e28]:
+        - heading "Paste URL" [level=2] [ref=e29]
+        - generic [ref=e30]: X URL
+        - generic [ref=e31]:
+          - generic [ref=e32]:
+            - textbox "X URL" [ref=e33]:
+              - /placeholder: https://x.com/<handle>/status/... or /i/articles/...
+              - text: https://x.com/lukepierceops/status/2027015450232557853
+            - button "Paste from Clipboard" [ref=e34] [cursor=pointer]:
+              - img [ref=e35]
+          - button "Load Article" [ref=e37] [cursor=pointer]
+        - paragraph [ref=e92]: Detected status URL. Thread auto-detection is enabled.
+      - complementary [ref=e38]:
+        - generic [ref=e39]:
+          - heading "PDF Export Settings" [level=2] [ref=e40]
+          - generic [ref=e41]:
+            - generic [ref=e42]:
+              - text: Paper Size
+              - button "Paper size" [ref=e44] [cursor=pointer]:
+                - generic [ref=e45]: A4
+                - generic [ref=e46]: ⌄
+            - generic [ref=e47]:
+              - text: Margin
+              - button "Margin preset" [ref=e49] [cursor=pointer]:
+                - generic [ref=e50]: Default
+                - generic [ref=e51]: ⌄
+          - button "Download for Humans (PDF)" [ref=e53] [cursor=pointer]
+        - generic [ref=e54]:
+          - heading "Markdown Export" [level=2] [ref=e55]
+          - generic [ref=e57]:
+            - button "Download for LLMs (Markdown (.md))" [ref=e58] [cursor=pointer]
+            - button "Toggle markdown format options" [ref=e59] [cursor=pointer]:
+              - generic [ref=e60]: ⌄
+    - generic [ref=e62]:
+      - heading "Preview" [level=2] [ref=e63]
+      - generic [ref=e125]:
+        - article [ref=e126]:
+          - generic [ref=e127]:
+            - generic [ref=e128]: Xarticle.co
+            - heading "I've sold $500K+ in AI services. Here's what each price tier actually requires to deliver." [level=1] [ref=e129]
+            - generic [ref=e130]:
+              - img "Luke Pierce avatar" [ref=e131]
+              - generic [ref=e132]:
+                - generic [ref=e133]: Luke Pierce
+                - generic [ref=e134]: "@lukepierceops • 2/26/2026, 8:38:38 AM"
+            - link "https://x.com/lukepierceops/status/2027015450232557853" [ref=e135] [cursor=pointer]:
+              - /url: https://x.com/lukepierceops/status/2027015450232557853
+          - region "cover metrics" [ref=e136]:
+            - generic [ref=e137]:
+              - generic [ref=e138]: Likes
+              - strong [ref=e139]: "245"
+            - generic [ref=e140]:
+              - generic [ref=e141]: Replies
+              - strong [ref=e142]: "10"
+            - generic [ref=e143]:
+              - generic [ref=e144]: Reposts
+              - strong [ref=e145]: "13"
+            - generic [ref=e146]:
+              - generic [ref=e147]: Views
+              - strong [ref=e148]: 26,657
+            - generic [ref=e149]:
+              - generic [ref=e150]: Bookmarks
+              - strong [ref=e151]: "766"
+        - article [ref=e152]:
+          - button "Copy text" [ref=e154] [cursor=pointer]: ⧉
+          - paragraph [ref=e156]: A $2K project takes me 3 hours. A $60K build takes 90 days and a 4-person team. Here's what changes at every price point. Yesterday I posted the pricing ladder for AI & automation services. $500–$2K
+    - generic [ref=e66]:
+      - article [ref=e67]:
+        - heading "FAQ" [level=2] [ref=e68]
+        - generic [ref=e69]:
+          - group [ref=e70]:
+            - generic "Does this support private or locked X accounts? +" [ref=e71] [cursor=pointer]
+          - group [ref=e72]:
+            - generic "Can I use this without creating an account? +" [ref=e73] [cursor=pointer]
+          - group [ref=e74]:
+            - generic "Do you store my links or exports? +" [ref=e75] [cursor=pointer]
+          - group [ref=e76]:
+            - generic "What export formats are available? +" [ref=e77] [cursor=pointer]
+      - article [ref=e78]:
+        - heading "How it works" [level=2] [ref=e79]
+        - list [ref=e80]:
+          - listitem [ref=e81]: Paste one public X status URL or long-form article URL.
+          - listitem [ref=e82]: Preview the extracted content in your browser.
+          - listitem [ref=e83]: Download PDF for people or Markdown for LLM workflows.
+  - contentinfo [ref=e84]:
+    - generic [ref=e85]:
+      - paragraph [ref=e86]:
+        - img [ref=e87]
+        - generic [ref=e88]: Xarticle.co
+      - paragraph [ref=e89]:
+        - text: made with
+        - img "heart" [ref=e90]: ❤️
+        - text: by
+        - link "Smit" [ref=e91] [cursor=pointer]:
+          - /url: https://x.com/thesmitmachhi
