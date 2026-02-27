@@ -1,6 +1,11 @@
 import type { MarginPreset, PaperSize } from '../../../types/article'
 
 export const APP_NAME = 'Xarticle.co'
+export const HERO_TITLE = 'Turn one URL into clean exports.'
+export const HERO_IDLE_LABEL = 'Drop Link'
+export const HERO_IDLE_COPY = 'Paste a public X status or article URL to start.'
+export const HERO_WORKING_LABEL = 'Working'
+export const HERO_WORKING_COPY = 'Fetching and parsing the article now...'
 
 export const HOW_IT_WORKS = [
   'Paste one public X Article link.',
