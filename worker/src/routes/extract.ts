@@ -4,6 +4,7 @@ import {
   HTTP_BAD_REQUEST,
   HTTP_NOT_FOUND,
 } from '../core/constants'
+import { readExtractCache, writeExtractCache } from '../core/extractCache'
 import { jsonResponse, withTimeout } from '../core/http'
 import { toTweetPayload } from '../core/tweetMapper'
 import { extractArticleId, extractStatusId, isXDomain, normalizeStatusId, parseInputUrl } from '../core/url'
@@ -18,6 +19,8 @@ import { unwrapTweetResult } from '../core/xParsing'
 const toError = (error: unknown): Error => (error instanceof Error ? error : new Error('Extraction failed.'))
 const isStaleQueryFailure = (error: unknown): boolean =>
   (error instanceof Error ? error.message : '').includes('stale-query-id')
+const isCacheablePayload = (payload: unknown): boolean =>
+  Boolean(payload && typeof payload === 'object' && 'kind' in (payload as Record<string, unknown>))
 
 const fetchRawTweet = async (
   normalizedStatusId: string,
@@ -36,7 +39,7 @@ const fetchRawTweet = async (
       throw error
     }
     const refreshed = await resolveQueryAndBearer(true)
-    resetGuestToken()
+    await resetGuestToken()
     const refreshGuestToken = await activateGuestToken(refreshed.bearerToken)
     return await graphqlFetchTweetById(
       normalizedStatusId,
@@ -92,6 +95,31 @@ const extractByUrl = async (parsedUrl: URL): Promise<Response> => {
   return jsonResponse({ kind: 'article-html', html, finalUrl: articleResponse.url || parsedUrl.toString(), warnings: [] })
 }
 
+const readCachedResponse = async (sourceUrl: string): Promise<Response | null> => {
+  const cached = await readExtractCache(sourceUrl)
+  if (!cached) {
+    return null
+  }
+  return jsonResponse(cached.payload, cached.status)
+}
+
+const writeCacheableResponse = async (sourceUrl: string, response: Response): Promise<void> => {
+  if (!response.ok) {
+    return
+  }
+  const rawBody = await response.clone().text()
+  let payload: unknown = null
+  try {
+    payload = JSON.parse(rawBody)
+  } catch {
+    return
+  }
+  if (!isCacheablePayload(payload)) {
+    return
+  }
+  await writeExtractCache(sourceUrl, response.status, payload)
+}
+
 export const handleExtract = async (request: Request): Promise<Response> => {
   try {
     const body = (await request.json().catch(() => null)) as { url?: unknown } | null
@@ -99,7 +127,14 @@ export const handleExtract = async (request: Request): Promise<Response> => {
     if (!isXDomain(parsedUrl)) {
       return jsonResponse({ error: 'Only x.com and twitter.com links are supported.' }, HTTP_BAD_REQUEST)
     }
-    return await extractByUrl(parsedUrl)
+    const sourceUrl = parsedUrl.toString()
+    const cachedResponse = await readCachedResponse(sourceUrl)
+    if (cachedResponse) {
+      return cachedResponse
+    }
+    const response = await extractByUrl(parsedUrl)
+    await writeCacheableResponse(sourceUrl, response)
+    return response
   } catch (error) {
     const message = toError(error).message
     const status = message.includes('not found') ? HTTP_NOT_FOUND : HTTP_BAD_REQUEST

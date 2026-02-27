@@ -1,5 +1,6 @@
 interface UrlSectionProps {
   canLoad: boolean
+  loadButtonLabel: string
   loading: boolean
   notice: string | null
   onLoad: () => void
@@ -12,6 +13,7 @@ interface UrlSectionProps {
 
 export const UrlSection = ({
   canLoad,
+  loadButtonLabel,
   loading,
   notice,
   onLoad,
@@ -28,7 +30,7 @@ export const UrlSection = ({
       <div className="row">
         <input id="url" onChange={(event) => onUrlChange(event.target.value)} ref={urlInputRef} type="text" value={urlInput} />
         <button className="btn-muted" onClick={onPaste} type="button">Paste</button>
-        <button className="btn-primary" disabled={!canLoad} onClick={onLoad}>{loading ? 'Loading...' : 'Load Article'}</button>
+        <button className="btn-primary" disabled={!canLoad} onClick={onLoad}>{loading ? loadButtonLabel : 'Load Article'}</button>
       </div>
       <p className="url-status" aria-live="polite">{notice || urlClassificationReason}</p>
     </section>

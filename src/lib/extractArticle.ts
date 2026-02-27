@@ -6,11 +6,14 @@ import { extractStatusId, isSupportedXInputUrl, normalizeInputUrl } from './xUrl
 const EXTRACT_ENDPOINT = import.meta.env.VITE_EXTRACT_API_URL?.trim() || '/api/extract'
 const EXTRACT_TIMEOUT_MS = 25_000
 
+export type ExtractionProgressStage = 'fetching' | 'parsing'
+
 type StatusExtractResponse = { kind: 'status'; payloads: unknown[]; warnings?: string[] }
 type ArticleHtmlExtractResponse = { kind: 'article-html'; html: string; finalUrl?: string; warnings?: string[] }
 type ExtractBackendResponse = StatusExtractResponse | ArticleHtmlExtractResponse
 
 type ExtractErrorResponse = { error?: string }
+type ExtractionOptions = { onStage?: (stage: ExtractionProgressStage) => void }
 
 const parseBackendPayload = (raw: string): unknown => {
   if (!raw) {
@@ -84,12 +87,21 @@ const applyWarnings = (warnings: string[] | undefined, article: ExtractRequestRe
   if (warnings?.length) article.warnings.push(...warnings)
 }
 
-export const extractArticleFromUrl = async (rawUrl: string): Promise<ExtractRequestResult> => {
+const emitStage = (options: ExtractionOptions, stage: ExtractionProgressStage): void => {
+  options.onStage?.(stage)
+}
+
+export const extractArticleFromUrl = async (
+  rawUrl: string,
+  options: ExtractionOptions = {},
+): Promise<ExtractRequestResult> => {
   const sourceUrl = validateArticleUrl(rawUrl).toString()
   const attempts: ProviderAttempt[] = []
   const statusUrl = Boolean(extractStatusId(new URL(sourceUrl)))
   try {
+    emitStage(options, 'fetching')
     const result = await fetchBackendExtract(sourceUrl)
+    emitStage(options, 'parsing')
     if (result.kind === 'status') {
       if (result.payloads.length === 0) throw new Error('No status payloads were returned.')
       const article = parseThreadloomStatusResponse(result.payloads[0], sourceUrl)
