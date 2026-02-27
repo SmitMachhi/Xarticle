@@ -108,7 +108,7 @@ export const classifyInputUrl = (raw: string): UrlClassificationResult => {
   if (extractStatusId(parsed)) {
     return {
       kind: 'status',
-      reason: 'Detected status URL. Only X Article statuses are supported.',
+      reason: 'Detected status URL. This works only if that status contains an X Article.',
       normalizedUrl: parsed.toString(),
     }
   }
