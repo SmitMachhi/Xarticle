@@ -85,10 +85,10 @@ const normalizeBaseUrl = baseUrl => {
   return normalized.endsWith('/') ? normalized.slice(0, -1) : normalized
 }
 
-const fetchFxStatus = async (statusId, env) => {
-  const configuredBase = typeof env?.FXTWITTER_API_BASE_URL === 'string' ? env.FXTWITTER_API_BASE_URL : ''
+const fetchThreadloomStatus = async (statusId, env) => {
+  const configuredBase = typeof env?.THREADLOOM_API_BASE_URL === 'string' ? env.THREADLOOM_API_BASE_URL : ''
   if (!configuredBase.trim()) {
-    throw new Error('FXTWITTER_API_BASE_URL is not configured.')
+    throw new Error('THREADLOOM_API_BASE_URL is not configured.')
   }
 
   const endpoint = `${normalizeBaseUrl(configuredBase)}/i/status/${statusId}`
@@ -101,7 +101,7 @@ const fetchFxStatus = async (statusId, env) => {
 
 const fetchStatusWithThreadChain = async (statusId, env) => {
   const warnings = []
-  const seedPayload = await fetchFxStatus(statusId, env)
+  const seedPayload = await fetchThreadloomStatus(statusId, env)
   const payloads = [seedPayload]
   const seedMeta = getThreadMeta(seedPayload)
 
@@ -123,7 +123,7 @@ const fetchStatusWithThreadChain = async (statusId, env) => {
     }
 
     try {
-      const parentPayload = await fetchFxStatus(currentParentId, env)
+      const parentPayload = await fetchThreadloomStatus(currentParentId, env)
       const parentMeta = getThreadMeta(parentPayload)
       if (!parentMeta.statusId) {
         warnings.push(`Thread chain stopped early because a parent payload was incomplete (${currentParentId}).`)

@@ -1,6 +1,6 @@
 import type { ExtractRequestResult, ProviderAttempt } from '../types/article'
 import { parseXHtmlDocument } from './articleParser'
-import { parseFxTweetResponse, parseFxTweetThreadResponse } from './fxTweetParser'
+import { parseThreadloomStatusResponse, parseThreadloomThreadResponse } from './threadloomParser'
 import { extractStatusId, isSupportedXInputUrl, normalizeInputUrl } from './xUrl'
 
 const EXTRACT_ENDPOINT = import.meta.env.VITE_EXTRACT_API_URL?.trim() || '/api/extract'
@@ -117,13 +117,13 @@ export const extractArticleFromUrl = async (rawUrl: string): Promise<ExtractRequ
 
       const article =
         payloads.length > 1
-          ? parseFxTweetThreadResponse(payloads, sourceUrl, { threadLimitReached: backendResult.threadLimitReached })
-          : parseFxTweetResponse(payloads[0], sourceUrl)
+          ? parseThreadloomThreadResponse(payloads, sourceUrl, { threadLimitReached: backendResult.threadLimitReached })
+          : parseThreadloomStatusResponse(payloads[0], sourceUrl)
       if (backendResult.warnings && backendResult.warnings.length > 0) {
         article.warnings.push(...backendResult.warnings)
       }
       attempts.push({
-        provider: 'fxtwitter',
+        provider: 'threadloom',
         ok: true,
         message: payloads.length > 1 ? 'Status parser succeeded (thread merged).' : 'Status parser succeeded.',
       })
@@ -145,7 +145,7 @@ export const extractArticleFromUrl = async (rawUrl: string): Promise<ExtractRequ
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Extraction backend failed.'
     attempts.push({
-      provider: isStatusUrl ? 'fxtwitter' : 'companion',
+      provider: isStatusUrl ? 'threadloom' : 'companion',
       ok: false,
       message,
     })

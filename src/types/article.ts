@@ -36,7 +36,7 @@ export type ArticleBlock =
     }
 
 export type ExtractionMode = 'companion' | 'fallback'
-export type ExtractionProvider = 'fxtwitter' | 'companion' | 'jina'
+export type ExtractionProvider = 'threadloom' | 'companion' | 'jina'
 
 export interface ProviderAttempt {
   provider: ExtractionProvider

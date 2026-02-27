@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { parseFxTweetResponse, parseFxTweetThreadResponse } from '../fxTweetParser'
+import { parseThreadloomStatusResponse, parseThreadloomThreadResponse } from '../threadloomParser'
 import { buildArticlePdfDefinition, type PdfExportOptions } from '../pdfExport'
 
 const loadFixture = (name: string): unknown => {
@@ -39,7 +39,7 @@ const baseOpts: PdfExportOptions = {
 describe('status regression parsing', () => {
   it('parses a real status fixture into printable article blocks', () => {
     const payload = loadFixture('elvissun-status.json')
-    const article = parseFxTweetResponse(payload, 'https://x.com/elvissun/status/2025920521871716562?s=20')
+    const article = parseThreadloomStatusResponse(payload, 'https://x.com/elvissun/status/2025920521871716562?s=20')
 
     expect(article.title).toContain('OpenClaw')
     expect(article.authorHandle).toBe('elvissun')
@@ -120,7 +120,7 @@ describe('thread regression parsing', () => {
       },
     ]
 
-    const article = parseFxTweetThreadResponse(payloads, 'https://x.com/panda/status/1003')
+    const article = parseThreadloomThreadResponse(payloads, 'https://x.com/panda/status/1003')
 
     expect(article.isThread).toBe(true)
     expect(article.threadTweetCount).toBe(3)
@@ -137,7 +137,7 @@ describe('thread regression parsing', () => {
 describe('pdf definition regression', () => {
   it('puts the cover page first when enabled', async () => {
     const payload = loadFixture('elvissun-status.json')
-    const article = parseFxTweetResponse(payload, 'https://x.com/elvissun/status/2025920521871716562?s=20')
+    const article = parseThreadloomStatusResponse(payload, 'https://x.com/elvissun/status/2025920521871716562?s=20')
 
     const doc = await buildArticlePdfDefinition(article, baseOpts, async () => null)
     expect(Array.isArray(doc.content)).toBe(true)
@@ -156,7 +156,7 @@ describe('pdf definition regression', () => {
 
   it('promotes the cover image to the cover page top when enabled', async () => {
     const payload = loadFixture('elvissun-status.json')
-    const article = parseFxTweetResponse(payload, 'https://x.com/elvissun/status/2025920521871716562?s=20')
+    const article = parseThreadloomStatusResponse(payload, 'https://x.com/elvissun/status/2025920521871716562?s=20')
 
     const doc = await buildArticlePdfDefinition(article, baseOpts, async (url) => {
       if (url.includes('HB0Qm-HWMAAoBAz')) {
@@ -172,7 +172,7 @@ describe('pdf definition regression', () => {
 
   it('skips the cover page when disabled', async () => {
     const payload = loadFixture('elvissun-status.json')
-    const article = parseFxTweetResponse(payload, 'https://x.com/elvissun/status/2025920521871716562?s=20')
+    const article = parseThreadloomStatusResponse(payload, 'https://x.com/elvissun/status/2025920521871716562?s=20')
 
     const doc = await buildArticlePdfDefinition(
       article,

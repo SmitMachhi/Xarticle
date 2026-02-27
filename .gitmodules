@@ -1,3 +1,0 @@
-[submodule "services/fxembed"]
-	path = services/fxembed
-	url = https://github.com/FxEmbed/FxEmbed.git

@@ -1,47 +1,47 @@
 import type { ArticleBlock, ExtractedArticle } from '../types/article'
 
-interface FxTweetAuthor {
+interface ThreadloomTweetAuthor {
   name?: string
   screen_name?: string
   avatar_url?: string
 }
 
-interface FxArticleBlock {
+interface ThreadloomArticleBlock {
   type?: string
   text?: string
 }
 
-interface FxMediaInfo {
+interface ThreadloomMediaInfo {
   original_img_url?: string
 }
 
-interface FxMediaEntity {
-  media_info?: FxMediaInfo
+interface ThreadloomMediaEntity {
+  media_info?: ThreadloomMediaInfo
 }
 
-interface FxMediaItem {
+interface ThreadloomMediaItem {
   url?: string
 }
 
-interface FxTweetArticle {
+interface ThreadloomTweetArticle {
   title?: string
   preview_text?: string
   content?: {
-    blocks?: FxArticleBlock[]
+    blocks?: ThreadloomArticleBlock[]
   }
   cover_media?: {
-    media_info?: FxMediaInfo
+    media_info?: ThreadloomMediaInfo
   }
 }
 
-interface FxTweet {
+interface ThreadloomTweet {
   id?: string | number
   url?: string
   text?: string
   raw_text?: {
     text?: string
   }
-  author?: FxTweetAuthor
+  author?: ThreadloomTweetAuthor
   replies?: number
   retweets?: number
   likes?: number
@@ -50,18 +50,18 @@ interface FxTweet {
   created_at?: string
   created_timestamp?: number
   replying_to_status?: string | number | null
-  article?: FxTweetArticle
-  media_entities?: FxMediaEntity[]
+  article?: ThreadloomTweetArticle
+  media_entities?: ThreadloomMediaEntity[]
   media?: {
-    all?: FxMediaItem[]
-    photos?: FxMediaItem[]
+    all?: ThreadloomMediaItem[]
+    photos?: ThreadloomMediaItem[]
   }
 }
 
-interface FxTweetResponse {
+interface ThreadloomTweetResponse {
   code?: number
   message?: string
-  tweet?: FxTweet
+  tweet?: ThreadloomTweet
 }
 
 const asIsoDate = (value: string | undefined): string | undefined => {
@@ -86,8 +86,8 @@ const toStatusId = (value: string | number | null | undefined): string | null =>
   return null
 }
 
-const parseFxTweetPayload = (payload: unknown): FxTweet => {
-  const data = payload as FxTweetResponse
+const parseStatusPayload = (payload: unknown): ThreadloomTweet => {
+  const data = payload as ThreadloomTweetResponse
   if (!data?.tweet) {
     throw new Error('Status extractor did not return tweet payload.')
   }
@@ -156,7 +156,7 @@ const mergeAdjacentLists = (blocks: ArticleBlock[]): ArticleBlock[] => {
   return merged
 }
 
-const mediaBlocksFromTweet = (tweet: FxTweet): ArticleBlock[] => {
+const mediaBlocksFromTweet = (tweet: ThreadloomTweet): ArticleBlock[] => {
   const imageUrls = new Set<string>()
   const blocks: ArticleBlock[] = []
 
@@ -199,7 +199,7 @@ const mediaBlocksFromTweet = (tweet: FxTweet): ArticleBlock[] => {
   return blocks
 }
 
-const articleBlocksFromTweet = (tweet: FxTweet): ArticleBlock[] => {
+const articleBlocksFromTweet = (tweet: ThreadloomTweet): ArticleBlock[] => {
   const parsed = (tweet.article?.content?.blocks || [])
     .map((block) => {
       const rawText = (block.text || '').trim()
@@ -265,7 +265,7 @@ const dedupeAdjacentParagraphs = (blocks: ArticleBlock[]): ArticleBlock[] => {
   return deduped
 }
 
-const buildSingleTweetBlocks = (tweet: FxTweet): ArticleBlock[] => {
+const buildSingleTweetBlocks = (tweet: ThreadloomTweet): ArticleBlock[] => {
   const contentBlocks = articleBlocksFromTweet(tweet)
   const mediaBlocks = mediaBlocksFromTweet(tweet)
 
@@ -278,7 +278,7 @@ const buildSingleTweetBlocks = (tweet: FxTweet): ArticleBlock[] => {
   return dedupeAdjacentParagraphs(rawBlocks)
 }
 
-const metricSnapshot = (tweet: FxTweet): ExtractedArticle['metrics'] => ({
+const metricSnapshot = (tweet: ThreadloomTweet): ExtractedArticle['metrics'] => ({
   likes: tweet.likes ?? null,
   replies: tweet.replies ?? null,
   reposts: tweet.retweets ?? null,
@@ -286,7 +286,7 @@ const metricSnapshot = (tweet: FxTweet): ExtractedArticle['metrics'] => ({
   bookmarks: tweet.bookmarks ?? null,
 })
 
-const toChronologicalTweets = (tweets: FxTweet[]): FxTweet[] => {
+const toChronologicalTweets = (tweets: ThreadloomTweet[]): ThreadloomTweet[] => {
   return [...tweets].sort((a, b) => {
     const aTimestamp = typeof a.created_timestamp === 'number' ? a.created_timestamp : Number.NaN
     const bTimestamp = typeof b.created_timestamp === 'number' ? b.created_timestamp : Number.NaN
@@ -310,7 +310,7 @@ const toChronologicalTweets = (tweets: FxTweet[]): FxTweet[] => {
   })
 }
 
-export const parseFxTweetThreadResponse = (
+export const parseThreadloomThreadResponse = (
   payloads: unknown[],
   sourceUrl: string,
   options?: { threadLimitReached?: boolean },
@@ -319,9 +319,9 @@ export const parseFxTweetThreadResponse = (
     throw new Error('No status payloads were provided for thread parsing.')
   }
 
-  const tweetsById = new Map<string, FxTweet>()
+  const tweetsById = new Map<string, ThreadloomTweet>()
   payloads.forEach((payload, index) => {
-    const tweet = parseFxTweetPayload(payload)
+    const tweet = parseStatusPayload(payload)
     const fallbackId = `tweet-${index}`
     const id = toStatusId(tweet.id) || fallbackId
     if (!tweetsById.has(id)) {
@@ -379,7 +379,7 @@ export const parseFxTweetThreadResponse = (
     warnings,
     extractedAt: new Date().toISOString(),
     mode: 'fallback',
-    providerUsed: 'fxtwitter',
+    providerUsed: 'threadloom',
     providerAttempts: [],
     isThread: true,
     threadTweetCount: chronologicalTweets.length,
@@ -388,8 +388,8 @@ export const parseFxTweetThreadResponse = (
   }
 }
 
-export const parseFxTweetResponse = (payload: unknown, sourceUrl: string): ExtractedArticle => {
-  const tweet = parseFxTweetPayload(payload)
+export const parseThreadloomStatusResponse = (payload: unknown, sourceUrl: string): ExtractedArticle => {
+  const tweet = parseStatusPayload(payload)
   const authorName = tweet.author?.name?.trim() || 'Unknown Author'
   const authorHandle = tweet.author?.screen_name?.trim() || 'unknown'
   const blocks = buildSingleTweetBlocks(tweet)
@@ -409,7 +409,7 @@ export const parseFxTweetResponse = (payload: unknown, sourceUrl: string): Extra
     warnings: ['Extracted via public status parser.'],
     extractedAt: new Date().toISOString(),
     mode: 'fallback',
-    providerUsed: 'fxtwitter',
+    providerUsed: 'threadloom',
     providerAttempts: [],
   }
 }

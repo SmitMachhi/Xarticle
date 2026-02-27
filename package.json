@@ -11,11 +11,8 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:e2e": "playwright test",
-    "fx:init": "git submodule update --init --recursive services/fxembed",
-    "fx:install": "npm --prefix services/fxembed install",
-    "fx:build": "npm --prefix services/fxembed run build-local",
-    "fx:deploy": "npm --prefix services/fxembed run deploy",
-    "fx:tail": "npm --prefix services/fxembed run log"
+    "threadloom:dev": "wrangler dev --config services/threadloom/wrangler.toml",
+    "threadloom:deploy": "wrangler deploy --config services/threadloom/wrangler.toml"
   },
   "dependencies": {
     "jszip": "^3.10.1",

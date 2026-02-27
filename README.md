@@ -6,7 +6,7 @@ Turn a public X/Twitter link into a readable export.
 
 - Accepts one public X status URL or X long-form article URL.
 - Uses a minimal stateless backend endpoint (`/api/extract`) for extraction.
-- Resolves statuses/threads through your self-hosted `fxtwitter`-compatible API from backend only (not browser-direct).
+- Resolves statuses/threads through **Threadloom**, a minimal self-hosted status extractor.
 - Resolves long-form article URLs by fetching HTML server-side and parsing client-side.
 - Shows a clean in-browser preview before you download.
 - Exports PDF for humans.
@@ -45,41 +45,27 @@ For custom environments, set `VITE_EXTRACT_API_URL` to a full endpoint URL.
 
 ### Required env var
 
-Set `FXTWITTER_API_BASE_URL` in your Worker environment to your own hosted FxEmbed/FixTweet API base.
+Set `THREADLOOM_API_BASE_URL` in your Worker environment to your deployed Threadloom origin.
 
 Example:
 
 ```toml
 [vars]
-FXTWITTER_API_BASE_URL = "https://api.fx.yourdomain.com"
+THREADLOOM_API_BASE_URL = "https://threadloom.yourdomain.com"
 ```
 
-The worker does not call public `api.fxtwitter.com` anymore.
+### Run Threadloom locally
 
-### Self-host FxEmbed in this repo
+Threadloom source lives at `services/threadloom`.
 
-FxEmbed is included as a git submodule at `services/fxembed`.
-Detailed guide: [SELF_HOST_FXEMBED.md](./SELF_HOST_FXEMBED.md).
-
-1. Initialize and install:
 ```bash
-npm run fx:init
-npm run fx:install
+npm run threadloom:dev
 ```
-2. Configure FxEmbed:
+
+### Deploy Threadloom
+
 ```bash
-cp services/fxembed/.env.example services/fxembed/.env
-cp services/fxembed/wrangler.example.toml services/fxembed/wrangler.toml
-```
-3. Edit `services/fxembed/.env` and `services/fxembed/wrangler.toml` for your domains/account.
-4. Deploy FxEmbed:
-```bash
-npm run fx:deploy
-```
-5. Point this worker to your deployed FxEmbed API origin:
-```toml
-[vars]
-FXTWITTER_API_BASE_URL = "https://<your-fx-api-origin>"
+npm run threadloom:deploy
 ```
 
 ## Build for production
@@ -96,6 +82,8 @@ npm run preview
 - `npm run lint` -> lint project
 - `npm run test:run` -> run unit/regression tests once
 - `npm run test:e2e` -> run Playwright tests
+- `npm run threadloom:dev` -> run Threadloom worker locally
+- `npm run threadloom:deploy` -> deploy Threadloom worker
 
 ## How to use
 
@@ -113,7 +101,7 @@ npm run preview
 
 - Public pages only. Private/locked accounts are out.
 - X markup/upstream behavior can change at any time.
-- Some metrics may be missing depending on your Fx instance payload availability.
+- Some metrics may be missing depending on Threadloom payload availability.
 - No login/auth is implemented.
 
 ## Stack

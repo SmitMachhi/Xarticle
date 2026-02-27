@@ -30,7 +30,7 @@ Xarticle.co is a browser-based tool that turns a public X/Twitter status or long
 
 Xarticle.co uses a single backend endpoint (`/api/extract`) with:
 
-1. self-hosted `fxtwitter`-compatible status/thread retrieval for status URLs
+1. self-hosted Threadloom status/thread retrieval for status URLs
 2. Direct HTML fetch for long-form article URLs
 
 ## Exports
@@ -56,8 +56,8 @@ Xarticle.co uses a single backend endpoint (`/api/extract`) with:
 - X page structure can change over time and may affect parsing reliability
 - Some metrics may be unavailable on certain pages
 - Status/thread reliability depends on upstream payload availability
-- Worker requires `FXTWITTER_API_BASE_URL` set to your own FxEmbed/FixTweet API base
-- FxEmbed source is included in this repository at `services/fxembed`
+- Worker requires `THREADLOOM_API_BASE_URL` set to your Threadloom API base
+- Threadloom source is included in this repository at `services/threadloom`
 
 ## Contact
 

@@ -3,6 +3,6 @@ main = "worker/index.js"
 compatibility_date = "2026-02-27"
 
 [vars]
-# Point this to your self-hosted FxEmbed/FixTweet API origin (no trailing slash).
-# Example: "https://api.fx.yourdomain.com"
-FXTWITTER_API_BASE_URL = ""
+# Point this to your Threadloom API origin (no trailing slash).
+# Example: "https://threadloom.yourdomain.com"
+THREADLOOM_API_BASE_URL = ""
