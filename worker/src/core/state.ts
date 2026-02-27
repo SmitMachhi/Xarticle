@@ -1,3 +1,5 @@
+import { DEFAULT_BEARER_TOKEN, DEFAULT_TWEET_RESULT_QUERY_ID } from './constants'
+
 export interface WorkerState {
   bearerToken: string | null
   guestToken: string | null
@@ -7,11 +9,11 @@ export interface WorkerState {
 }
 
 export const state: WorkerState = {
-  bearerToken: null,
+  bearerToken: DEFAULT_BEARER_TOKEN,
   guestToken: null,
   guestTokenExpiresAt: 0,
   queryResolvedAt: 0,
-  tweetResultQueryId: null,
+  tweetResultQueryId: DEFAULT_TWEET_RESULT_QUERY_ID,
 }
 
 export const clearGuestToken = (): void => {

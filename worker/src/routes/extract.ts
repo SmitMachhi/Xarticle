@@ -7,19 +7,52 @@ import {
 import { jsonResponse, withTimeout } from '../core/http'
 import { toTweetPayload } from '../core/tweetMapper'
 import { extractArticleId, extractStatusId, isXDomain, normalizeStatusId, parseInputUrl } from '../core/url'
-import { activateGuestToken, graphqlFetchTweetById, resolveQueryAndBearer } from '../core/xClient'
+import {
+  activateGuestToken,
+  graphqlFetchTweetById,
+  resetGuestToken,
+  resolveQueryAndBearer,
+} from '../core/xClient'
 import { unwrapTweetResult } from '../core/xParsing'
 
 const toError = (error: unknown): Error => (error instanceof Error ? error : new Error('Extraction failed.'))
+const isStaleQueryFailure = (error: unknown): boolean =>
+  (error instanceof Error ? error.message : '').includes('stale-query-id')
+
+const fetchRawTweet = async (
+  normalizedStatusId: string,
+): Promise<unknown> => {
+  const fast = await resolveQueryAndBearer()
+  const fastGuestToken = await activateGuestToken(fast.bearerToken)
+  try {
+    return await graphqlFetchTweetById(
+      normalizedStatusId,
+      fast.queryId,
+      fast.bearerToken,
+      fastGuestToken,
+    )
+  } catch (error) {
+    if (!isStaleQueryFailure(error)) {
+      throw error
+    }
+    const refreshed = await resolveQueryAndBearer(true)
+    resetGuestToken()
+    const refreshGuestToken = await activateGuestToken(refreshed.bearerToken)
+    return await graphqlFetchTweetById(
+      normalizedStatusId,
+      refreshed.queryId,
+      refreshed.bearerToken,
+      refreshGuestToken,
+    )
+  }
+}
 
 const fetchStatusPayload = async (statusId: string): Promise<Record<string, unknown>> => {
   const normalizedStatusId = normalizeStatusId(statusId)
   if (!normalizedStatusId) {
     throw new Error('Invalid status id.')
   }
-  const { bearerToken, queryId } = await resolveQueryAndBearer()
-  const guestToken = await activateGuestToken(bearerToken)
-  const raw = await graphqlFetchTweetById(normalizedStatusId, queryId, bearerToken, guestToken)
+  const raw = await fetchRawTweet(normalizedStatusId)
   const tweetNode = unwrapTweetResult(raw)
   if (!tweetNode || !(tweetNode as { legacy?: unknown }).legacy) {
     throw new Error('This status was not found.')

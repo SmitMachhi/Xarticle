@@ -1,8 +1,10 @@
 import {
   GUEST_TOKEN_TTL_MS,
+  HTTP_BAD_REQUEST,
+  HTTP_NOT_FOUND,
   HTTP_TOO_MANY_REQUESTS,
+  HTTP_UNAUTHORIZED,
   MAIN_SCRIPT_URL,
-  QUERY_CACHE_TTL_MS,
   QUERY_FEATURES,
   QUERY_FIELD_TOGGLES,
   QUERY_VARIABLES,
@@ -15,10 +17,7 @@ import { clearGuestToken, state } from './state'
 import { graphqlHeaders,guestActivateHeaders } from './xHeaders'
 import { readBearerToken, readMainScriptUrl, readQueryId } from './xParsing'
 
-const hasQueryCache = (now: number): boolean => {
-  const fresh = now - state.queryResolvedAt < QUERY_CACHE_TTL_MS
-  return Boolean(state.tweetResultQueryId && state.bearerToken && fresh)
-}
+const STALE_QUERY_STATUSES = new Set([HTTP_BAD_REQUEST, HTTP_NOT_FOUND, HTTP_UNAUTHORIZED])
 
 const hasGuestToken = (now: number): boolean => Boolean(state.guestToken && now < state.guestTokenExpiresAt)
 
@@ -28,11 +27,8 @@ const fetchHomepageHtml = async (): Promise<string> => {
   return await response.text()
 }
 
-export const resolveQueryAndBearer = async (): Promise<{ bearerToken: string; queryId: string }> => {
+const refreshQueryAndBearer = async (): Promise<{ bearerToken: string; queryId: string }> => {
   const now = Date.now()
-  if (hasQueryCache(now)) {
-    return { queryId: state.tweetResultQueryId!, bearerToken: state.bearerToken! }
-  }
   const mainScriptUrl = readMainScriptUrl(await fetchHomepageHtml())
   if (!mainScriptUrl) throw new Error('Could not resolve X main script URL.')
   const scriptResponse = await withTimeout(mainScriptUrl, { headers: { accept: '*/*' } }, STATUS_TIMEOUT_MS)
@@ -44,6 +40,15 @@ export const resolveQueryAndBearer = async (): Promise<{ bearerToken: string; qu
   state.bearerToken = readBearerToken(scriptText)
   state.queryResolvedAt = now
   return { queryId, bearerToken: state.bearerToken }
+}
+
+export const resolveQueryAndBearer = async (
+  forceRefresh = false,
+): Promise<{ bearerToken: string; queryId: string }> => {
+  if (!forceRefresh && state.tweetResultQueryId && state.bearerToken) {
+    return { queryId: state.tweetResultQueryId!, bearerToken: state.bearerToken! }
+  }
+  return await refreshQueryAndBearer()
 }
 
 export const activateGuestToken = async (bearerToken: string): Promise<string> => {
@@ -76,10 +81,12 @@ export const graphqlFetchTweetById = async (
   bearerToken: string,
   guestToken: string,
 ): Promise<unknown> => {
-  const attempts = [X_API_ROOT, TWITTER_API_ROOT]
+  const attempts = [TWITTER_API_ROOT, X_API_ROOT]
   const errors: string[] = []
+  const statuses: number[] = []
   for (const root of attempts) {
     const response = await fetchGraphql(root, statusId, queryId, bearerToken, guestToken)
+    statuses.push(response.status)
     if (response.status === HTTP_TOO_MANY_REQUESTS) {
       clearGuestToken()
       errors.push(`rate limited at ${root}`)
@@ -91,5 +98,12 @@ export const graphqlFetchTweetById = async (
     }
     return await response.json()
   }
+  if (statuses.length > 0 && statuses.every((status) => STALE_QUERY_STATUSES.has(status))) {
+    throw new Error(`stale-query-id ${errors.join(' | ')}`)
+  }
   throw new Error(`Tweet query failed. ${errors.join(' | ')}`)
+}
+
+export const resetGuestToken = (): void => {
+  clearGuestToken()
 }

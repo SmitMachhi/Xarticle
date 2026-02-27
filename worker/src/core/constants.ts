@@ -15,6 +15,7 @@ export const SEC_CH_UA = '"Not?A_Brand";v="8", "Chromium";v="145", "Google Chrom
 
 export const DEFAULT_BEARER_TOKEN =
   'AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA'
+export const DEFAULT_TWEET_RESULT_QUERY_ID = 'MWesEIcCNojpQu2VI6KOhA'
 
 export const QUERY_VARIABLES = {
   includePromotedContent: false,
@@ -71,6 +72,7 @@ export const HTTP_BAD_REQUEST = 400
 export const HTTP_NOT_FOUND = 404
 export const HTTP_TOO_MANY_REQUESTS = 429
 export const HTTP_BAD_GATEWAY = 502
+export const HTTP_UNAUTHORIZED = 401
 
 export const CORS_HEADERS = {
   'access-control-allow-headers': 'content-type',
