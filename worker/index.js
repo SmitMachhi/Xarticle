@@ -3,7 +3,7 @@ const ARTICLE_TIMEOUT_MS = 20000
 const FX_THREAD_LIMIT = 40
 
 const TWITTER_ROOT = 'https://x.com'
-const TWITTER_API_ROOT = 'https://x.com/i/api'
+const TWITTER_API_ROOT = 'https://api.twitter.com'
 const MAIN_SCRIPT_URL = 'https://x.com'
 const QUERY_CACHE_TTL_MS = 6 * 60 * 60 * 1000
 const GUEST_TOKEN_TTL_MS = 2 * 60 * 60 * 1000
@@ -409,11 +409,12 @@ const toAuthor = tweetNode => {
   const rawUser = tweetNode?.core?.user_results?.result || tweetNode?.core?.user_result?.result || {}
   const user = rawUser?.result || rawUser
   const legacy = user?.legacy || {}
-  const screenName = firstString(legacy?.screen_name) || 'unknown'
-  const profileImage = firstString(legacy?.profile_image_url_https)
+  const core = user?.core || {}
+  const screenName = firstString(core?.screen_name, legacy?.screen_name) || 'unknown'
+  const profileImage = firstString(user?.avatar?.image_url, legacy?.profile_image_url_https)
 
   return {
-    name: firstString(legacy?.name) || 'Unknown Author',
+    name: firstString(core?.name, legacy?.name) || 'Unknown Author',
     screen_name: screenName,
     avatar_url: profileImage ? profileImage.replace('_normal.', '_400x400.') : undefined,
   }
