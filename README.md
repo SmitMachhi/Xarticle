@@ -51,10 +51,36 @@ Example:
 
 ```toml
 [vars]
-FXTWITTER_API_BASE_URL = "https://fx.yourdomain.com/api"
+FXTWITTER_API_BASE_URL = "https://api.fx.yourdomain.com"
 ```
 
 The worker does not call public `api.fxtwitter.com` anymore.
+
+### Self-host FxEmbed in this repo
+
+FxEmbed is included as a git submodule at `services/fxembed`.
+Detailed guide: [SELF_HOST_FXEMBED.md](./SELF_HOST_FXEMBED.md).
+
+1. Initialize and install:
+```bash
+npm run fx:init
+npm run fx:install
+```
+2. Configure FxEmbed:
+```bash
+cp services/fxembed/.env.example services/fxembed/.env
+cp services/fxembed/wrangler.example.toml services/fxembed/wrangler.toml
+```
+3. Edit `services/fxembed/.env` and `services/fxembed/wrangler.toml` for your domains/account.
+4. Deploy FxEmbed:
+```bash
+npm run fx:deploy
+```
+5. Point this worker to your deployed FxEmbed API origin:
+```toml
+[vars]
+FXTWITTER_API_BASE_URL = "https://<your-fx-api-origin>"
+```
 
 ## Build for production
 

@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
 title: "Xarticle.co"
 description: "Web app with a minimal stateless extract backend for public X/Twitter links and clean PDF or Markdown exports."
-last_updated: "2026-02-26"
+last_updated: "2026-02-27"
 source: "https://xarticle.co"
 --------------------------------------------------------------------------------
 
@@ -57,6 +57,7 @@ Xarticle.co uses a single backend endpoint (`/api/extract`) with:
 - Some metrics may be unavailable on certain pages
 - Status/thread reliability depends on upstream payload availability
 - Worker requires `FXTWITTER_API_BASE_URL` set to your own FxEmbed/FixTweet API base
+- FxEmbed source is included in this repository at `services/fxembed`
 
 ## Contact
 
