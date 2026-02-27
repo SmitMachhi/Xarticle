@@ -678,7 +678,41 @@ const activateGuestToken = async bearerToken => {
   return state.guestToken
 }
 
-const buildGraphqlHeaders = async ({ bearerToken, guestToken, rootUrl, requestPath, includeTransaction }) => {
+const buildGraphqlHeaders = async ({
+  bearerToken,
+  guestToken,
+  requestPath,
+  includeTransaction,
+  minimalBrowserHeaders = false,
+}) => {
+  if (minimalBrowserHeaders) {
+    const headers = {
+      authorization: `Bearer ${bearerToken}`,
+      referer: `${TWITTER_ROOT}/`,
+      'x-twitter-client-language': 'en',
+      'x-twitter-active-user': 'yes',
+      'x-guest-token': guestToken,
+      'user-agent': USER_AGENT,
+      'sec-ch-ua': '"Not:A-Brand";v="99", "HeadlessChrome";v="145", "Chromium";v="145"',
+      'sec-ch-ua-mobile': '?0',
+      'sec-ch-ua-platform': '"Windows"',
+      'content-type': 'application/json',
+    }
+
+    if (includeTransaction) {
+      try {
+        const transactionId = await generateTransactionId('GET', requestPath)
+        if (transactionId) {
+          headers['x-client-transaction-id'] = transactionId
+        }
+      } catch {
+        // Best-effort only.
+      }
+    }
+
+    return headers
+  }
+
   const csrfToken = crypto.randomUUID().replace(/-/g, '')
   const headers = {
     authorization: `Bearer ${bearerToken}`,
@@ -727,6 +761,7 @@ const graphqlFetch = async ({
   bearerToken,
   guestToken,
   includeTransaction,
+  minimalBrowserHeaders,
 }) => {
   const requestPath = `/graphql/${queryId}/${queryName}`
   let url = `${root}${requestPath}`
@@ -741,9 +776,9 @@ const graphqlFetch = async ({
   const headers = await buildGraphqlHeaders({
     bearerToken,
     guestToken,
-    rootUrl: root,
     requestPath,
     includeTransaction,
+    minimalBrowserHeaders: Boolean(minimalBrowserHeaders),
   })
 
   return await fetchWithTimeout(url, { headers }, STATUS_TIMEOUT_MS)
@@ -1038,7 +1073,7 @@ const graphqlFetchUserTweetsAndReplies = async ({ authorId, cursor, queryId, bea
   }
 
   const attempts = [
-    { root: X_API_ROOT, includeTransaction: true, queryName: 'UserTweetsAndReplies' },
+    { root: X_API_ROOT, includeTransaction: true, queryName: 'UserTweetsAndReplies', minimalBrowserHeaders: true },
     { root: TWITTER_API_ROOT, includeTransaction: false, queryName: 'UserTweetsAndReplies' },
     { root: TWITTER_API_ROOT, includeTransaction: false, queryName: 'UserTweets' },
   ]
@@ -1055,6 +1090,7 @@ const graphqlFetchUserTweetsAndReplies = async ({ authorId, cursor, queryId, bea
       bearerToken,
       guestToken,
       includeTransaction: attempt.includeTransaction,
+      minimalBrowserHeaders: attempt.minimalBrowserHeaders,
     })
 
     if (response.status === 429) {
@@ -1145,6 +1181,7 @@ const fetchForwardThreadFromAuthorTimeline = async (seedPayload, warnings) => {
     let current = seedMeta.statusId
     let cursor = null
     let pageCount = 0
+    let sawTimelineStatuses = false
 
     while (descendants.length < FX_THREAD_LIMIT - 1 && pageCount < MAX_TIMELINE_PAGES) {
       const timelineRaw = await graphqlFetchUserTweetsAndReplies({
@@ -1159,6 +1196,9 @@ const fetchForwardThreadFromAuthorTimeline = async (seedPayload, warnings) => {
         timelineRaw?.data?.user?.result?.timeline?.timeline?.instructions ||
         []
       const { statuses, cursors } = parseTimelineEntries(instructions)
+      if (statuses.length > 0) {
+        sawTimelineStatuses = true
+      }
 
       for (const node of statuses) {
         const authorId = firstString(node?.core?.user_results?.result?.rest_id)
@@ -1207,6 +1247,10 @@ const fetchForwardThreadFromAuthorTimeline = async (seedPayload, warnings) => {
 
       cursor = nextCursor.value
       pageCount += 1
+    }
+
+    if (!sawTimelineStatuses) {
+      warnings.push('Forward thread discovery returned no public timeline entries for this author.')
     }
 
     return descendants
@@ -1266,6 +1310,11 @@ const fetchStatusWithThreadChain = async statusId => {
       break
     }
     payloads.push(payload)
+  }
+
+  const seedReplies = Number(seedPayload?.tweet?.replies || 0)
+  if (!seedMeta.replyingToStatusId && forwardPayloads.length === 0 && seedReplies > 0) {
+    warnings.push('Could not fetch descendant self-replies from public X endpoints. Paste the last post in the thread to reconstruct the full chain.')
   }
 
   return {
