@@ -4,7 +4,7 @@
 #
 
 app = 'xarticle-course'
-primary_region = 'ord'
+primary_region = 'yyz'
 
 [build]
 
