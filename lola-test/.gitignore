@@ -4,3 +4,5 @@ dist
 .env
 .dev.vars
 coverage
+
+/tests/*
