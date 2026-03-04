@@ -1,24 +1,24 @@
 :root {
-  --color-bg: #0f0f13;
-  --color-surface: #1a1a24;
-  --color-surface-2: #22223a;
-  --color-border: #2e2e4a;
+  --color-bg: #f7f7fb;
+  --color-surface: #ffffff;
+  --color-surface-2: #ededf4;
+  --color-border: #d4d4e2;
   --color-accent: #58cc02;
   --color-accent-dark: #46a302;
-  --color-accent-glow: rgba(88, 204, 2, 0.2);
-  --color-danger: #ff4b4b;
-  --color-danger-bg: rgba(255, 75, 75, 0.12);
-  --color-warning: #ffc800;
-  --color-text: #e8e8f0;
-  --color-text-muted: #7b7b9a;
-  --color-text-dim: #4a4a6a;
-  --color-code-bg: #0d0d18;
-  --color-locked: #2a2a3e;
+  --color-accent-glow: rgba(88, 204, 2, 0.18);
+  --color-danger: #e03131;
+  --color-danger-bg: rgba(224, 49, 49, 0.08);
+  --color-warning: #e67700;
+  --color-text: #1a1a2e;
+  --color-text-muted: #5a5a78;
+  --color-text-dim: #a0a0bc;
+  --color-code-bg: #f1f3f8;
+  --color-locked: #e8e8f4;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 24px;
-  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.08);
   --font-mono: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
 }
 
