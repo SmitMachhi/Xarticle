@@ -3,13 +3,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ArrowRight, CheckCircle2, XCircle } from 'lucide-react';
 import { LESSONS } from '../../lib/curriculum';
 import { useProgressStore } from '../../hooks/useProgress';
-import { ServerLifecycle, HttpPacketAnatomy, UrlBreakdown } from '../visuals';
+import { ServerLifecycle, HttpPacketAnatomy, UrlBreakdown, StatusCodeWheel, RequestLifecycle } from '../visuals';
 import type { LessonSection } from '../../types/curriculum';
 
 const VISUAL_COMPONENTS: Record<string, React.FC> = {
   ServerLifecycle,
   HttpPacketAnatomy,
   UrlBreakdown,
+  StatusCodeWheel,
+  RequestLifecycle,
 };
 
 interface LessonViewerProps {

@@ -7,6 +7,7 @@ import './styles/components.css'
 import './styles/skill-tree.css'
 import './styles/lesson.css'
 import './styles/quiz.css'
+import './styles/visuals.css'
 
 const root = document.getElementById('root')
 if (!root) throw new Error('Root element not found')
