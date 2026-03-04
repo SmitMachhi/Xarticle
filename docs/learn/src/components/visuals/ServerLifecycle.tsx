@@ -77,17 +77,17 @@ export function ServerLifecycle() {
   };
 
   return (
-    <div className="p-6 bg-slate-900 rounded-xl">
+    <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-200">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-xl font-bold text-white mb-2">Server Lifecycle</h3>
-          <p className="text-slate-400 text-sm">{getStateDescription()}</p>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">Server Lifecycle</h3>
+          <p className="text-gray-600 text-sm">{getStateDescription()}</p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={startServer}
             disabled={isRunning}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg disabled:opacity-50 hover:bg-green-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg disabled:opacity-50 hover:bg-green-700 transition-colors shadow-sm"
           >
             <Play size={18} />
             Start Server
@@ -96,7 +96,7 @@ export function ServerLifecycle() {
           <button
             onClick={stopServer}
             disabled={!isRunning}
-            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg disabled:opacity-50 hover:bg-red-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg disabled:opacity-50 hover:bg-red-700 transition-colors shadow-sm"
           >
             <Square size={18} />
             Stop
@@ -104,7 +104,7 @@ export function ServerLifecycle() {
         </div>
       </div>
 
-      <div className="relative h-64 bg-slate-800 rounded-lg overflow-hidden">
+      <div className="relative h-64 bg-gray-100 rounded-lg overflow-hidden">
         {/* Server Box */}
         <motion.div
           className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -121,11 +121,11 @@ export function ServerLifecycle() {
             }}
           >
             <Activity size={40} color={getStateColor()} />
-            <span className="mt-2 text-white font-semibold capitalize">{state}</span>
+            <span className="mt-2 text-gray-900 font-semibold capitalize">{state}</span>
             
             {state !== 'stopped' && (
-              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-slate-700 px-3 py-1 rounded-full">
-                <span className="text-xs text-slate-300">Port 8787</span>
+              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gray-200 px-3 py-1 rounded-full">
+                <span className="text-xs text-gray-700">Port 8787</span>
               </div>
             )}
           </div>
@@ -149,7 +149,7 @@ export function ServerLifecycle() {
                   <motion.div
                     animate={{ x: [0, 20, 0] }}
                     transition={{ repeat: Infinity, duration: 0.5 }}
-                    className="text-blue-400 text-2xl"
+                    className="text-blue-600 text-2xl"
                   >
                     →
                   </motion.div>
@@ -165,7 +165,7 @@ export function ServerLifecycle() {
                 <motion.div
                   animate={{ x: [0, -20, 0] }}
                   transition={{ repeat: Infinity, duration: 0.5, delay: 0.3 }}
-                  className="text-green-400 text-2xl"
+                  className="text-green-600 text-2xl"
                 >
                   ← Response
                 </motion.div>
@@ -184,7 +184,7 @@ export function ServerLifecycle() {
                   s === state ? 'scale-125' : 'opacity-50'
                 }`}
                 style={{
-                  backgroundColor: s === state ? getStateColor() : '#6b7280',
+                  backgroundColor: s === state ? getStateColor() : '#9ca3af',
                 }}
                 title={s}
               />
@@ -192,8 +192,8 @@ export function ServerLifecycle() {
           </div>
 
           {isRunning && (
-            <div className="text-white">
-              Connections handled: <span className="font-bold text-green-400">{connectionCount}</span>
+            <div className="text-gray-900">
+              Connections handled: <span className="font-bold text-green-600">{connectionCount}</span>
             </div>
           )}
         </div>
@@ -205,8 +205,8 @@ export function ServerLifecycle() {
             key={s}
             className={`p-2 rounded text-center text-sm transition-all ${
               s === state
-                ? 'bg-slate-700 text-white font-semibold'
-                : 'bg-slate-800 text-slate-500'
+                ? 'bg-gray-200 text-gray-900 font-semibold'
+                : 'bg-gray-100 text-gray-500'
             }`}
           >
             <div className="capitalize">{s}</div>

@@ -76,8 +76,8 @@ export function LessonViewer({ lessonId, onBack, onComplete }: LessonViewerProps
       case 'concept':
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-white">{section.title}</h2>
-            <p className="text-slate-300 text-lg leading-relaxed">{section.content}</p>
+            <h2 className="text-2xl font-bold text-gray-900">{section.title}</h2>
+            <p className="text-gray-600 text-lg leading-relaxed">{section.content}</p>
             
             {section.visualComponent && VISUAL_COMPONENTS[section.visualComponent] && (
               <div className="mt-6">
@@ -93,16 +93,16 @@ export function LessonViewer({ lessonId, onBack, onComplete }: LessonViewerProps
       case 'code':
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-white">{section.title}</h2>
-            <p className="text-slate-300">{section.content}</p>
+            <h2 className="text-2xl font-bold text-gray-900">{section.title}</h2>
+            <p className="text-gray-600">{section.content}</p>
             
             {section.codeExample && (
-              <div className="bg-slate-900 rounded-lg overflow-hidden">
-                <div className="bg-slate-800 px-4 py-2 flex items-center gap-2">
+              <div className="bg-gray-900 rounded-lg overflow-hidden shadow-lg">
+                <div className="bg-gray-800 px-4 py-2 flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-red-500" />
                   <div className="w-3 h-3 rounded-full bg-yellow-500" />
                   <div className="w-3 h-3 rounded-full bg-green-500" />
-                  <span className="ml-4 text-slate-400 text-sm font-mono">
+                  <span className="ml-4 text-gray-400 text-sm font-mono">
                     {section.codeExample.file}
                   </span>
                 </div>
@@ -117,10 +117,10 @@ export function LessonViewer({ lessonId, onBack, onComplete }: LessonViewerProps
                             : ''
                         }`}
                       >
-                        <span className="text-slate-500 select-none w-8 inline-block">
+                        <span className="text-gray-500 select-none w-8 inline-block">
                           {i + 1}
                         </span>
-                        <span className="text-slate-300">{line}</span>
+                        <span className="text-gray-300">{line}</span>
                       </div>
                     ))}
                   </code>
@@ -133,17 +133,17 @@ export function LessonViewer({ lessonId, onBack, onComplete }: LessonViewerProps
       case 'quiz':
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-white">{section.title}</h2>
+            <h2 className="text-2xl font-bold text-gray-900">{section.title}</h2>
             
             {section.quiz?.questions.map((q, idx) => (
-              <div key={q.id} className="bg-slate-800 rounded-lg p-6">
+              <div key={q.id} className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
                 <div className="flex items-start gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center text-white font-bold">
+                  <span className="flex-shrink-0 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-900 font-bold border border-gray-200">
                     {idx + 1}
                   </span>
                   
                   <div className="flex-1">
-                    <p className="text-white font-medium mb-4">{q.question}</p>
+                    <p className="text-gray-900 font-medium mb-4">{q.question}</p>
                     
                     <div className="space-y-2">
                       {q.options?.map((option) => {
@@ -158,23 +158,23 @@ export function LessonViewer({ lessonId, onBack, onComplete }: LessonViewerProps
                             disabled={showResults}
                             className={`w-full p-3 rounded-lg text-left transition-all ${
                               showResult && isCorrect
-                                ? 'bg-green-500/20 border-2 border-green-500'
+                                ? 'bg-green-100 border-2 border-green-500'
                                 : showResult && !isCorrect
-                                ? 'bg-red-500/20 border-2 border-red-500'
+                                ? 'bg-red-100 border-2 border-red-500'
                                 : isSelected
-                                ? 'bg-blue-500/20 border-2 border-blue-500'
-                                : 'bg-slate-700 hover:bg-slate-600 border-2 border-transparent'
+                                ? 'bg-blue-50 border-2 border-blue-500'
+                                : 'bg-gray-50 hover:bg-gray-100 border-2 border-gray-200'
                             }`}
                           >
                             <div className="flex items-center justify-between"
                             >
-                              <span className="text-slate-200">{option}</span>
+                              <span className="text-gray-800">{option}</span>
                               
                               {showResult && isCorrect && (
-                                <CheckCircle2 className="text-green-400" size={20} />
+                                <CheckCircle2 className="text-green-600" size={20} />
                               )}
                               {showResult && !isCorrect && isSelected && (
-                                <XCircle className="text-red-400" size={20} />
+                                <XCircle className="text-red-600" size={20} />
                               )}
                             </div>
                           </button>
@@ -186,9 +186,9 @@ export function LessonViewer({ lessonId, onBack, onComplete }: LessonViewerProps
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
-                        className="mt-4 p-4 bg-slate-700/50 rounded-lg"
+                        className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200"
                       >
-                        <p className="text-slate-300">{q.explanation}</p>
+                        <p className="text-gray-700">{q.explanation}</p>
                       </motion.div>
                     )}
                   </div>
@@ -199,7 +199,7 @@ export function LessonViewer({ lessonId, onBack, onComplete }: LessonViewerProps
             {!showResults && (
               <button
                 onClick={() => setShowResults(true)}
-                className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-sm"
               >
                 Check Answers
               </button>
@@ -213,16 +213,16 @@ export function LessonViewer({ lessonId, onBack, onComplete }: LessonViewerProps
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center mx-auto"
+              className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center mx-auto shadow-lg"
             >
               <CheckCircle2 size={48} className="text-white" />
             </motion.div>
             
-            <h2 className="text-3xl font-bold text-white">{section.title}</h2>
-            <p className="text-slate-300 text-lg">{section.content}</p>
+            <h2 className="text-3xl font-bold text-gray-900">{section.title}</h2>
+            <p className="text-gray-600 text-lg">{section.content}</p>
             
-            <div className="inline-flex items-center gap-2 px-6 py-3 bg-yellow-500/20 rounded-full">
-              <span className="text-yellow-400 font-bold">+{lesson.xp} XP Earned!</span>
+            <div className="inline-flex items-center gap-2 px-6 py-3 bg-yellow-100 rounded-full border border-yellow-300">
+              <span className="text-yellow-700 font-bold">+{lesson.xp} XP Earned!</span>
             </div>
           </div>
         );
@@ -233,25 +233,25 @@ export function LessonViewer({ lessonId, onBack, onComplete }: LessonViewerProps
   };
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-slate-900 border-b border-slate-800">
+      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <button
               onClick={onBack}
-              className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
               <ArrowLeft size={20} />
               Back
             </button>
             
             <div className="flex items-center gap-4">
-              <span className="text-slate-400">
+              <span className="text-gray-600">
                 {currentSectionIndex + 1} / {lesson.sections.length}
               </span>
               
-              <div className="w-32 h-2 bg-slate-800 rounded-full overflow-hidden">
+              <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-blue-500 transition-all"
                   style={{
@@ -262,7 +262,7 @@ export function LessonViewer({ lessonId, onBack, onComplete }: LessonViewerProps
             </div>
           </div>
           
-          <h1 className="mt-4 text-2xl font-bold text-white">{lesson.title}</h1>
+          <h1 className="mt-4 text-2xl font-bold text-gray-900">{lesson.title}</h1>
         </div>
       </div>
 
@@ -285,7 +285,7 @@ export function LessonViewer({ lessonId, onBack, onComplete }: LessonViewerProps
           <button
             onClick={handlePrevious}
             disabled={currentSectionIndex === 0}
-            className="flex items-center gap-2 px-4 py-2 text-slate-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <ArrowLeft size={20} />
             Previous
@@ -294,7 +294,7 @@ export function LessonViewer({ lessonId, onBack, onComplete }: LessonViewerProps
           <button
             onClick={handleNext}
             disabled={currentSection.type === 'quiz' && !showResults}
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
           >
             {isLastSection ? 'Complete Lesson' : 'Next'}
             <ArrowRight size={20} />

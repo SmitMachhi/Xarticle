@@ -21,21 +21,21 @@ export function SkillTree({ onSelectLesson }: SkillTreeProps) {
   };
 
   return (
-    <div className="p-6 min-h-screen bg-slate-950">
+    <div className="p-6 min-h-screen bg-gray-50">
       {/* Header Stats */}
       <div className="flex flex-wrap items-center gap-6 mb-8">
-        <div className="flex items-center gap-3 bg-slate-900 px-4 py-2 rounded-full">
-          <Star className="text-yellow-400" size={24} />
-          <span className="text-white font-bold">{totalXP} XP</span>
+        <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200">
+          <Star className="text-yellow-500" size={24} />
+          <span className="text-gray-900 font-bold">{totalXP} XP</span>
         </div>
         
-        <div className="flex items-center gap-3 bg-slate-900 px-4 py-2 rounded-full">
+        <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200">
           <span className="text-2xl">🔥</span>
-          <span className="text-white font-bold">{currentStreak} Day Streak</span>
+          <span className="text-gray-900 font-bold">{currentStreak} Day Streak</span>
         </div>
         
-        <div className="flex items-center gap-3 bg-slate-900 px-4 py-2 rounded-full">
-          <span className="text-white font-bold">
+        <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200">
+          <span className="text-gray-900 font-bold">
             {completedLessons.length} / {LESSONS.length} Lessons
           </span>
         </div>
@@ -62,7 +62,7 @@ export function SkillTree({ onSelectLesson }: SkillTreeProps) {
               {/* World Header */}
               <div
                 className="flex items-center justify-between p-4 rounded-xl mb-4"
-                style={{ backgroundColor: `${world.color}20` }}
+                style={{ backgroundColor: `${world.color}15` }}
               >
                 <div className="flex items-center gap-4">
                   <div
@@ -73,16 +73,16 @@ export function SkillTree({ onSelectLesson }: SkillTreeProps) {
                   </div>
                   
                   <div>
-                    <h2 className="text-xl font-bold text-white">{world.name}</h2>
-                    <p className="text-slate-400 text-sm">{world.description}</p>
+                    <h2 className="text-xl font-bold text-gray-900">{world.name}</h2>
+                    <p className="text-gray-600 text-sm">{world.description}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-2">
                   {isWorldComplete && (
-                    <CheckCircle2 className="text-green-400" size={24} />
+                    <CheckCircle2 className="text-green-500" size={24} />
                   )}
-                  <span className="text-slate-300">
+                  <span className="text-gray-700">
                     {worldProgress} / {worldLessons.length}
                   </span>
                 </div>
@@ -107,35 +107,35 @@ export function SkillTree({ onSelectLesson }: SkillTreeProps) {
                       disabled={isLocked}
                       className={`p-4 rounded-xl text-left transition-all ${
                         isLocked
-                          ? 'bg-slate-900 opacity-50 cursor-not-allowed'
+                          ? 'bg-gray-100 opacity-50 cursor-not-allowed border-2 border-gray-200'
                           : isCompleted
-                          ? 'bg-slate-800 border-2 border-green-500 cursor-pointer'
-                          : 'bg-slate-800 border-2 border-slate-700 hover:border-blue-500 cursor-pointer'
+                          ? 'bg-white border-2 border-green-500 cursor-pointer shadow-sm'
+                          : 'bg-white border-2 border-gray-200 hover:border-blue-500 cursor-pointer shadow-sm'
                       }`}
                     >
                       <div className="flex items-start justify-between mb-2">
-                        <span className="text-slate-400 text-sm font-mono">
+                        <span className="text-gray-500 text-sm font-mono">
                           {lesson.id}
                         </span>
                         
                         {isLocked && (
-                          <Lock size={16} className="text-slate-500" />
+                          <Lock size={16} className="text-gray-400" />
                         )}
                         {isCompleted && (
-                          <CheckCircle2 size={16} className="text-green-400" />
+                          <CheckCircle2 size={16} className="text-green-500" />
                         )}
                         {!isLocked && !isCompleted && (
-                          <PlayCircle size={16} className="text-blue-400" />
+                          <PlayCircle size={16} className="text-blue-500" />
                         )}
                       </div>
                       
-                      <h3 className="font-bold text-white mb-1">{lesson.title}</h3>
+                      <h3 className="font-bold text-gray-900 mb-1">{lesson.title}</h3>
                       
-                      <p className="text-slate-400 text-sm mb-3 line-clamp-2">
+                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">
                         {lesson.description}
                       </p>
                       
-                      <div className="flex items-center gap-3 text-xs text-slate-500">
+                      <div className="flex items-center gap-3 text-xs text-gray-500">
                         <span>{lesson.duration} min</span>
                         <span>•</span>
                         <span style={{ color: COLORS.warning }}>{lesson.xp} XP</span>

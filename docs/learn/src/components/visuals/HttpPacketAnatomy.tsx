@@ -37,15 +37,15 @@ export function HttpPacketAnatomy() {
   };
 
   return (
-    <div className="p-6 bg-slate-900 rounded-xl">
+    <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-200">
       <div className="mb-6">
-        <h3 className="text-xl font-bold text-white mb-2">HTTP Request Anatomy</h3>
-        <p className="text-slate-400 text-sm">Click on sections to explore. Build a request and send it!</p>
+        <h3 className="text-xl font-bold text-gray-900 mb-2">HTTP Request Anatomy</h3>
+        <p className="text-gray-600 text-sm">Click on sections to explore. Build a request and send it!</p>
       </div>
 
       {/* Method Selection */}
       <div className="mb-6">
-        <label className="text-slate-300 text-sm mb-2 block">HTTP Method:</label>
+        <label className="text-gray-700 text-sm mb-2 block">HTTP Method:</label>
         <div className="flex gap-2">
           {HTTP_METHODS.map((method) => (
             <button
@@ -54,7 +54,7 @@ export function HttpPacketAnatomy() {
               className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                 selectedMethod === method
                   ? 'bg-blue-600 text-white'
-                  : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
               }`}
             >
               {method}
@@ -64,9 +64,9 @@ export function HttpPacketAnatomy() {
       </div>
 
       {/* Request Builder */}
-      <div className="bg-slate-800 rounded-lg p-4 mb-6">
+      <div className="bg-gray-100 rounded-lg p-4 mb-6 border border-gray-200">
         <div className="flex items-center gap-4 mb-4">
-          <div className="flex items-center gap-2 text-slate-400"
+          <div className="flex items-center gap-2 text-gray-600"
           >
             <Globe size={20} />
             <span>Client</span>
@@ -77,7 +77,7 @@ export function HttpPacketAnatomy() {
             transition={{ duration: 1.5, ease: 'easeInOut' }}
             className="flex-1 relative"
           >
-            <div className="h-1 bg-slate-700 rounded">
+            <div className="h-1 bg-gray-300 rounded">
               {showPacket && (
                 <motion.div
                   initial={{ width: '0%' }}
@@ -92,14 +92,14 @@ export function HttpPacketAnatomy() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="absolute top-2 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-3 py-1 rounded text-sm font-mono"
+                className="absolute top-2 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-3 py-1 rounded text-sm font-mono shadow-sm"
               >
                 HTTP Request
               </motion.div>
             )}
           </motion.div>
           
-          <div className="flex items-center gap-2 text-slate-400"
+          <div className="flex items-center gap-2 text-gray-600"
           >
             <Server size={20} />
             <span>Server</span>
@@ -109,7 +109,7 @@ export function HttpPacketAnatomy() {
         <button
           onClick={sendRequest}
           disabled={showPacket}
-          className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold flex items-center justify-center gap-2 disabled:opacity-50 hover:bg-blue-700 transition-colors"
+          className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold flex items-center justify-center gap-2 disabled:opacity-50 hover:bg-blue-700 transition-colors shadow-sm"
         >
           <Send size={18} />
           Send Request
@@ -120,7 +120,7 @@ export function HttpPacketAnatomy() {
       <div className="space-y-3">
         {/* Request Line */}
         <div
-          className="bg-slate-800 rounded-lg overflow-hidden cursor-pointer"
+          className="bg-gray-100 rounded-lg overflow-hidden cursor-pointer border border-gray-200"
           onClick={() => setExpandedSection(expandedSection === 'line' ? null : 'line')}
         >
           <div className="p-3 flex items-center justify-between">
@@ -130,11 +130,11 @@ export function HttpPacketAnatomy() {
                 className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: COLORS.primary }}
               />
-              <span className="text-white font-semibold">Request Line</span>
+              <span className="text-gray-900 font-semibold">Request Line</span>
             </div>
             <ArrowRight
               size={18}
-              className={`text-slate-400 transition-transform ${
+              className={`text-gray-500 transition-transform ${
                 expandedSection === 'line' ? 'rotate-90' : ''
               }`}
             />
@@ -146,13 +146,13 @@ export function HttpPacketAnatomy() {
               animate={{ height: 'auto' }}
               className="px-3 pb-3"
             >
-              <div className="font-mono text-sm bg-slate-900 p-3 rounded"
+              <div className="font-mono text-sm bg-white p-3 rounded border border-gray-200"
               >
                 <span style={{ color: COLORS.success }} className="font-bold">{packet.method}</span>
-                <span className="text-white"> {packet.path} </span>
-                <span className="text-slate-400">HTTP/1.1</span>
+                <span className="text-gray-900"> {packet.path} </span>
+                <span className="text-gray-500">HTTP/1.1</span>
               </div>
-              <p className="text-slate-400 text-sm mt-2">
+              <p className="text-gray-600 text-sm mt-2">
                 Contains the method, path, and HTTP version.
               </p>
             </motion.div>
@@ -161,7 +161,7 @@ export function HttpPacketAnatomy() {
 
         {/* Headers */}
         <div
-          className="bg-slate-800 rounded-lg overflow-hidden cursor-pointer"
+          className="bg-gray-100 rounded-lg overflow-hidden cursor-pointer border border-gray-200"
           onClick={() => setExpandedSection(expandedSection === 'headers' ? null : 'headers')}
         >
           <div className="p-3 flex items-center justify-between">
@@ -171,11 +171,11 @@ export function HttpPacketAnatomy() {
                 className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: COLORS.warning }}
               />
-              <span className="text-white font-semibold">Headers</span>
+              <span className="text-gray-900 font-semibold">Headers</span>
             </div>
             <ArrowRight
               size={18}
-              className={`text-slate-400 transition-transform ${
+              className={`text-gray-500 transition-transform ${
                 expandedSection === 'headers' ? 'rotate-90' : ''
               }`}
             />
@@ -187,17 +187,17 @@ export function HttpPacketAnatomy() {
               animate={{ height: 'auto' }}
               className="px-3 pb-3"
             >
-              <div className="font-mono text-sm bg-slate-900 p-3 rounded space-y-1"
+              <div className="font-mono text-sm bg-white p-3 rounded border border-gray-200 space-y-1"
               >
                 {Object.entries(packet.headers).map(([key, value]) => (
                   <div key={key}>
                     <span style={{ color: COLORS.info }} className="font-bold">{key}</span>
-                    <span className="text-slate-400">: </span>
-                    <span className="text-green-400">{value}</span>
+                    <span className="text-gray-400">: </span>
+                    <span className="text-green-600">{value}</span>
                   </div>
                 ))}
               </div>
-              <p className="text-slate-400 text-sm mt-2">
+              <p className="text-gray-600 text-sm mt-2">
                 Metadata about the request. Content-Type tells the server what format the body is in.
               </p>
             </motion.div>
@@ -206,7 +206,7 @@ export function HttpPacketAnatomy() {
 
         {/* Body */}
         <div
-          className="bg-slate-800 rounded-lg overflow-hidden cursor-pointer"
+          className="bg-gray-100 rounded-lg overflow-hidden cursor-pointer border border-gray-200"
           onClick={() => setExpandedSection(expandedSection === 'body' ? null : 'body')}
         >
           <div className="p-3 flex items-center justify-between"
@@ -217,11 +217,11 @@ export function HttpPacketAnatomy() {
                 className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: COLORS.secondary }}
               />
-              <span className="text-white font-semibold">Body</span>
+              <span className="text-gray-900 font-semibold">Body</span>
             </div>
             <ArrowRight
               size={18}
-              className={`text-slate-400 transition-transform ${
+              className={`text-gray-500 transition-transform ${
                 expandedSection === 'body' ? 'rotate-90' : ''
               }`}
             />
@@ -233,15 +233,15 @@ export function HttpPacketAnatomy() {
               animate={{ height: 'auto' }}
               className="px-3 pb-3"
             >
-              <div className="font-mono text-sm bg-slate-900 p-3 rounded"
+              <div className="font-mono text-sm bg-white p-3 rounded border border-gray-200"
               >
                 {packet.body ? (
-                  <pre className="text-green-400">{packet.body}</pre>
+                  <pre className="text-green-600">{packet.body}</pre>
                 ) : (
-                  <span className="text-slate-500 italic">No body (GET requests typically don't have a body)</span>
+                  <span className="text-gray-500 italic">No body (GET requests typically don't have a body)</span>
                 )}
               </div>
-              <p className="text-slate-400 text-sm mt-2">
+              <p className="text-gray-600 text-sm mt-2">
                 The actual data being sent. POST/PUT requests usually have a body.
               </p>
             </motion.div>
@@ -254,14 +254,14 @@ export function HttpPacketAnatomy() {
         {HTTP_METHODS.map((method) => (
           <div
             key={method}
-            className={`p-3 rounded-lg text-center transition-all ${
+            className={`p-3 rounded-lg text-center transition-all border ${
               selectedMethod === method
-                ? 'bg-slate-700 border-2 border-blue-500'
-                : 'bg-slate-800'
+                ? 'bg-blue-50 border-2 border-blue-500'
+                : 'bg-gray-100 border-gray-200'
             }`}
           >
-            <div className="font-bold text-white mb-1">{method}</div>
-            <div className="text-xs text-slate-400">
+            <div className="font-bold text-gray-900 mb-1">{method}</div>
+            <div className="text-xs text-gray-600">
               {method === 'GET' && 'Retrieve data'}
               {method === 'POST' && 'Create data'}
               {method === 'PUT' && 'Update data'}
