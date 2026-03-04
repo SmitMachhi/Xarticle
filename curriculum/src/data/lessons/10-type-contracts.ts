@@ -43,6 +43,7 @@ A discriminated union is a TypeScript pattern where a shared "kind" or "type" fi
 
 The app's ArticleBlock is a discriminated union of 7 types. You never have a generic "block" — you always know exactly what kind of block it is, and TypeScript knows what fields are available.`,
     },
+    { kind: 'visual', content: '', visualKey: 'DiscriminatedUnionExplorer' },
     {
       kind: 'code',
       language: 'typescript',
@@ -67,29 +68,7 @@ function renderBlock(block: ArticleBlock) {
   // ...
 }`,
     },
-    {
-      kind: 'diagram',
-      content: `
-  Type Contract Flow
-  ══════════════════
-
-  Worker (server)                    Frontend (browser)
-  ───────────────                    ──────────────────
-  Produces JSON                      Consumes JSON
-
-  { kind: "status",              parsed as →    ExtractBackendResponse
-    payloads: [...] }                           { kind: 'status', payloads }
-
-  parsed as →                                  ↓
-  ExtractedArticle                   parseThreadloomStatusResponse()
-
-                                     → ExtractedArticle
-                                       { blocks: ArticleBlock[], ... }
-
-                                     → ArticlePreview renders
-                                       each block by type`,
-      filename: 'Types as data pipeline documentation',
-    },
+    { kind: 'visual', content: '', visualKey: 'TypeContractFlow' },
     {
       kind: 'code',
       language: 'typescript',

@@ -25,6 +25,7 @@ This app uses two timeout strategies:
 • 25-second frontend timeout — if the whole extraction takes too long, abort and show an error
 • 20-second worker timeout — separate limit on the X API call within the worker`,
     },
+    { kind: 'visual', content: '', visualKey: 'TimeoutBar' },
     {
       kind: 'code',
       language: 'typescript',
@@ -69,32 +70,7 @@ If Threadloom fails (X changes their API, rate limits, etc.), the app automatica
 
 This is called a fallback chain. It makes the system resilient to single-point failures.`,
     },
-    {
-      kind: 'diagram',
-      content: `
-  extractArticle(url)
-       │
-       ▼
-  Try Threadloom
-  (X's GraphQL API)
-       │
-  ┌────┴────────────────────┐
-  │ Success?                │
-  Yes                       No
-  │                         │
-  ▼                         ▼
-  Return article        Try Companion
-                        (HTML scraping)
-                             │
-                        ┌────┴────────────────────┐
-                        │ Success?                │
-                        Yes                       No
-                        │                         │
-                        ▼                         ▼
-                    Return article         Throw Error
-                                       "Could not extract"`,
-      filename: 'Provider Fallback Chain',
-    },
+    { kind: 'visual', content: '', visualKey: 'FallbackChainDiagram' },
     {
       kind: 'code',
       language: 'typescript',

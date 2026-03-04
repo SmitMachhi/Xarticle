@@ -51,26 +51,7 @@ Bearer Token — a long-lived app-level credential from X. Like a master key. Li
 
 Guest Token — a short-lived (2-hour) token that X issues to identify anonymous sessions. The worker fetches one, caches it, and attaches it to every X API call.`,
     },
-    {
-      kind: 'diagram',
-      content: `
-  Worker                          X's API
-  ──────                          ───────
-     │                               │
-     │  1. POST /guest/activate      │
-     │     (with bearer token)       │
-     │──────────────────────────────▶│
-     │  2. { guest_token: "abc123" } │
-     │◀──────────────────────────────│
-     │                               │
-     │  3. GET /graphql/TweetDetail  │
-     │     Authorization: Bearer *** │
-     │     x-guest-token: abc123     │
-     │──────────────────────────────▶│
-     │  4. { tweet data }            │
-     │◀──────────────────────────────│`,
-      filename: 'X API Authentication Flow',
-    },
+    { kind: 'visual', content: '', visualKey: 'TokenTimeline' },
     {
       kind: 'code',
       language: 'typescript',

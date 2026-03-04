@@ -15,7 +15,7 @@ export default function RequestResponseFlow() {
     if (running) return
     setRunning(true)
     setActive(-1)
-    STEPS.forEach((s, i) => {
+    STEPS.forEach((_s, i) => {
       setTimeout(() => {
         setActive(i)
         if (i === STEPS.length - 1) setTimeout(() => { setRunning(false); setActive(-1) }, 1800)

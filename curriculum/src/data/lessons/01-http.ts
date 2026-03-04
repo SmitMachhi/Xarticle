@@ -11,22 +11,7 @@ Every time you load a website, your computer sends a message to another computer
 
 The language those messages are written in is called HTTP (HyperText Transfer Protocol). It's a simple convention everyone agreed to follow, like how postal mail has a "To:" and a "From:" address.`,
     },
-    {
-      kind: 'diagram',
-      content: `
-  Your Browser (Client)           Server (e.g. Cloudflare Worker)
-  ┌─────────────────────┐         ┌────────────────────────────┐
-  │                     │         │                            │
-  │  "Hey, give me      │────────▶│  receives request          │
-  │   /api/extract"     │  HTTP   │  runs some code            │
-  │                     │◀────────│  sends back JSON           │
-  │  receives JSON      │ Response│                            │
-  └─────────────────────┘         └────────────────────────────┘
-
-  This is called the Request-Response cycle.
-  Every network interaction in the app follows this pattern.`,
-      filename: 'Request-Response Cycle',
-    },
+    { kind: 'visual', content: '', visualKey: 'RequestResponseFlow' },
     {
       kind: 'text',
       content: `HTTP Methods
@@ -60,23 +45,9 @@ const response = await fetch('/api/extract', {
       kind: 'text',
       content: `Status Codes
 
-The server's reply always includes a status code — a 3-digit number that tells you what happened:
-
-2xx — Success
-  200 OK            Everything worked fine.
-  201 Created       New resource was created.
-
-4xx — Your fault (client error)
-  400 Bad Request   You sent something malformed.
-  401 Unauthorized  You need to authenticate first.
-  404 Not Found     That resource doesn't exist.
-
-5xx — Their fault (server error)
-  500 Internal Server Error   The server crashed.
-  503 Service Unavailable     The server is overwhelmed.
-
-When the app gets back a non-200, it throws an error to show the user something went wrong.`,
+The server's reply always includes a 3-digit status code that tells you what happened. Click each code below to see what it means and where it shows up in this app.`,
     },
+    { kind: 'visual', content: '', visualKey: 'StatusCodeGrid' },
     {
       kind: 'code',
       language: 'typescript',
@@ -101,23 +72,13 @@ const data = await response.json()`,
     },
     {
       question: 'What does a 404 status code mean?',
-      options: [
-        'The server crashed',
-        'You need to log in',
-        'The requested resource was not found',
-        'The request was malformed',
-      ],
+      options: ['The server crashed', 'You need to log in', 'The requested resource was not found', 'The request was malformed'],
       correctIndex: 2,
-      explanation: '404 Not Found means the server received the request fine, but couldn\'t find what was asked for.',
+      explanation: '404 Not Found means the server received the request fine, but could not find what was asked for.',
     },
     {
       question: 'What is the Request-Response cycle?',
-      options: [
-        'A browser refreshing the page automatically',
-        'The client sends a request; the server processes it and replies',
-        'Two servers communicating with each other',
-        'A caching mechanism that stores responses',
-      ],
+      options: ['A browser refreshing the page automatically', 'The client sends a request; the server processes it and replies', 'Two servers communicating with each other', 'A caching mechanism that stores responses'],
       correctIndex: 1,
       explanation: 'Every HTTP interaction follows this pattern: client sends a request, server does work, server sends back a response.',
     },
@@ -125,18 +86,13 @@ const data = await response.json()`,
       question: 'Which property on the fetch response tells you if the status was in the 200-299 range?',
       options: ['response.status === 200', 'response.ok', 'response.success', 'response.statusText'],
       correctIndex: 1,
-      explanation: '`response.ok` is a boolean that is `true` whenever the status code is between 200 and 299 (inclusive).',
+      explanation: 'response.ok is a boolean that is true whenever the status code is between 200 and 299 (inclusive).',
     },
     {
-      question: 'What does the `cache: "no-store"` option do in the fetch call?',
-      options: [
-        'Saves the response to localStorage',
-        'Tells the server not to cache anything',
-        'Tells the browser not to use or save a cached response',
-        'Enables service worker caching',
-      ],
+      question: 'What does the cache: "no-store" option do in the fetch call?',
+      options: ['Saves the response to localStorage', 'Tells the server not to cache anything', 'Tells the browser not to use or save a cached response', 'Enables service worker caching'],
       correctIndex: 2,
-      explanation: '`cache: "no-store"` instructs the browser to always make a real network request, ignoring and not storing any cached copy.',
+      explanation: 'cache: "no-store" instructs the browser to always make a real network request, ignoring and not storing any cached copy.',
     },
   ],
 }

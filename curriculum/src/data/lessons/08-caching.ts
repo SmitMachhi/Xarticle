@@ -13,24 +13,7 @@ Why does it matter? Fetching an article from X's API takes 1-3 seconds. If 100 p
 
 Good caching reduces: latency, API rate limit usage, server costs, downstream API load.`,
     },
-    {
-      kind: 'diagram',
-      content: `
-  Request for article (first time)      Request for article (cached)
-  ════════════════════════════════      ════════════════════════════
-  Browser                               Browser
-    │                                     │
-    │ POST /api/extract                   │ POST /api/extract
-    ▼                                     ▼
-  Worker                                Worker
-    │  cache miss →                       │  cache HIT!
-    │ fetch from X's API (1-3s)           │  return stored response (< 1ms)
-    │ store in Durable Object             │
-    │ return response                     │
-    ▼                                     ▼
-  Browser shows article                 Browser shows article`,
-      filename: 'Cache Miss vs Cache Hit',
-    },
+    { kind: 'visual', content: '', visualKey: 'CacheSimulator' },
     {
       kind: 'text',
       content: `Cloudflare Durable Objects

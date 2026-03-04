@@ -14,22 +14,7 @@ CORS is a security policy that browsers enforce. It says: JavaScript running on 
 
 Without CORS, a malicious webpage could make requests to your bank's API using your existing session cookies — and read the response. CORS prevents that.`,
     },
-    {
-      kind: 'diagram',
-      content: `
-  Without CORS protection (dangerous):
-  ─────────────────────────────────────
-  evil.com script ──GET──▶ your-bank.com/account-balance
-                  ◀──200── { balance: $10,000 }  ← evil.com reads this!
-
-  With CORS (what browsers actually do):
-  ──────────────────────────────────────
-  evil.com script ──GET──▶ your-bank.com/account-balance
-                  ◀──200── { balance: $10,000 }
-                            ↑ No CORS header — browser BLOCKS the read
-                            evil.com sees nothing`,
-      filename: 'Why CORS Exists',
-    },
+    { kind: 'visual', content: '', visualKey: 'CorsBlockedVsProxied' },
     {
       kind: 'text',
       content: `The Image Proxy Problem
@@ -40,24 +25,6 @@ So when the app tries to fetch an image to embed in the PDF:
   fetch('https://pbs.twimg.com/media/...')  // ← CORS block!
 
 The browser blocks it. The solution: proxy the request through our own server, which does allow the app's origin.`,
-    },
-    {
-      kind: 'diagram',
-      content: `
-  Browser                 Our Worker (/api/image)      pbs.twimg.com
-  ───────                 ───────────────────────      ─────────────
-     │                             │                         │
-     │  fetch('/api/image?url=...') │                         │
-     │────────────────────────────▶│                         │
-     │ (same origin — allowed!)    │  fetch(pbs.twimg.com/…) │
-     │                             │────────────────────────▶│
-     │                             │  image bytes            │
-     │                             │◀────────────────────────│
-     │  image bytes                │                         │
-     │  + CORS header: * ←─────── │                         │
-     │◀────────────────────────────│                         │
-     │ browser allows read!        │                         │`,
-      filename: 'Image Proxy — CORS Solution',
     },
     {
       kind: 'code',

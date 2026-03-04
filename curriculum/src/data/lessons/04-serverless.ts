@@ -13,20 +13,7 @@ Traditional model: you rent a virtual machine, install Node.js, keep it running 
 
 Serverless model: you write a function. The provider handles everything else. You only pay when code actually runs.`,
     },
-    {
-      kind: 'diagram',
-      content: `
-  Traditional Server                    Serverless (Cloudflare Workers)
-  ═══════════════════════               ═════════════════════════════════
-  ┌────────────────────┐                ┌─────────────────────────────┐
-  │  Always running    │                │  Sleeps until request comes │
-  │  1 location        │                │  Wakes in < 1ms             │
-  │  You manage OS     │                │  Runs in 300+ edge locations│
-  │  You patch Node    │                │  Provider manages runtime   │
-  │  Pay 24/7          │                │  Pay per request            │
-  └────────────────────┘                └─────────────────────────────┘`,
-      filename: 'Traditional vs Serverless',
-    },
+    { kind: 'visual', content: '', visualKey: 'TraditionalVsServerless' },
     {
       kind: 'text',
       content: `Cloudflare Workers — Edge Computing

@@ -13,22 +13,7 @@ Think of it like a mail sorting office: every letter (request) has an address (U
 
 Without routing, every request would go to the same function, and you'd have one massive if-else mess.`,
     },
-    {
-      kind: 'diagram',
-      content: `
-  Incoming Request
-       │
-       ▼
-  ┌─────────────────────────────────────────┐
-  │              Router                      │
-  │                                          │
-  │  POST /api/extract  ──▶ handleExtract()  │
-  │  GET  /api/image    ──▶ handleImage()    │
-  │  GET  /api/health   ──▶ { ok: true }     │
-  │  GET  /*            ──▶ serve React app  │
-  └─────────────────────────────────────────┘`,
-      filename: 'Worker Routing Table',
-    },
+    { kind: 'visual', content: '', visualKey: 'RouteMatcher' },
     {
       kind: 'code',
       language: 'typescript',
@@ -57,6 +42,7 @@ Without routing, every request would go to the same function, and you'd have one
   },
 }`,
     },
+    { kind: 'visual', content: '', visualKey: 'UrlAnatomy' },
     {
       kind: 'text',
       content: `URL Structure
