@@ -166,3 +166,29 @@
   justify-content: center;
   margin-top: 8px;
 }
+
+/* ── Mobile: max-width 600px ── */
+@media (max-width: 600px) {
+  .quiz-question {
+    font-size: 1.1rem;
+  }
+
+  .quiz-option {
+    min-height: 44px;
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .result-heading {
+    font-size: 1.5rem;
+  }
+
+  .result-xp {
+    font-size: 1.5rem;
+    padding: 6px 20px;
+  }
+
+  .result-page {
+    padding-top: 24px;
+  }
+}

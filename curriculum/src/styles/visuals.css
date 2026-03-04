@@ -203,3 +203,79 @@
 .tcf-arrow-line { width: 20px; height: 2px; background: var(--color-text-dim); }
 .tcf-arrow-head { color: var(--color-text-dim); font-size: 0.8rem; }
 .tcf-benefit { background: var(--color-surface-2); border-radius: var(--radius-md); padding: 12px 16px; font-size: 0.85rem; color: var(--color-text-muted); line-height: 1.5; }
+
+/* ── Mobile: max-width 600px ── */
+@media (max-width: 600px) {
+  /* ClientServerSplit: 3-col → single col */
+  .split-grid {
+    grid-template-columns: 1fr;
+  }
+  .split-divider {
+    display: none;
+  }
+
+  /* CorsBlockedVsProxied: 2-col → single col */
+  .cors-split {
+    grid-template-columns: 1fr;
+  }
+
+  /* TraditionalVsServerless: 3-col table → stacked rows */
+  .comparison-header {
+    display: none;
+  }
+  .comparison-row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+    padding: 10px 12px;
+  }
+  .comparison-aspect {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .comparison-trad::before { content: 'Traditional: '; font-weight: 600; color: var(--color-text-muted); font-size: 0.72rem; display: block; }
+  .comparison-sls::before { content: 'Serverless: '; font-weight: 600; color: var(--color-text-muted); font-size: 0.72rem; display: block; }
+
+  /* URL anatomy: reduce monospace font */
+  .url-bar {
+    font-size: 0.82rem;
+    padding: 10px 12px;
+    word-break: break-all;
+  }
+
+  /* Route matcher: stack method+path inputs */
+  .route-inputs {
+    flex-direction: column;
+  }
+
+  /* TypeContractFlow stages: allow wrapping */
+  .tcf-stages {
+    gap: 2px;
+  }
+  .tcf-stage {
+    min-width: 72px;
+    padding: 8px 8px;
+  }
+  .tcf-stage-label {
+    font-size: 0.65rem;
+  }
+  .tcf-arrow-line {
+    width: 10px;
+  }
+
+  /* Status chips: smaller on narrow screens */
+  .status-chip {
+    min-width: 64px;
+    padding: 6px 8px;
+  }
+  .status-chip-code {
+    font-size: 0.9rem;
+  }
+
+  /* Visual buttons: ensure touch target */
+  .visual-btn {
+    min-height: 44px;
+    padding: 10px 16px;
+  }
+}

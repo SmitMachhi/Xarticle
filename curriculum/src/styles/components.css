@@ -116,6 +116,19 @@
   text-align: right;
 }
 
+/* ── Mobile: max-width 600px ── */
+@media (max-width: 600px) {
+  .code-block-body {
+    font-size: 0.75rem;
+    padding: 12px;
+  }
+
+  .diagram-body {
+    font-size: 0.72rem;
+    padding: 12px 14px;
+  }
+}
+
 /* XP Banner */
 .xp-banner {
   position: fixed;

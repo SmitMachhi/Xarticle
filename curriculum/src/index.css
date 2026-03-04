@@ -184,3 +184,28 @@ button {
   animation: shake 0.4s ease;
 }
 
+/* ── Mobile: max-width 600px ── */
+@media (max-width: 600px) {
+  .page {
+    padding: 16px 12px 64px;
+  }
+
+  .page-title {
+    font-size: 1.35rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.88rem;
+  }
+
+  .btn-primary {
+    min-height: 44px;
+    padding: 12px 20px;
+    font-size: 0.95rem;
+  }
+
+  .btn-secondary {
+    min-height: 44px;
+    padding: 10px 16px;
+  }
+}
