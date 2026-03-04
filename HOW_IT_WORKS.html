@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>How Xarticle.co Works — The Backend Story</title>
+<style>
+  :root {
+    --green: #1a9d5b;
+    --green-soft: #e8f7ef;
+    --green-mid: #c0e8d4;
+    --blue: #2a7fc1;
+    --blue-soft: #e8f2fb;
+    --yellow: #e8a020;
+    --yellow-soft: #fef6e4;
+    --red: #d03050;
+    --red-soft: #feeef2;
+    --purple: #7c3aed;
+    --purple-soft: #f0ebff;
+    --text: #111820;
+    --muted: #5a6672;
+    --bg: #f4f8fb;
+    --surface: #ffffff;
+    --line: #dde5ed;
+    --radius: 16px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.07);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.55;
+    padding: 2.5rem 1.5rem 5rem;
+  }
+
+  .page {
+    max-width: 920px;
+    margin: 0 auto;
+  }
+
+  /* ── Header ── */
+  .page-title {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+  .page-subtitle {
+    margin-top: 0.6rem;
+    font-size: 1.1rem;
+    color: var(--muted);
+    max-width: 52ch;
+  }
+  .tag {
+    display: inline-block;
+    background: var(--green-soft);
+    color: var(--green);
+    border: 1px solid var(--green-mid);
+    border-radius: 999px;
+    padding: 0.2rem 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  /* ── Section ── */
+  .section {
+    margin-top: 3.5rem;
+  }
+  .section-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 0.6rem;
+  }
+  .section-title {
+    font-size: 1.45rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+  }
+  .section-desc {
+    color: var(--muted);
+    max-width: 58ch;
+    margin-bottom: 1.5rem;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.4rem 1.6rem;
+  }
+
+  /* ── Journey Flow ── */
+  .journey {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+  }
+  .journey-step {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 0 1.2rem;
+    position: relative;
+  }
+  .journey-step + .journey-step .step-connector {
+    display: block;
+  }
+  .step-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .step-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+  .step-line {
+    width: 2px;
+    flex: 1;
+    min-height: 24px;
+    background: var(--line);
+    margin: 4px 0;
+  }
+  .step-body {
+    padding: 0 0 1.8rem;
+  }
+  .step-title {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+  }
+  .step-copy {
+    color: var(--muted);
+    font-size: 0.93rem;
+  }
+  .step-badge {
+    display: inline-block;
+    border-radius: 8px;
+    padding: 0.15rem 0.55rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+  }
+  .badge-green  { background: var(--green-soft);  color: var(--green); }
+  .badge-yellow { background: var(--yellow-soft); color: var(--yellow); }
+  .badge-blue   { background: var(--blue-soft);   color: var(--blue); }
+  .badge-red    { background: var(--red-soft);    color: var(--red); }
+  .badge-purple { background: var(--purple-soft); color: var(--purple); }
+
+  /* ── Cache layers ── */
+  .cache-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+  .cache-card {
+    border-radius: 14px;
+    padding: 1.2rem 1.3rem;
+    border: 1px solid;
+  }
+  .cache-card .cc-icon { font-size: 1.8rem; margin-bottom: 0.5rem; }
+  .cache-card .cc-title { font-weight: 800; font-size: 0.95rem; margin-bottom: 0.25rem; }
+  .cache-card .cc-time { font-size: 0.82rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .cache-card .cc-desc { font-size: 0.85rem; color: var(--muted); }
+
+  .cc-green  { background: var(--green-soft);  border-color: #b0dcca; }
+  .cc-blue   { background: var(--blue-soft);   border-color: #b8d6ef; }
+  .cc-yellow { background: var(--yellow-soft); border-color: #f0d49a; }
+  .cc-purple { background: var(--purple-soft); border-color: #c4acf5; }
+
+  /* ── Race diagram ── */
+  .race-wrap {
+    display: grid;
+    grid-template-columns: 1fr 60px 1fr;
+    gap: 1rem;
+    align-items: center;
+    text-align: center;
+  }
+  .race-lane {
+    border-radius: 14px;
+    padding: 1.2rem;
+    border: 1px solid;
+  }
+  .race-lane.primary { background: var(--green-soft); border-color: var(--green-mid); }
+  .race-lane.secondary { background: var(--blue-soft); border-color: #b8d6ef; }
+  .race-vs {
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: var(--muted);
+    text-align: center;
+  }
+  .race-title { font-weight: 800; font-size: 0.95rem; margin-bottom: 0.3rem; }
+  .race-url { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.5rem; font-family: monospace; word-break: break-all; }
+  .race-detail { font-size: 0.82rem; color: var(--muted); }
+
+  /* ── Speed bar ── */
+  .speed-table { width: 100%; border-collapse: collapse; }
+  .speed-table th {
+    text-align: left;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--muted);
+    padding: 0.4rem 0.6rem 0.7rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .speed-table td {
+    padding: 0.75rem 0.6rem;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.93rem;
+  }
+  .speed-table tr:last-child td { border-bottom: none; }
+  .bar-cell { width: 200px; }
+  .bar-bg {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--line);
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 999px;
+  }
+  .speed-label { font-weight: 700; font-size: 0.85rem; }
+
+  /* ── Analogy box ── */
+  .analogy {
+    background: linear-gradient(135deg, #1a1f2e 0%, #1e2a3a 100%);
+    color: #e8edf2;
+    border-radius: var(--radius);
+    padding: 2rem 2.2rem;
+  }
+  .analogy h3 { font-size: 1.2rem; font-weight: 800; margin-bottom: 1rem; color: #fff; }
+  .analogy p { color: #a8bac8; line-height: 1.65; }
+  .analogy p + p { margin-top: 0.8rem; }
+  .analogy strong { color: #7dd4aa; }
+
+  /* ── Numbers row ── */
+  .numbers-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+  }
+  .number-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 1.2rem 1.4rem;
+    box-shadow: var(--shadow);
+  }
+  .number-card .n-val {
+    font-size: 2rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+  .number-card .n-label { font-size: 0.85rem; color: var(--muted); }
+  .n-green { color: var(--green); }
+  .n-blue  { color: var(--blue); }
+  .n-yellow { color: var(--yellow); }
+  .n-purple { color: var(--purple); }
+
+  /* ── Stack diagram ── */
+  .stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .stack-row {
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.3rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .stack-row:last-child { border-bottom: none; }
+  .stack-row .s-icon { font-size: 1.3rem; text-align: center; }
+  .stack-row .s-name { font-weight: 700; font-size: 0.95rem; }
+  .stack-row .s-desc { font-size: 0.83rem; color: var(--muted); margin-top: 0.1rem; }
+  .stack-row .s-tag { font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
+
+  @media (max-width: 600px) {
+    .race-wrap { grid-template-columns: 1fr; }
+    .race-vs { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="tag">For product designers, not engineers</div>
+  <h1 class="page-title">How Xarticle.co's<br/>backend is so fast</h1>
+  <p class="page-subtitle">A visual walkthrough of what happens the moment you paste a URL — and why it feels almost instant.</p>
+
+  <!-- ── Section 1: The Journey ── -->
+  <div class="section">
+    <div class="section-label">Section 01</div>
+    <h2 class="section-title">What happens when you paste a URL</h2>
+    <p class="section-desc">Every request takes one of two paths — a blazing fast cached path, or a fresh fetch path. Here's the full journey.</p>
+
+    <div class="card">
+      <div class="journey">
+
+        <div class="journey-step">
+          <div class="step-left">
+            <div class="step-icon" style="background:#e8f7ef;">📋</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">You paste the URL</div>
+            <div class="step-copy">The moment you paste, your browser sends the URL to a tiny piece of code running on Cloudflare's network — literally on a server that's probably in your city. Not somewhere in Virginia. <em>Your city.</em></div>
+          </div>
+        </div>
+
+        <div class="journey-step">
+          <div class="step-left">
+            <div class="step-icon" style="background:#fef6e4;">🏷️</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">Is this URL in our memory?
+              <span class="step-badge badge-green">Cache Check</span>
+            </div>
+            <div class="step-copy">Before doing any real work, the backend checks: "Have we seen this exact URL in the last 5 minutes?" If yes — it returns the saved result instantly. Zero calls to X/Twitter. Zero parsing. Pure memory read. <strong>This path takes under 50ms.</strong></div>
+          </div>
+        </div>
+
+        <div class="journey-step">
+          <div class="step-left">
+            <div class="step-icon" style="background:#e8f2fb;">🔑</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">Get the keys to X's API
+              <span class="step-badge badge-blue">Cached 6 hrs</span>
+            </div>
+            <div class="step-copy">X's API is private and needs a special password (called a bearer token + query ID). These expire. Our backend caches them for 6 hours — so most requests skip the "find the password" step entirely. If they expire mid-request, it automatically finds fresh ones and retries. You never see this happen.</div>
+          </div>
+        </div>
+
+        <div class="journey-step">
+          <div class="step-left">
+            <div class="step-icon" style="background:#f0ebff;">🏎️</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">Race two routes to X's servers simultaneously
+              <span class="step-badge badge-purple">Hedged Fetch</span>
+            </div>
+            <div class="step-copy">Here's the trick that makes it reliable: the backend sends the request to <em>two different X API addresses at the same time</em> — like sending two taxi drivers to the same destination. Whoever arrives first wins. The slower one is cancelled. The 350ms stagger means we don't waste resources, but also never get stuck waiting on a dead endpoint.</div>
+          </div>
+        </div>
+
+        <div class="journey-step">
+          <div class="step-left">
+            <div class="step-icon" style="background:#feeef2;">🔬</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">Parse X's complex response into clean data</div>
+            <div class="step-copy">X's raw API response is like a 500-piece puzzle thrown in a bag. Our code picks out exactly what we need — title, author, engagement numbers, article blocks, images — and assembles them into a clean, structured format that the frontend can use immediately.</div>
+          </div>
+        </div>
+
+        <div class="journey-step">
+          <div class="step-left">
+            <div class="step-icon" style="background:#e8f7ef;">💾</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-body" style="padding-bottom:0;">
+            <div class="step-title">Save to memory + send to you
+              <span class="step-badge badge-green">5 min cache</span>
+            </div>
+            <div class="step-copy">The result is saved for 5 minutes so the next person who requests the same article gets it instantly. Then it's sent to your browser and you see the article appear.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 2: Cache Layers ── -->
+  <div class="section">
+    <div class="section-label">Section 02</div>
+    <h2 class="section-title">Four invisible speed layers</h2>
+    <p class="section-desc">The backend doesn't just cache one thing. It has four separate memory layers — each one prevents a different type of slow work.</p>
+
+    <div class="cache-grid">
+      <div class="cache-card cc-green">
+        <div class="cc-icon">📦</div>
+        <div class="cc-title">Full Article Cache</div>
+        <div class="cc-time" style="color:var(--green);">Lives for 5 minutes</div>
+        <div class="cc-desc">The whole finished result, ready to serve. Someone requested this article already? You get it in milliseconds. No API call needed at all.</div>
+      </div>
+      <div class="cache-card cc-blue">
+        <div class="cc-icon">🔐</div>
+        <div class="cc-title">API Password Cache</div>
+        <div class="cc-time" style="color:var(--blue);">Lives for 6 hours</div>
+        <div class="cc-desc">Getting X's API password requires scraping the X homepage and reading their JavaScript files. We do this once, save the result, and reuse it for 6 hours.</div>
+      </div>
+      <div class="cache-card cc-yellow">
+        <div class="cc-icon">🎫</div>
+        <div class="cc-title">Guest Ticket Cache</div>
+        <div class="cc-time" style="color:var(--yellow);">Lives for 2 hours</div>
+        <div class="cc-desc">X also requires a short-lived "guest ticket" for every session. We get one, save it, and reuse it for 2 hours instead of asking for a new one every request.</div>
+      </div>
+      <div class="cache-card cc-purple">
+        <div class="cc-icon">🖼️</div>
+        <div class="cc-title">Image Cache</div>
+        <div class="cc-time" style="color:var(--purple);">Lives for 24 hours</div>
+        <div class="cc-desc">Profile photos and article images are saved in your browser for 24 hours. Revisit the same article? Images appear before you even blink.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 3: The Race ── -->
+  <div class="section">
+    <div class="section-label">Section 03</div>
+    <h2 class="section-title">The two-taxi trick</h2>
+    <p class="section-desc">The single cleverest thing in the backend: racing two API routes against each other so a bad server never makes you wait.</p>
+
+    <div class="card">
+      <div class="race-wrap">
+        <div class="race-lane primary">
+          <div class="race-title">🟢 Primary Route</div>
+          <div class="race-url">api.twitter.com/graphql/…</div>
+          <div class="race-detail">Starts immediately<br/>The original Twitter API</div>
+        </div>
+        <div class="race-vs">VS</div>
+        <div class="race-lane secondary">
+          <div class="race-title">🔵 Backup Route</div>
+          <div class="race-url">api.x.com/graphql/…</div>
+          <div class="race-detail">Starts 350ms later<br/>The newer X API address</div>
+        </div>
+      </div>
+      <div style="margin-top:1.2rem; padding:1rem 1.2rem; background:var(--bg); border-radius:12px; font-size:0.9rem; color:var(--muted);">
+        <strong style="color:var(--text);">Why 350ms delay on the backup?</strong> — If we fired both instantly every time, we'd double our API costs and potentially get rate-limited. The 350ms gap is the Goldilocks window: short enough that if the primary is dead or slow we barely notice, long enough that we don't waste the backup request when things work fine.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 4: Speed in numbers ── -->
+  <div class="section">
+    <div class="section-label">Section 04</div>
+    <h2 class="section-title">Speed in real numbers</h2>
+    <p class="section-desc">What different response times actually feel like, and where Xarticle sits on that scale.</p>
+
+    <div class="card" style="overflow-x:auto;">
+      <table class="speed-table">
+        <thead>
+          <tr>
+            <th>Scenario</th>
+            <th>How it feels</th>
+            <th class="bar-cell">Relative speed</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="speed-label">🟢 Cache hit</span><br/><span style="color:var(--muted);font-size:0.82rem;">Article already in memory</span></td>
+            <td>Feels instant. Like it was already there.</td>
+            <td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:5%;background:var(--green);"></div></div></td>
+            <td style="font-weight:700;color:var(--green);">&lt; 50ms</td>
+          </tr>
+          <tr>
+            <td><span class="speed-label">🔵 Fresh fetch</span><br/><span style="color:var(--muted);font-size:0.82rem;">First time this URL is requested</span></td>
+            <td>A quick blink. You see the skeleton shimmer once.</td>
+            <td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:30%;background:var(--blue);"></div></div></td>
+            <td style="font-weight:700;color:var(--blue);">1–2.5s</td>
+          </tr>
+          <tr>
+            <td><span class="speed-label">🟡 Cold start</span><br/><span style="color:var(--muted);font-size:0.82rem;">Tokens expired, need refresh</span></td>
+            <td>Noticeable wait. Rare. Happens at most once per 6 hours.</td>
+            <td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:55%;background:var(--yellow);"></div></div></td>
+            <td style="font-weight:700;color:var(--yellow);">3–5s</td>
+          </tr>
+          <tr>
+            <td><span class="speed-label">🔴 Typical competitor</span><br/><span style="color:var(--muted);font-size:0.82rem;">Server-side scraper, no cache</span></td>
+            <td>Spinner. You check your wifi. You wonder if it broke.</td>
+            <td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:100%;background:var(--red);"></div></div></td>
+            <td style="font-weight:700;color:var(--red);">8–20s</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Section 5: The Analogy ── -->
+  <div class="section">
+    <div class="section-label">Section 05</div>
+    <h2 class="section-title">The coffee shop analogy</h2>
+    <div class="analogy">
+      <h3>Imagine Xarticle.co is a coffee shop</h3>
+      <p>A <strong>bad coffee shop</strong> starts grinding beans from scratch every time someone orders a latte. Every customer waits 8 minutes. The barista has to walk to the storage room, find the beans, grind them, froth milk, do the whole thing fresh.</p>
+      <p>A <strong>smart coffee shop</strong> (ours) brews a fresh batch every 5 minutes and keeps it hot. Someone orders? Poured in 10 seconds. The barista already knows where everything is (<strong>cached tokens</strong>), has two espresso machines ready (<strong>dual API endpoints</strong>), and the menu never changes so she doesn't need to think (<strong>structured response parsing</strong>).</p>
+      <p>The Cloudflare part? That's like having <strong>a coffee shop on every block in the city</strong> instead of one downtown. You always walk to the one nearest you. That's why the first byte of response arrives so fast — it literally comes from a computer physically close to you, not from a data center across the country.</p>
+    </div>
+  </div>
+
+  <!-- ── Section 6: Key numbers ── -->
+  <div class="section">
+    <div class="section-label">Section 06</div>
+    <h2 class="section-title">The stats behind the magic</h2>
+
+    <div class="numbers-row">
+      <div class="number-card">
+        <div class="n-val n-green">&lt;50<span style="font-size:1rem;">ms</span></div>
+        <div class="n-label">Cache hit response time</div>
+      </div>
+      <div class="number-card">
+        <div class="n-val n-blue">2</div>
+        <div class="n-label">API routes raced per request</div>
+      </div>
+      <div class="number-card">
+        <div class="n-val n-yellow">4</div>
+        <div class="n-label">Cache layers active at once</div>
+      </div>
+      <div class="number-card">
+        <div class="n-val n-purple">350<span style="font-size:1rem;">ms</span></div>
+        <div class="n-label">Hedge delay between race lanes</div>
+      </div>
+      <div class="number-card">
+        <div class="n-val n-green">6<span style="font-size:1rem;">hrs</span></div>
+        <div class="n-label">API password cache duration</div>
+      </div>
+      <div class="number-card">
+        <div class="n-val" style="color:var(--text);">300<span style="font-size:1rem;">+</span></div>
+        <div class="n-label">Cloudflare edge locations worldwide</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 7: The Stack ── -->
+  <div class="section">
+    <div class="section-label">Section 07</div>
+    <h2 class="section-title">What the backend is actually made of</h2>
+    <p class="section-desc">Three components. No servers to manage. No databases. Just code and edge.</p>
+
+    <div class="stack">
+      <div class="stack-row" style="background:#fafcff;">
+        <div class="s-icon">🌐</div>
+        <div>
+          <div class="s-name">Cloudflare Pages</div>
+          <div class="s-desc">Hosts the website itself (what you see in your browser). Serves from the nearest location to you automatically.</div>
+        </div>
+        <div class="s-tag badge-blue">Frontend</div>
+      </div>
+      <div class="stack-row" style="background:#fafffe;">
+        <div class="s-icon">⚡</div>
+        <div>
+          <div class="s-name">Cloudflare Worker</div>
+          <div class="s-desc">A tiny piece of JavaScript running at the edge — no traditional "server". Handles all API calls to X, caches results, proxies images. Starts in under 1ms (no boot time).</div>
+        </div>
+        <div class="s-tag badge-green">Backend</div>
+      </div>
+      <div class="stack-row" style="background:#fffdf8;">
+        <div class="s-icon">🧠</div>
+        <div>
+          <div class="s-name">Cloudflare Cache API</div>
+          <div class="s-desc">Built-in memory storage at the edge. This is what stores all four cache layers — free, fast, and automatic. Not a separate service. It's just part of where the worker runs.</div>
+        </div>
+        <div class="s-tag badge-yellow">Memory</div>
+      </div>
+      <div class="stack-row">
+        <div class="s-icon">🐦</div>
+        <div>
+          <div class="s-name">X / Twitter GraphQL API</div>
+          <div class="s-desc">The only external dependency. We call this to get article content. Everything else is our own code running at the edge.</div>
+        </div>
+        <div class="s-tag badge-red" style="background:var(--red-soft);color:var(--red);">External</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="margin-top:4rem; padding-top:2rem; border-top:1px solid var(--line); color:var(--muted); font-size:0.88rem;">
+    Built for Xarticle.co — a tool for turning X article URLs into beautiful PDFs and Markdown.
+  </div>
+
+</div>
+</body>
+</html>
