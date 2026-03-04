@@ -84,14 +84,6 @@ const ACHIEVEMENTS: Achievement[] = [
   },
 ];
 
-interface ProgressState extends UserProgress {
-  completeLesson: (lessonId: string, score: number) => void;
-  updateLessonProgress: (lessonId: string, progress: Partial<LessonProgress>) => void;
-  addXP: (amount: number) => void;
-  checkAchievements: () => void;
-  getStreakBonus: () => number;
-}
-
 const INITIAL_PROGRESS: UserProgress = {
   completedLessons: [],
   lessonScores: {},
@@ -102,171 +94,163 @@ const INITIAL_PROGRESS: UserProgress = {
   lessonProgress: {},
 };
 
-// Simple localStorage implementation that works in all environments
-const storage = {
-  getItem: (name: string) => {
-    try {
-      const item = localStorage.getItem(name);
-      return item ? JSON.parse(item) : null;
-    } catch {
-      return null;
-    }
-  },
-  setItem: (name: string, value: unknown) => {
-    try {
-      localStorage.setItem(name, JSON.stringify(value));
-    } catch {
-      // Ignore storage errors
-    }
-  },
-  removeItem: (name: string) => {
-    try {
-      localStorage.removeItem(name);
-    } catch {
-      // Ignore storage errors
-    }
-  },
+interface ProgressState extends UserProgress {
+  completeLesson: (lessonId: string, score: number) => void;
+  updateLessonProgress: (lessonId: string, progress: Partial<LessonProgress>) => void;
+  addXP: (amount: number) => void;
+  checkAchievements: () => void;
+  getStreakBonus: () => number;
+}
+
+// Load from localStorage safely
+const loadFromStorage = (): Partial<UserProgress> => {
+  if (typeof window === 'undefined') return {};
+  try {
+    const saved = localStorage.getItem('backend-mastery-progress');
+    return saved ? JSON.parse(saved) : {};
+  } catch {
+    return {};
+  }
 };
 
-export const useProgressStore = create<ProgressState>()((set, get) => {
-  // Load initial state from localStorage
-  const savedState = storage.getItem('backend-mastery-progress');
-  const initialState = savedState?.state || INITIAL_PROGRESS;
+// Save to localStorage safely
+const saveToStorage = (state: UserProgress) => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem('backend-mastery-progress', JSON.stringify(state));
+  } catch {
+    // Ignore storage errors
+  }
+};
 
-  return {
-    ...initialState,
+export const useProgressStore = create<ProgressState>()((set, get) => ({
+  ...INITIAL_PROGRESS,
+  ...loadFromStorage(),
 
-    completeLesson: (lessonId: string, score: number) => {
-      set((state) => {
-        const today = new Date().toISOString().split('T')[0];
-        let newStreak = state.currentStreak;
-        
-        if (state.lastActiveDate !== today) {
-          const yesterday = new Date();
-          yesterday.setDate(yesterday.getDate() - 1);
-          const yesterdayStr = yesterday.toISOString().split('T')[0];
-          
-          newStreak = state.lastActiveDate === yesterdayStr 
-            ? state.currentStreak + 1 
-            : 1;
-        }
-
-        const newState = {
-          completedLessons: [...state.completedLessons, lessonId],
-          lessonScores: { ...state.lessonScores, [lessonId]: score },
-          totalXP: state.totalXP + score,
-          currentStreak: newStreak,
-          lastActiveDate: today,
-        };
-        
-        // Save to localStorage
-        storage.setItem('backend-mastery-progress', { state: { ...state, ...newState } });
-        
-        return newState;
-      });
+  completeLesson: (lessonId: string, score: number) => {
+    set((state) => {
+      const today = new Date().toISOString().split('T')[0];
+      let newStreak = state.currentStreak;
       
-      // Check achievements after a small delay to ensure state is updated
-      setTimeout(() => {
-        get().checkAchievements();
-      }, 0);
-    },
+      if (state.lastActiveDate !== today) {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
+        
+        newStreak = state.lastActiveDate === yesterdayStr 
+          ? state.currentStreak + 1 
+          : 1;
+      }
 
-    updateLessonProgress: (lessonId: string, progress: Partial<LessonProgress>) => {
+      const newState = {
+        ...state,
+        completedLessons: [...state.completedLessons, lessonId],
+        lessonScores: { ...state.lessonScores, [lessonId]: score },
+        totalXP: state.totalXP + score,
+        currentStreak: newStreak,
+        lastActiveDate: today,
+      };
+      
+      saveToStorage(newState);
+      return newState;
+    });
+  },
+
+  updateLessonProgress: (lessonId: string, progress: Partial<LessonProgress>) => {
+    set((state) => {
+      const newState = {
+        ...state,
+        lessonProgress: {
+          ...state.lessonProgress,
+          [lessonId]: {
+            ...state.lessonProgress[lessonId],
+            lessonId,
+            ...progress,
+          } as LessonProgress,
+        },
+      };
+      
+      saveToStorage(newState);
+      return newState;
+    });
+  },
+
+  addXP: (amount: number) => {
+    set((state) => {
+      const newState = { ...state, totalXP: state.totalXP + amount };
+      saveToStorage(newState);
+      return newState;
+    });
+  },
+
+  checkAchievements: () => {
+    const state = get();
+    const newAchievements: string[] = [];
+
+    ACHIEVEMENTS.forEach((achievement) => {
+      if (state.achievements.includes(achievement.id)) return;
+
+      let earned = false;
+      
+      switch (achievement.id) {
+        case 'hello-world':
+          earned = state.completedLessons.includes('1.1');
+          break;
+        case 'http-hero':
+          earned = ['1.1', '1.2', '1.3', '1.4', '1.5'].every(id => 
+            state.completedLessons.includes(id)
+          );
+          break;
+        case 'api-apprentice':
+          earned = state.completedLessons.includes('2.2');
+          break;
+        case 'cache-cow':
+          earned = state.completedLessons.includes('4.1');
+          break;
+        case 'error-handler':
+          earned = Object.values(state.lessonProgress).filter(p => 
+            p.challengeAttempts > 0
+          ).length >= 5;
+          break;
+        case 'deployer':
+          earned = state.completedLessons.includes('5.4');
+          break;
+        case 'full-stack':
+          earned = state.completedLessons.length >= 25;
+          break;
+        case 'perfect-score':
+          earned = Object.values(state.lessonScores).some(s => s >= 100);
+          break;
+      }
+
+      if (earned) {
+        newAchievements.push(achievement.id);
+      }
+    });
+
+    if (newAchievements.length > 0) {
+      const bonusXP = newAchievements.reduce((sum, id) => {
+        const achievement = ACHIEVEMENTS.find(a => a.id === id);
+        return sum + (achievement?.xpBonus ?? 0);
+      }, 0);
+
       set((state) => {
         const newState = {
-          lessonProgress: {
-            ...state.lessonProgress,
-            [lessonId]: {
-              ...state.lessonProgress[lessonId],
-              lessonId,
-              ...progress,
-            } as LessonProgress,
-          },
+          ...state,
+          achievements: [...state.achievements, ...newAchievements],
+          totalXP: state.totalXP + bonusXP,
         };
         
-        storage.setItem('backend-mastery-progress', { state: { ...state, ...newState } });
-        
+        saveToStorage(newState);
         return newState;
       });
-    },
+    }
+  },
 
-    addXP: (amount: number) => {
-      set((state) => {
-        const newState = { totalXP: state.totalXP + amount };
-        storage.setItem('backend-mastery-progress', { state: { ...state, ...newState } });
-        return newState;
-      });
-    },
-
-    checkAchievements: () => {
-      const state = get();
-      const newAchievements: string[] = [];
-
-      ACHIEVEMENTS.forEach((achievement) => {
-        if (state.achievements.includes(achievement.id)) return;
-
-        let earned = false;
-        
-        switch (achievement.id) {
-          case 'hello-world':
-            earned = state.completedLessons.includes('1.1');
-            break;
-          case 'http-hero':
-            earned = ['1.1', '1.2', '1.3', '1.4', '1.5'].every(id => 
-              state.completedLessons.includes(id)
-            );
-            break;
-          case 'api-apprentice':
-            earned = state.completedLessons.includes('2.2');
-            break;
-          case 'cache-cow':
-            earned = state.completedLessons.includes('4.1');
-            break;
-          case 'error-handler':
-            earned = Object.values(state.lessonProgress).filter(p => 
-              p.challengeAttempts > 0
-            ).length >= 5;
-            break;
-          case 'deployer':
-            earned = state.completedLessons.includes('5.4');
-            break;
-          case 'full-stack':
-            earned = state.completedLessons.length >= 25;
-            break;
-          case 'perfect-score':
-            earned = Object.values(state.lessonScores).some(s => s >= 100);
-            break;
-        }
-
-        if (earned) {
-          newAchievements.push(achievement.id);
-        }
-      });
-
-      if (newAchievements.length > 0) {
-        const bonusXP = newAchievements.reduce((sum, id) => {
-          const achievement = ACHIEVEMENTS.find(a => a.id === id);
-          return sum + (achievement?.xpBonus ?? 0);
-        }, 0);
-
-        set((state) => {
-          const newState = {
-            achievements: [...state.achievements, ...newAchievements],
-            totalXP: state.totalXP + bonusXP,
-          };
-          
-          storage.setItem('backend-mastery-progress', { state: { ...state, ...newState } });
-          
-          return newState;
-        });
-      }
-    },
-
-    getStreakBonus: () => {
-      const streak = get().currentStreak;
-      return Math.min(streak * 0.05, 0.5);
-    },
-  };
-});
+  getStreakBonus: () => {
+    const streak = get().currentStreak;
+    return Math.min(streak * 0.05, 0.5);
+  },
+}));
 
 export { ACHIEVEMENTS };
