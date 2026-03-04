@@ -5,26 +5,61 @@ const lesson: Lesson = {
   sections: [
     {
       kind: 'text',
-      content: `CORS — Cross-Origin Resource Sharing
+      content: `## Your Browser Is Protecting You Right Now
 
-CORS is a security policy that browsers enforce. It says: JavaScript running on page A cannot read responses from server B, unless server B explicitly says "page A is allowed."
+Every time your JavaScript makes a request to another website,
+the browser checks something first: "Did that server say I'm allowed to read this?"
 
-"Origin" = protocol + hostname + port.
-  https://myapp.com and https://api.x.com are different origins.
+If the server didn't say yes — the browser blocks the response.
+Your JavaScript gets nothing. Not even the status code.
 
-Without CORS, a malicious webpage could make requests to your bank's API using your existing session cookies — and read the response. CORS prevents that.`,
+This isn't a bug. This protection has quietly stopped countless attacks
+you'll never hear about.
+
+## The Attack CORS Prevents
+
+Imagine: you're logged into your bank. Your session cookie is in the browser.
+You visit a sketchy site. That site's JavaScript tries to fetch your-bank.com/balance —
+using your existing session cookie, on your behalf, without your knowledge.
+
+Without CORS, it would work. The bank sees your session, returns your balance.
+The attacker reads it.
+
+**CORS is why this doesn't happen.**
+The bank's server doesn't send the CORS header allowing evil-site.com to read the response.
+The browser receives the data — then blocks the JavaScript from touching it.
+
+The data travels. The attacker gets nothing.`,
     },
     { kind: 'visual', content: '', visualKey: 'CorsBlockedVsProxied' },
     {
       kind: 'text',
-      content: `The Image Proxy Problem
+      content: `## The Image Proxy Problem
 
-This app loads Twitter images (from pbs.twimg.com) into PDF exports. But X's image servers don't send CORS headers — they don't allow arbitrary websites to read the images via JavaScript fetch().
+This app embeds Twitter images in PDF exports.
+Images that live on pbs.twimg.com.
 
-So when the app tries to fetch an image to embed in the PDF:
-  fetch('https://pbs.twimg.com/media/...')  // ← CORS block!
+Problem: X's image servers don't send CORS headers.
+The browser fetches the image, receives it — then blocks your code from reading the bytes.
+You can't embed what you can't read.
 
-The browser blocks it. The solution: proxy the request through our own server, which does allow the app's origin.`,
+Solution: **don't fetch from the browser**.
+Fetch from the worker, where CORS doesn't apply.
+
+Browser → our worker → pbs.twimg.com → worker → browser.
+Our worker adds the CORS header. The browser is satisfied. The PDF gets its image.
+
+## The One Line That Unlocks It
+
+Access-Control-Allow-Origin: *
+
+One response header: "any site can read my response."
+"*" means all origins. You can also be specific:
+Access-Control-Allow-Origin: https://myapp.com
+
+**CORS is a browser-only mechanism.** Server-to-server requests skip it entirely.
+The browser is the enforcer. Remove the browser, and there's nothing to enforce.
+That's why the worker fetches freely from X's API while your browser cannot.`,
     },
     {
       kind: 'code',
@@ -58,17 +93,16 @@ The browser blocks it. The solution: proxy the request through our own server, w
     },
     {
       kind: 'text',
-      content: `The CORS Header
+      content: `## Why Whitelisting Matters
 
-The magic header is:
-  Access-Control-Allow-Origin: *
+The image proxy doesn't forward any URL you give it.
+It only allows pbs.twimg.com, abs.twimg.com, and ton.twimg.com.
 
-This tells the browser: "I, the server, allow any website to read my response."
+Without that check, anyone could call /api/image?url=https://internal-network/secret
+and use your worker as a tool to reach systems it shouldn't touch.
 
-"*" means any origin. You can also be specific:
-  Access-Control-Allow-Origin: https://myapp.com
-
-Server-to-server requests (like the worker calling pbs.twimg.com) are NOT subject to CORS — CORS is purely a browser security mechanism. That's why the worker can fetch the image even though a browser can't.`,
+That's called an **open proxy vulnerability**.
+One whitelist check. Closes the attack entirely.`,
     },
   ],
   quiz: [

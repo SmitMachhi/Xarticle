@@ -5,13 +5,15 @@ const lesson: Lesson = {
   sections: [
     {
       kind: 'text',
-      content: `Routing
+      content: `## One Worker. Hundreds of Different Requests.
 
-Routing is how a server maps incoming requests to the right code that handles them.
+Every request that hits this app goes to the same worker function.
+The homepage. The API. The image proxy. All of it.
 
-Think of it like a mail sorting office: every letter (request) has an address (URL + method), and the sorters (router) decide which department (handler function) it goes to.
+One function. How does it know what to do?
 
-Without routing, every request would go to the same function, and you'd have one massive if-else mess.`,
+That's routing — the logic that reads each incoming request
+and decides which code runs.`,
     },
     { kind: 'visual', content: '', visualKey: 'RouteMatcher' },
     {
@@ -45,19 +47,18 @@ Without routing, every request would go to the same function, and you'd have one
     { kind: 'visual', content: '', visualKey: 'UrlAnatomy' },
     {
       kind: 'text',
-      content: `URL Structure
-
-A URL has several parts that routing uses:
+      content: `## A URL Is an Address With Extra Information
 
 https://xarticle.pages.dev/api/extract?debug=true
 
-┌────────┐ ┌──────────────────────┐ ┌──────────────┐ ┌──────────────┐
-│protocol│ │       hostname        │ │     path     │ │  query string│
-│https:  │ │xarticle.pages.dev    │ │/api/extract  │ │?debug=true   │
-└────────┘ └──────────────────────┘ └──────────────┘ └──────────────┘
+Break it apart:
+**Protocol** (https) — the transport layer. Always HTTPS in production.
+**Hostname** (xarticle.pages.dev) — which server to talk to.
+**Path** (/api/extract) — which specific resource or action.
+**Query string** (?debug=true) — optional parameters alongside the request.
 
-The worker uses url.pathname (/api/extract) to match routes.
-The image handler uses url.searchParams.get('url') to read query params.`,
+The worker uses url.pathname to match routes.
+The image handler uses url.searchParams.get('url') to read the image URL to proxy.`,
     },
     {
       kind: 'code',
@@ -87,17 +88,18 @@ The image handler uses url.searchParams.get('url') to read query params.`,
     },
     {
       kind: 'text',
-      content: `Method + Path = Unique Route
+      content: `## A Route Needs Both Method AND Path
 
-A route is defined by BOTH the HTTP method AND the path. This is important:
+Here's a subtlety that trips people up.
 
-POST /api/extract → extract an article
-GET  /api/extract → this isn't a valid route (would get the catch-all)
+GET /api/extract and POST /api/extract are **different routes**.
+Same path. Different behavior. Different handler.
 
-In the worker, the check is:
-  url.pathname === '/api/extract' && request.method === 'POST'
+The worker checks both conditions:
+url.pathname === '/api/extract' && request.method === 'POST'
 
-Both conditions must be true. If someone sends a GET to /api/extract, the router falls through to serving the React app.`,
+One condition failing means a completely different outcome.
+A GET to /api/extract falls through to the React app — not an API error.`,
     },
   ],
   quiz: [

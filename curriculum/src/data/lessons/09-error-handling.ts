@@ -5,25 +5,34 @@ const lesson: Lesson = {
   sections: [
     {
       kind: 'text',
-      content: `Error Handling & Reliability
+      content: `## Everything Will Break
 
-In backend engineering, failure is not an edge case — it's a certainty. Networks are unreliable. APIs go down. Responses time out. Rate limits kick in. Data is malformed.
+Not might. **Will.**
 
-The question isn't "will things fail?" — it's "how does the system behave when they do?"
+APIs go down. Networks timeout. Servers crash. Rate limits hit.
+Data arrives malformed. Connections drop mid-transfer.
 
-Good error handling makes your app reliable and your users less frustrated. Bad error handling causes silent corruption, confusing states, and cascading failures.`,
+The question is never "will this fail?"
+The question is: **when this fails, what does your app do?**
+
+A system that fails gracefully looks reliable.
+A system that fails badly looks broken — even if the failure rate is identical.`,
     },
     {
       kind: 'text',
-      content: `Timeouts
+      content: `## Timeouts: Never Wait Forever
 
-Every network call needs a timeout — a maximum time you're willing to wait before giving up.
+Without a timeout, one slow dependency can freeze everything.
 
-Without timeouts, a single slow dependency (X's API taking 60 seconds to respond) would freeze your app forever, and every user requesting that article would pile up waiting.
+X's API takes 60 seconds to respond on a bad day.
+Without a timeout, every user requesting an article during that window just waits.
+The request never fails — it just never finishes.
 
-This app uses two timeout strategies:
-• 25-second frontend timeout — if the whole extraction takes too long, abort and show an error
-• 20-second worker timeout — separate limit on the X API call within the worker`,
+**With a timeout:** after 25 seconds, abort. Return a clear error. Free the connection.
+
+You occasionally miss a slow response that would have succeeded.
+But you guarantee no user waits more than 25 seconds.
+That guarantee is worth the occasional miss.`,
     },
     { kind: 'visual', content: '', visualKey: 'TimeoutBar' },
     {
@@ -60,15 +69,21 @@ try {
     },
     {
       kind: 'text',
-      content: `Fallbacks — Multiple Extraction Providers
+      content: `## The Fallback Chain
 
-The app has two ways to extract an article:
-1. Threadloom — calls X's GraphQL API to get structured article data (preferred)
-2. Companion — fetches raw HTML and parses the DOM (fallback)
+This app has two ways to get article data.
 
-If Threadloom fails (X changes their API, rate limits, etc.), the app automatically tries Companion. If Companion also fails, only then does the app surface an error.
+**First try: Threadloom** — calls X's private GraphQL API.
+Rich, structured data. Fast when it works.
 
-This is called a fallback chain. It makes the system resilient to single-point failures.`,
+**If that fails: Companion** — fetches the public page as HTML, parses the DOM.
+Slower. Less data. But it works when Threadloom doesn't.
+
+Only if both fail does the app show an error.
+
+This is called a fallback chain.
+Try the best option. Degrade gracefully if it fails.
+Only surface an error as a last resort.`,
     },
     { kind: 'visual', content: '', visualKey: 'FallbackChainDiagram' },
     {
@@ -103,17 +118,19 @@ try {
     },
     {
       kind: 'text',
-      content: `Fail Closed vs Fail Open
+      content: `## Fail Closed vs Fail Open
 
-A key decision in error handling: when something goes wrong, do you fail closed (reject the request) or fail open (proceed anyway with degraded data)?
+When something goes wrong, you have two choices.
 
-Fail closed: safer. "If I can't validate this, I won't process it."
-Example: the worker returns 400 if the URL is missing — it refuses to proceed.
+**Fail closed:** refuse to proceed. Return an error.
+→ Used at API boundaries. URL is missing? Return 400. Don't guess.
 
-Fail open: more permissive. "If metrics are unavailable, show what I have."
-Example: the app shows null for view counts rather than refusing to render.
+**Fail open:** continue with degraded data. Show what you have.
+→ Used in the UI. Metrics unavailable? Show the article, skip the numbers.
 
-This app uses both, appropriately: strict at API boundaries (fail closed), graceful in display (fail open).`,
+Neither is universally right.
+The right choice depends on what's worse:
+processing invalid data, or refusing to process valid data.`,
     },
   ],
   quiz: [

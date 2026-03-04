@@ -5,13 +5,35 @@ const lesson: Lesson = {
   sections: [
     {
       kind: 'text',
-      content: `Type Contracts
+      content: `## The Bug That TypeScript Kills Before It Exists
 
-TypeScript types are more than compiler hints — they're contracts between parts of your system.
+Here's how a bug is born in a dynamically typed language.
 
-When the worker returns a response, and the frontend parses it — both sides must agree on the exact shape of the data. In a dynamically typed language, that agreement is implicit and breakable. TypeScript makes it explicit and checked.
+The API changes — a field gets renamed. The frontend still references the old name.
+The app runs. Everything looks fine. But the value is always undefined. Silently wrong.
 
-The app's domain types live in src/domain/article/. They define what an article is, what blocks it contains, and what the API returns — in a single source of truth.`,
+You find this bug a week later. In production. When a user reports it.
+
+**TypeScript kills this bug the moment you rename the field.**
+Not a week later — instantly. The type system knows the expected shape,
+and it flags every file that relies on the old one.
+
+That's not slowdown. That's insurance.
+
+## Types Are Contracts, Not Just Hints
+
+When the worker returns a response and the frontend parses it,
+both sides must agree on the shape of the data.
+
+In a dynamically typed language, that agreement lives in comments, docs, and your memory.
+It can drift. It can break silently.
+
+**TypeScript makes the agreement explicit and compiler-enforced.**
+The type IS the documentation. The compiler IS the contract enforcer.
+
+Change the worker's response shape?
+TypeScript shows you every frontend file that relied on the old shape —
+before you deploy, before anyone sees it.`,
     },
     {
       kind: 'code',
@@ -37,11 +59,21 @@ export interface ExtractedArticle {
     },
     {
       kind: 'text',
-      content: `Discriminated Unions
+      content: `## Discriminated Unions: Know Exactly What You Have
 
-A discriminated union is a TypeScript pattern where a shared "kind" or "type" field tells you which variant you're dealing with — and the type system narrows accordingly.
+ArticleBlock is one of seven types: heading, paragraph, quote, code, list, media, embed.
 
-The app's ArticleBlock is a discriminated union of 7 types. You never have a generic "block" — you always know exactly what kind of block it is, and TypeScript knows what fields are available.`,
+Without discriminated unions, you'd work with a generic "block" and guess what fields exist.
+You'd write defensive checks. You'd write bugs.
+
+With a discriminated union, TypeScript **narrows the type** for you.
+
+if (block.type === 'heading') {
+  // TypeScript knows: block.level exists here
+  // TypeScript knows: block.items does NOT exist here
+}
+
+You're not guessing. You're not checking defensively. You know.`,
     },
     { kind: 'visual', content: '', visualKey: 'DiscriminatedUnionExplorer' },
     {
@@ -93,13 +125,19 @@ const renderers: Renderers = {
     },
     {
       kind: 'text',
-      content: `Types as Documentation
+      content: `## Types as Living Documentation
 
-Types serve double duty: they enforce correctness AND document intent.
+The types in this codebase document how the system works.
 
-Looking at ExtractionProvider tells you exactly what providers the system supports. Looking at MarginPreset tells you what margin options are valid. You don't need to read runtime code or API docs — the type IS the documentation, and it's always in sync.
+Read ArticleBlock and you know every format an article can contain.
+Read ExtractedArticle and you know every field the extraction pipeline produces.
+Read ExtractionProvider and you know exactly which providers exist.
 
-When types span the boundary between frontend and backend (via a shared types package or copy), they become API contracts that both teams can rely on.`,
+Unlike comments, **types can't drift out of sync** — they ARE the code.
+Unlike API docs, types are always current — if they're wrong, the build fails.
+
+When you change a type, TypeScript shows you every file that needs updating.
+That's not a limitation. **That's a superpower.**`,
     },
   ],
   quiz: [

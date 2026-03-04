@@ -5,19 +5,21 @@ const lesson: Lesson = {
   sections: [
     {
       kind: 'text',
-      content: `HTTP Headers
+      content: `## Every HTTP Message Carries an Envelope
 
-Every HTTP request and response carries metadata in headers — key-value pairs sent alongside the actual data. Headers are like the envelope of a letter: separate from the letter content, but essential for delivery.
+HTTP messages have two parts.
+The **body** — the actual content. JSON, HTML, image bytes.
+The **headers** — metadata about the body. Like an envelope around a letter.
 
-Common request headers:
-• Content-Type: application/json — "my body is JSON"
-• Authorization: Bearer <token> — "here's my credential"
-• Accept: application/json — "I want JSON back"
+The envelope tells the post office how to handle the letter.
+Headers tell the server and browser how to handle the body.
 
-Common response headers:
-• Content-Type: application/json — "my body is JSON"
-• Cache-Control: max-age=3600 — "cache this for 1 hour"
-• Access-Control-Allow-Origin: * — "any origin can read this" (CORS)`,
+Content-Type: application/json → "this body is JSON, parse it as such"
+Authorization: Bearer abc123 → "here's my credential"
+Cache-Control: max-age=3600 → "you can cache this for an hour"
+
+Before your code reads a single byte of the response body,
+headers have already told both sides what to expect.`,
     },
     {
       kind: 'code',
@@ -35,21 +37,21 @@ const response = await fetch('/api/extract', {
     },
     {
       kind: 'text',
-      content: `Authentication with Tokens
+      content: `## How Tokens Replace Passwords
 
-Authentication answers the question: "Who are you?"
+Imagine if every time you walked into a concert venue,
+you had to prove your identity from scratch at every single door.
+Show your ID. Verify your ticket. Wait in line. Every time.
 
-Token-based auth works like a concert wristband:
-1. You prove your identity once (buy the ticket)
-2. You get a token (wristband)
-3. Every subsequent request just shows the token
-4. The server verifies the token — no need to re-authenticate
+That's passwords on every request. Nobody does this.
 
-Two kinds of tokens this app deals with:
+Instead: prove yourself once. Get a **wristband**.
+The wristband says "this person belongs here."
+Every door you walk through — just show the wristband.
 
-Bearer Token — a long-lived app-level credential from X. Like a master key. Lives in the worker as a secret.
-
-Guest Token — a short-lived (2-hour) token that X issues to identify anonymous sessions. The worker fetches one, caches it, and attaches it to every X API call.`,
+HTTP uses the same idea. Authenticate once, receive a token,
+then pass that token in the Authorization header on every subsequent request.
+The server reads the token and knows who you are instantly.`,
     },
     { kind: 'visual', content: '', visualKey: 'TokenTimeline' },
     {
@@ -71,15 +73,27 @@ export function buildXHeaders(guestToken: string, bearerToken: string): HeadersI
     },
     {
       kind: 'text',
-      content: `Environment Variables (Secrets)
+      content: `## Two Tokens, Two Jobs
 
-The bearer token can't be hardcoded in the source file — that would expose it in the git repository forever. Instead it's stored as a Cloudflare secret (environment variable):
+This app deals with two kinds of tokens from X's API.
 
-  wrangler secret put BEARER_TOKEN
+**Bearer Token** — your app's master credential. Long-lived. Never expires unless revoked.
+Lives in a Cloudflare secret. Never touches your browser.
 
-At runtime, the worker accesses it via env.BEARER_TOKEN. The value never appears in the code or the git history.
+**Guest Token** — an anonymous session token. X issues one per session.
+Expires after ~2 hours. The worker fetches one, caches it, and refreshes when needed.
 
-This pattern applies everywhere: database passwords, API keys, OAuth secrets — never in code, always in environment variables managed by your deployment platform.`,
+Every API call uses both: the bearer token identifies your app,
+the guest token identifies the session.
+
+## Secrets Never Belong in Code
+
+If it's in the code, it's in git.
+If it's in git, it's in git history — **forever**, even after you delete the file.
+Anyone with repo access has your token.
+
+Store secrets as environment variables managed by your deployment platform.
+At runtime: env.BEARER_TOKEN. The value never appears anywhere readable.`,
     },
   ],
   quiz: [

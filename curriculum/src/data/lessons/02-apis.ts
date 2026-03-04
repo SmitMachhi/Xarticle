@@ -5,36 +5,60 @@ const lesson: Lesson = {
   sections: [
     {
       kind: 'text',
-      content: `APIs & JSON
+      content: `## A Contract, Not a Mystery
 
-API stands for Application Programming Interface. Strip the jargon: an API is just a contract. It says "send me a request in THIS shape, and I'll send you a response in THAT shape."
+Every API you'll ever use is the same thing underneath.
+A contract: "Send me data in this shape. I'll send you data in that shape."
 
-A restaurant menu is a decent analogy. The menu (API docs) tells you what you can order (endpoints), what you must specify (parameters), and what you'll get back (response).
+The complexity people associate with APIs isn't in the concept.
+It's in the specifics — what shape, what format, what endpoint.
+Learn those specifics, and there's nothing left to understand.
 
-REST (Representational State Transfer) is the most common style of API. It uses HTTP methods and URLs to represent actions on "resources" (things like articles, users, images).`,
+## The Restaurant Menu — But Actually Useful
+
+Imagine you walk into a restaurant.
+You don't go into the kitchen and start cooking.
+You read the menu, pick something, and the kitchen handles the rest.
+
+APIs work exactly like this.
+The menu is the API documentation.
+The dishes are the endpoints.
+You order in their format. They serve in theirs.
+
+This app orders from X's API: "Give me tweet 1234567."
+X serves back: a blob of JSON with the article content inside.`,
     },
     {
       kind: 'text',
-      content: `JSON — The Universal Language
+      content: `## Why JSON Won
 
-JSON (JavaScript Object Notation) became the default data format for APIs because:
-1. It's human-readable — you can open it in a text editor and understand it
-2. Every language can parse it — Python, Go, Rust, TypeScript, all support it natively
-3. It maps naturally to how data is structured in most languages
+JSON isn't technically the best format.
+It's just the one everyone agreed on — and that agreement is worth more than technical superiority.
 
-Explore the actual shape of the response this app gets from the worker:`,
+Three reasons it stuck:
+1. You can read it. Open DevTools, look at the response, understand it.
+2. Every language parses it — Python, Go, Rust, TypeScript, all native.
+3. It maps naturally to objects and arrays, which is how programmers think.
+
+The response this app gets from the worker is JSON.
+Explore it below — you'll see the exact shape the data arrives in.`,
     },
     { kind: 'visual', content: '', visualKey: 'JsonExplorer' },
     {
       kind: 'text',
-      content: `The "kind" Field — Discriminated Responses
+      content: `## The "kind" Field — One Endpoint, Multiple Shapes
 
-Notice the response has a "kind" field. This is a common API pattern: the shape of the response depends on what kind it is.
+Look at the response. It has a "kind" field.
+This is one of the most useful patterns in API design.
 
-If kind is "status" → the tweet had an embedded article, parsed from X's API.
-If kind is "article-html" → the server fetched raw HTML, returned for the client to parse.
+The same endpoint can return fundamentally different data structures.
+The "kind" field is the key that tells you which one arrived.
 
-The frontend uses this discriminator to decide which parser to call.`,
+kind: "status" → full article data from X's GraphQL API
+kind: "article-html" → raw HTML for the client to parse itself
+
+Without this discriminator, you'd have to guess what shape you received.
+With it, you branch cleanly: if kind is X, parse like this.`,
     },
     {
       kind: 'code',

@@ -50,20 +50,28 @@
 .lesson-text {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
   font-size: 1.05rem;
-  line-height: 1.75;
+  line-height: 1.85;
   color: var(--color-text);
+  max-width: 65ch;
 }
 
 .lesson-text p {
   color: var(--color-text);
 }
 
-.lesson-text p:first-child {
-  font-size: 1.15rem;
-  font-weight: 600;
+.lesson-subhead {
+  font-size: 1rem;
+  font-weight: 700;
   color: var(--color-text);
+  letter-spacing: -0.01em;
+  margin-top: 8px;
+  margin-bottom: -4px;
+}
+
+.lesson-subhead:first-child {
+  margin-top: 0;
 }
 
 /* Lesson Nav */

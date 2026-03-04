@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import CodeBlock from '../../components/CodeBlock.tsx'
 import Diagram from '../../components/Diagram.tsx'
 import { getVisual } from '../../visuals/index.ts'
@@ -5,6 +6,14 @@ import type { LessonSection as LessonSectionType } from '../../types/curriculum.
 
 interface Props {
   section: LessonSectionType
+}
+
+function renderInline(text: string): ReactNode {
+  return text.split(/(\*\*[^*]+\*\*)/).map((part, i) =>
+    part.startsWith('**') && part.endsWith('**')
+      ? <strong key={i}>{part.slice(2, -2)}</strong>
+      : part
+  )
 }
 
 export default function LessonSection({ section }: Props) {
@@ -29,9 +38,12 @@ export default function LessonSection({ section }: Props) {
 
   return (
     <div className="lesson-text">
-      {section.content.split('\n\n').map((para, i) => (
-        <p key={i}>{para}</p>
-      ))}
+      {section.content.split('\n\n').map((block, i) => {
+        if (block.startsWith('## ')) {
+          return <h3 key={i} className="lesson-subhead">{block.slice(3)}</h3>
+        }
+        return <p key={i}>{renderInline(block)}</p>
+      })}
     </div>
   )
 }

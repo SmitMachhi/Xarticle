@@ -5,24 +5,33 @@ const lesson: Lesson = {
   sections: [
     {
       kind: 'text',
-      content: `Serverless & Edge Computing
+      content: `## "Serverless" Is a Lie — But a Useful One
 
-"Serverless" is a marketing term that sounds paradoxical — obviously there's a server somewhere. What it really means: you write a function, a cloud provider runs it when needed, and you don't manage any machines.
+There's obviously a server somewhere.
+What "serverless" actually means: it's not your server to manage.
 
-Traditional model: you rent a virtual machine, install Node.js, keep it running 24/7, pay for idle time, patch the OS, manage deployments.
+Traditional model: rent a virtual machine. Install Node.js. Keep it running 24/7.
+Pay whether it handles 1 request or 1 million. Patch the OS. Manage the runtime.
 
-Serverless model: you write a function. The provider handles everything else. You only pay when code actually runs.`,
+Serverless model: write a function. Upload it. Done.
+The provider wakes it up when a request arrives, runs it, bills you for milliseconds.
+If no requests come? You pay nothing.`,
     },
     { kind: 'visual', content: '', visualKey: 'TraditionalVsServerless' },
     {
       kind: 'text',
-      content: `Cloudflare Workers — Edge Computing
+      content: `## Edge Computing: Closer Than You Think
 
-Cloudflare Workers run at the "edge" — meaning they execute in the Cloudflare datacenter closest to the user. London user? London datacenter. Tokyo user? Tokyo datacenter.
+Cloudflare Workers run at the "edge."
+Here's what that word actually means: when you make a request from London,
+the code runs in London. From Tokyo — Tokyo. From São Paulo — São Paulo.
 
-This matters because network latency (the time for a packet to travel) is proportional to physical distance. By running code close to the user, the worker reduces round-trip time dramatically.
+Cloudflare has 300+ datacenters worldwide.
+Your request goes to the nearest one, not a central server in Virginia.
 
-Workers use a V8 isolate model (same JavaScript engine as Chrome) rather than traditional Node.js. Each request gets its own isolated execution context. No shared state between requests.`,
+Why does this matter? **Physics.** Data travels at roughly the speed of light.
+The shorter the distance, the less time it takes.
+Edge computing is arbitrage on physics.`,
     },
     {
       kind: 'code',
@@ -62,16 +71,17 @@ export default {
     },
     {
       kind: 'text',
-      content: `Limitations of Serverless
+      content: `## What Workers Can't Do
 
-Workers are powerful but have constraints you must design around:
+Serverless has real constraints. They're not bugs — they're the tradeoffs you accept.
 
-• No persistent file system — can't write files to disk
-• Short execution time — Cloudflare Workers have a 30-second CPU limit
-• Cold starts are near-zero for Workers (unlike AWS Lambda which can take 100ms+)
-• No shared memory between requests — you can't store state in a global variable and expect it to persist
+**No file system.** You can't write a file to disk between requests. There's no disk.
+**No persistent memory.** A global variable set in one request won't exist in the next.
+**CPU time limit.** Workers get 30 seconds max.
 
-These constraints pushed this app to use Durable Objects for caching and to keep the worker stateless per-request.`,
+These constraints are why this app uses **Durable Objects** for caching —
+a separate Cloudflare primitive built for stateful, persistent storage.
+The worker itself stays stateless. The Durable Object holds the cache.`,
     },
   ],
   quiz: [

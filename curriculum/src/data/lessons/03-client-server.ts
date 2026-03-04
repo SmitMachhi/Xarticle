@@ -5,26 +5,43 @@ const lesson: Lesson = {
   sections: [
     {
       kind: 'text',
-      content: `Client-Server Architecture
+      content: `## Two Computers Are Running This App Right Now
 
-When you open this app, two computers are involved: yours and Cloudflare's.
+When you loaded this page, two machines woke up.
+Yours — running React in your browser.
+Cloudflare's — sitting in a datacenter close to you.
 
-Yours is the CLIENT — it runs the React UI in your browser. It shows you buttons, accepts input, renders the article preview.
+Neither can do the other's job.
+That's not a limitation. It's a design decision.
 
-Cloudflare's machine is the SERVER — it does the heavy lifting that your browser can't: talking to X's private API, bypassing CORS, caching responses.
+## What the Browser Cannot Do Safely
 
-Neither side could do the job alone. The split exists because each environment has different capabilities and trust levels.`,
+Your browser runs code you can see.
+Open DevTools → Sources, and every line of JavaScript is readable.
+This means: **any secret in your browser is a public secret**.
+
+API keys, auth tokens, bearer credentials — if they live in browser code,
+anyone can open DevTools and steal them.
+The browser is not a safe place for secrets.
+
+The server exists precisely for this: to hold secrets and make privileged requests
+that browsers cannot safely make themselves.`,
     },
     { kind: 'visual', content: '', visualKey: 'ClientServerSplit' },
     {
       kind: 'text',
-      content: `Why Can't The Browser Just Call X's API Directly?
+      content: `## Why Not Call X's API From the Browser?
 
-Two reasons:
+Two hard stops.
 
-1. CORS — X's API does not allow browser JavaScript to call it directly. The browser would block it. The worker calls it server-to-server where CORS doesn't apply. (We'll cover CORS properly in Module 7.)
+First: **CORS**. X's API doesn't allow browser JavaScript to call it directly.
+The browser enforces this — the request gets blocked before your code reads the response.
+(Module 7 covers CORS in full depth.)
 
-2. Secrets — To talk to X's API, you need auth tokens (like a guest token + bearer token). If those tokens lived in the browser's JavaScript bundle, anyone could open DevTools and steal them. On the server, secrets stay hidden.`,
+Second: **secrets**. Calling X's API requires auth tokens.
+Those tokens can't live in the browser — they'd be readable to anyone.
+Something else needs to hold them and make the call.
+That something is the Cloudflare Worker.`,
     },
     {
       kind: 'code',
@@ -45,14 +62,19 @@ const response = await fetch('https://api.x.com/graphql/...', { headers })`,
     },
     {
       kind: 'text',
-      content: `The Frontend is "Thick" on Purpose
+      content: `## The Frontend Does More Than You'd Expect
 
-Look at how the app distributes work:
+Here's something interesting about how work gets split in this app.
 
-SERVER does: talk to X's API, cache the raw data, return structured JSON.
-CLIENT does: parse that JSON into blocks, render them, generate the export files.
+The server handles: calling X's API, caching the result, returning structured JSON.
+Your browser handles: parsing that JSON, building the article, generating the PDF.
 
-PDF generation happens 100% in your browser via pdfmake. This is called a "thick client" architecture — it shifts compute to the user's machine to save server costs.`,
+**PDF generation runs 100% in your browser.** Not on the server. Not on a separate service.
+In your browser, using a library called pdfmake.
+
+This is called a "thick client." The idea is simple:
+if the user's machine is doing the work, the server isn't paying for it.
+Shift compute to the client wherever it's safe to do so.`,
     },
   ],
   quiz: [

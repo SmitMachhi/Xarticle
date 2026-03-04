@@ -5,24 +5,48 @@ const lesson: Lesson = {
   sections: [
     {
       kind: 'text',
-      content: `Caching
+      content: `## The Second Request Is Free
 
-Caching is storing the result of an expensive operation so you can serve it instantly next time, instead of doing the work again.
+First time someone requests a particular article: **1,400 milliseconds**.
+Wait. Fetch from X. Parse. Return.
 
-Why does it matter? Fetching an article from X's API takes 1-3 seconds. If 100 people request the same article in the same minute, do we really need to call X's API 100 times? No. Fetch once, cache the result, serve the next 99 instantly.
+Second time someone requests the same article: **38 milliseconds**.
+Same article. Same data. 37× faster.
 
-Good caching reduces: latency, API rate limit usage, server costs, downstream API load.`,
+The difference is a cache.
+
+## What Caching Actually Is
+
+A cache is the simplest optimization in engineering.
+Do expensive work once. Store the result. Serve the stored result next time.
+No re-fetching. No re-processing. Just reading from memory.
+
+In this app: the worker fetches an article from X's API — slow, rate-limited, expensive.
+It stores the result in a Cloudflare Durable Object.
+The next request for the same URL skips X's API entirely.
+
+100 people request the same article in a minute?
+**One real fetch. 99 cache hits.**
+X's API sees 1 request, not 100.`,
     },
     { kind: 'visual', content: '', visualKey: 'CacheSimulator' },
     {
       kind: 'text',
-      content: `Cloudflare Durable Objects
+      content: `## Why Workers Can't Cache on Their Own
 
-Workers are stateless — they can't store anything between requests. So where does the cache live?
+Workers are stateless.
+Every request runs in a fresh context. No shared memory. No global variables that persist.
+An object you create in one request simply doesn't exist in the next.
 
-Cloudflare Durable Objects are special stateful objects that DO persist state. Each Durable Object has a consistent identity and a built-in key-value store that persists across requests.
+So where does the cached data live?
 
-The app uses one Durable Object as a cache store: it holds recently-fetched article data, keyed by URL.`,
+**Cloudflare Durable Objects** — a separate primitive for stateful, persistent storage at the edge.
+Each Durable Object is a tiny database with consistent identity across requests.
+This app uses one as the article cache.
+
+The worker asks: "Do you have data for this URL?"
+Cache hit → return it instantly.
+Cache miss → fetch from X, store it, then return it.`,
     },
     {
       kind: 'code',
@@ -60,16 +84,22 @@ export class CacheStore {
     },
     {
       kind: 'text',
-      content: `TTL — Time To Live
+      content: `## Every Cache Entry Has an Expiry
 
-Cached data goes stale. An article fetched 3 days ago might have different engagement metrics today. So caches use TTL (Time To Live) — a maximum age after which the cached entry is considered invalid.
+Cached data goes stale.
+An article cached 3 days ago has the same text — but different like counts, different views.
+The metadata has drifted.
 
-This app's TTL strategy:
-• Extraction responses: 5 minutes — short enough to stay fresh, long enough to handle burst traffic
-• Guest tokens: 2 hours — matching X's own token expiry
-• Query IDs: 6 hours — X rarely changes these
+**TTL (Time To Live)** solves this. Every cache entry has a maximum age.
+After that age, it's treated as if it doesn't exist — the next request fetches fresh.
 
-When TTL expires, the next request is a cache miss → fetches fresh data → re-caches.`,
+This app's TTL choices:
+Article data: 5 minutes — fresh enough for metrics, long enough to absorb traffic bursts
+Guest tokens: 2 hours — matches X's actual token expiry
+Query IDs: 6 hours — X rarely changes these, longer TTL is safe
+
+TTL is always a tradeoff: too short and you lose the performance benefit,
+too long and you serve stale data.`,
     },
     {
       kind: 'code',

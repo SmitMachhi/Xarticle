@@ -5,27 +5,39 @@ const lesson: Lesson = {
   sections: [
     {
       kind: 'text',
-      content: `The Internet & HTTP
+      content: `## The Web Is Just Messages
 
-Every time you load a website, your computer sends a message to another computer and waits for a reply. That's literally the internet — a global network of machines passing messages back and forth.
+Right now, your browser sent a message.
+Somewhere in a data center, a server read it and replied.
 
-The language those messages are written in is called HTTP (HyperText Transfer Protocol). It's a simple convention everyone agreed to follow, like how postal mail has a "To:" and a "From:" address.`,
+That exchange — request and reply — is literally everything the internet does.
+
+Not fiber optics. Not data centers. Just messages going back and forth.
+
+## The Language Those Messages Speak
+
+Messages only work if both sides agree on format.
+HTTP is that agreement — made in 1991, still running every website you've ever visited.
+
+Think of it like postal mail. Every letter has a "To:" and a "From:" address.
+HTTP adds one more thing: a **verb**. A verb tells the server what you want done.`,
     },
     { kind: 'visual', content: '', visualKey: 'RequestResponseFlow' },
     {
       kind: 'text',
-      content: `HTTP Methods
+      content: `## The Four Verbs That Run the Web
 
-Every HTTP request has a METHOD — a verb that says what you want to do:
+GET — "Give me this." You're asking for data.
+POST — "Do something with what I'm sending." You're triggering an action.
+PUT — "Replace this with what I'm sending." You're overwriting.
+DELETE — "Remove this." You're destroying.
 
-GET    — "Give me this resource." (reading data)
-POST   — "Here's some data, do something with it." (creating / triggering)
-PUT    — "Replace this resource entirely." (updating)
-DELETE — "Remove this resource." (deleting)
+This app uses two.
+GET /api/image — fetch a Twitter image to embed in the PDF.
+POST /api/extract — send a tweet URL, get a parsed article back.
 
-In this app, we only use two:
-• GET for fetching images via /api/image
-• POST for triggering article extraction via /api/extract`,
+Notice POST for /api/extract. You're not fetching something that already exists.
+You're sending raw material for the server to process. That's why POST.`,
     },
     {
       kind: 'code',
@@ -43,9 +55,17 @@ const response = await fetch('/api/extract', {
     },
     {
       kind: 'text',
-      content: `Status Codes
+      content: `## What the Server Says Back
 
-The server's reply always includes a 3-digit status code that tells you what happened. Click each code below to see what it means and where it shows up in this app.`,
+Every response starts with a 3-digit number.
+That number tells you what happened **before you read a single byte**.
+
+200 — "Here's what you asked for."
+404 — "I looked. It's not here."
+500 — "Something broke on my end."
+
+You've seen 404 before. You've felt 500 too — that's the blank error screen.
+Now you know what they mean in code.`,
     },
     { kind: 'visual', content: '', visualKey: 'StatusCodeGrid' },
     {
