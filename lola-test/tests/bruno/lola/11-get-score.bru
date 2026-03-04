@@ -1,0 +1,20 @@
+meta {
+  name: 11 Get Score
+  type: http
+  seq: 15
+}
+
+get {
+  url: {{BASE_URL}}/score
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{JWT_1}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.home_score: isDefined
+  res.body.label: isDefined
+}

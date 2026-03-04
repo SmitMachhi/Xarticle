@@ -1,0 +1,31 @@
+meta {
+  name: 01c Session Upsert User 1
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{BASE_URL}}/auth/session
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{JWT_1}}
+}
+
+body:json {
+  {
+    "display_name": "Test User One",
+    "timezone": "America/New_York"
+  }
+}
+
+script:post-response {
+  bru.setVar("USER_ID_1", res.body.user.id);
+}
+
+assert {
+  res.status: eq 200
+  res.body.user.id: isDefined
+}

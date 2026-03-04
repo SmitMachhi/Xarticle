@@ -1,0 +1,26 @@
+meta {
+  name: 04 User 2 Joins Household
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{BASE_URL}}/households/join
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{JWT_2}}
+}
+
+body:json {
+  {
+    "invite_code": "{{INVITE_CODE}}"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.household.id: eq {{HOUSEHOLD_ID}}
+}

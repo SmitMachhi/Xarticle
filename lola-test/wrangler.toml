@@ -1,0 +1,12 @@
+name = "lola-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+APP_ENV = "production"
+APP_BUNDLE_ID = "com.lola.app"
+OPENROUTER_MODEL = "moonshot/kimi-k2.5"
+OPENROUTER_CHAT_MODEL = "minimax/minimax-m2.5"
+OPENROUTER_JSON_MODEL = "minimax/minimax-m2.5"
+OPENROUTER_EDGE_JSON_MODEL = "minimax/minimax-m2.5"
+OPENROUTER_REASONING_EFFORT_JSON = "low"

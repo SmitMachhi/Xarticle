@@ -1,0 +1,32 @@
+meta {
+  name: 03b Sign In User 2 (Password)
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{SUPABASE_URL}}/auth/v1/token?grant_type=password
+  body: json
+  auth: none
+}
+
+headers {
+  apikey: {{SUPABASE_ANON_KEY}}
+}
+
+body:json {
+  {
+    "email": "{{TEST_EMAIL_2}}",
+    "password": "{{TEST_PASSWORD}}"
+  }
+}
+
+script:post-response {
+  bru.setVar("JWT_2", res.body.access_token);
+  bru.setVar("REFRESH_TOKEN_2", res.body.refresh_token);
+}
+
+assert {
+  res.status: eq 200
+  res.body.access_token: isDefined
+}

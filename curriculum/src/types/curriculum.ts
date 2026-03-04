@@ -1,10 +1,11 @@
-export type SectionKind = 'text' | 'code' | 'diagram'
+export type SectionKind = 'text' | 'code' | 'diagram' | 'visual'
 
 export interface LessonSection {
   kind: SectionKind
   content: string
   filename?: string
   language?: string
+  visualKey?: string
 }
 
 export interface QuizQuestion {

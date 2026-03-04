@@ -1,0 +1,29 @@
+meta {
+  name: 13 Lola - Set Reminder (SSE)
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{BASE_URL}}/lola/message
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{JWT_1}}
+}
+
+headers {
+  Accept: text/event-stream
+}
+
+body:json {
+  {
+    "content": "remind me to vacuum on Sunday at 9am"
+  }
+}
+
+assert {
+  res.status: eq 200
+}

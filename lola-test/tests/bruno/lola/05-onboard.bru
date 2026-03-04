@@ -1,0 +1,39 @@
+meta {
+  name: 05 AI Onboard
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{BASE_URL}}/onboard
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{JWT_1}}
+}
+
+body:json {
+  {
+    "home_type": "apartment",
+    "num_people": 2,
+    "has_kids": false,
+    "struggle_area": "cleaning",
+    "household_id": "{{HOUSEHOLD_ID}}"
+  }
+}
+
+script:post-response {
+  if (res.body && res.body.job_id) {
+    bru.setVar("ONBOARD_JOB_ID", res.body.job_id);
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.mode: eq suggestions_only
+  res.body.status: eq queued
+  res.body.manual_first: eq true
+  res.body.job_id: isDefined
+}

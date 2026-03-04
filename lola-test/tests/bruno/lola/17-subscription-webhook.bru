@@ -1,0 +1,35 @@
+meta {
+  name: 17 Subscription Webhook - INITIAL_PURCHASE
+  type: http
+  seq: 22
+}
+
+post {
+  url: {{BASE_URL}}/subscription/webhook
+  body: json
+  auth: none
+}
+
+docs {
+  Authorization header = Bearer <REVENUECAT_WEBHOOK_SECRET>.
+  Backend checks: Authorization === "Bearer " + REVENUECAT_WEBHOOK_SECRET.
+}
+
+headers {
+  Authorization: Bearer {{REVENUECAT_WEBHOOK_SECRET}}
+}
+
+body:json {
+  {
+    "event": {
+      "type": "INITIAL_PURCHASE",
+      "app_user_id": "{{USER_ID_1}}",
+      "product_id": "lola_family_s_monthly",
+      "expiration_at_ms": 9999999999000
+    }
+  }
+}
+
+assert {
+  res.status: eq 200
+}

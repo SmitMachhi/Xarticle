@@ -1,0 +1,47 @@
+meta {
+  name: 07 Bulk Create Tasks
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{BASE_URL}}/tasks/bulk
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{JWT_1}}
+}
+
+body:json {
+  {
+    "tasks": [
+      {
+        "list_id": "{{LIST_ID}}",
+        "title": "Clean stovetop",
+        "category": "kitchen",
+        "recurrence_type": "weekly",
+        "effort_points": 2
+      },
+      {
+        "list_id": "{{LIST_ID}}",
+        "title": "Do dishes",
+        "category": "kitchen",
+        "recurrence_type": "daily",
+        "effort_points": 1
+      }
+    ]
+  }
+}
+
+script:post-response {
+  const tasks = res.body.tasks;
+  if (tasks && tasks.length > 0) {
+    bru.setVar("TASK_ID", tasks[0].id);
+  }
+}
+
+assert {
+  res.status: eq 200
+}

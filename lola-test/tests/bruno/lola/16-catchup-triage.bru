@@ -1,0 +1,26 @@
+meta {
+  name: 16 Lola Action - Catchup Triage
+  type: http
+  seq: 21
+}
+
+post {
+  url: {{BASE_URL}}/lola/action
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{JWT_1}}
+}
+
+body:json {
+  {
+    "action": "catchup_triage",
+    "message_id": "{{LOLA_MESSAGE_ID}}"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
