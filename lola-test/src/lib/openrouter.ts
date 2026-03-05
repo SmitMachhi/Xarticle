@@ -1,47 +1,28 @@
 import { HTTP_BAD_REQUEST, HTTP_INTERNAL_ERROR } from '../constants';
 import type { EnvBindings, OpenRouterMessage, ToolCall } from '../types';
 import { toAppError } from './http';
-import { isJsonUseCase, type OpenRouterUseCase,postChatCompletion } from './openrouter-request';
+import { postChatCompletion } from './openrouter-request';
 
 interface ChatRequest {
   messages: OpenRouterMessage[];
-  responseFormat?: { type: 'json_object' };
   tools?: unknown[];
-  useCase?: OpenRouterUseCase;
 }
 
 interface ChatResponse {
   content: string;
   completionTokens: number | null;
   promptTokens: number | null;
-  reasoningTokens: number | null;
   toolCalls: ToolCall[];
 }
 
 type DeltaHandler = (_chunk: string) => Promise<void>;
 
 export const runOpenRouterChat = async (env: EnvBindings, request: ChatRequest): Promise<ChatResponse> => {
-  const useCase = request.useCase ?? 'chat';
-  const withReasoningControls = isJsonUseCase(useCase);
-  let response = await postChatCompletion(env, {
+  const response = await postChatCompletion(env, {
     messages: request.messages,
-    responseFormat: request.responseFormat,
     stream: false,
     tools: request.tools,
-    useCase,
-    withReasoningControls,
   });
-
-  if (!response.ok && withReasoningControls) {
-    response = await postChatCompletion(env, {
-      messages: request.messages,
-      responseFormat: request.responseFormat,
-      stream: false,
-      tools: request.tools,
-      useCase,
-      withReasoningControls: false,
-    });
-  }
 
   if (!response.ok) {
     throw toAppError('OPENROUTER_REJECTED', 'openrouter request rejected', HTTP_BAD_REQUEST);
@@ -54,20 +35,15 @@ export const runOpenRouterChat = async (env: EnvBindings, request: ChatRequest):
   }
 
   return {
-    content: message.content ?? '',
     completionTokens: parseCompletionTokens(payload.usage),
+    content: message.content ?? '',
     promptTokens: parsePromptTokens(payload.usage),
-    reasoningTokens: parseReasoningTokens(payload.usage),
     toolCalls: mapToolCalls(message.tool_calls),
   };
 };
 
-export const runOpenRouterJson = async <T>(
-  env: EnvBindings,
-  messages: OpenRouterMessage[],
-  useCase: Extract<OpenRouterUseCase, 'json_classification' | 'json_suggestion'> = 'json_suggestion',
-): Promise<T> => {
-  const response = await runOpenRouterChat(env, { messages, useCase });
+export const runOpenRouterJson = async <T>(env: EnvBindings, messages: OpenRouterMessage[]): Promise<T> => {
+  const response = await runOpenRouterChat(env, { messages });
 
   const raw = response.content.trim();
   const json = raw.startsWith('```') ? raw.replace(/^```(?:json)?\r?\n/, '').replace(/\r?\n```$/, '') : raw;
@@ -87,8 +63,6 @@ export const runOpenRouterStreamText = async (
   const response = await postChatCompletion(env, {
     messages,
     stream: true,
-    useCase: 'realizer',
-    withReasoningControls: false,
   });
   if (!response.ok || response.body === null) {
     throw toAppError('OPENROUTER_REJECTED', 'openrouter streaming failed', HTTP_BAD_REQUEST);
@@ -119,33 +93,15 @@ const parseCompletionTokens = (usage?: { completion_tokens?: number }): number |
   return usage.completion_tokens;
 };
 
-const parseReasoningTokens = (usage?: { completion_tokens_details?: { reasoning_tokens?: number } }): number | null => {
-  if (
-    usage?.completion_tokens_details?.reasoning_tokens === undefined ||
-    !Number.isFinite(usage.completion_tokens_details.reasoning_tokens)
-  ) {
-    return null;
-  }
-  return usage.completion_tokens_details.reasoning_tokens;
-};
-
 const parseChatPayload = async (
   response: Response,
 ): Promise<{
   choices?: Array<{ message?: { content?: string | null; tool_calls?: Array<{ function?: { arguments?: string; name?: string }; id?: string }> } }>;
-  usage?: {
-    completion_tokens?: number;
-    completion_tokens_details?: { reasoning_tokens?: number };
-    prompt_tokens?: number;
-  };
+  usage?: { completion_tokens?: number; prompt_tokens?: number };
 }> => {
   return (await response.json()) as {
     choices?: Array<{ message?: { content?: string | null; tool_calls?: Array<{ function?: { arguments?: string; name?: string }; id?: string }> } }>;
-    usage?: {
-      completion_tokens?: number;
-      completion_tokens_details?: { reasoning_tokens?: number };
-      prompt_tokens?: number;
-    };
+    usage?: { completion_tokens?: number; prompt_tokens?: number };
   };
 };
 

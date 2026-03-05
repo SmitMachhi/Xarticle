@@ -39,7 +39,7 @@ const realizeStreaming = async (env: EnvBindings, input: RealizeInput, fallback:
 
 const realizeOnce = async (env: EnvBindings, input: RealizeInput, fallback: string): Promise<string> => {
   const messages = buildRealizerMessages(input.speechAct, input.policy, input.draft, input.recentAssistantTexts);
-  return await runOpenRouterChat(env, { messages, useCase: 'realizer' })
+  return await runOpenRouterChat(env, { messages })
     .then((response) => applyPolicy(response.content, input.policy))
     .catch(() => fallback);
 };
@@ -64,7 +64,7 @@ const rewriteIfTooSimilar = async (env: EnvBindings, input: RealizeInput, text: 
     },
   ];
 
-  return await runOpenRouterChat(env, { messages, useCase: 'realizer' })
+  return await runOpenRouterChat(env, { messages })
     .then((response) => applyPolicy(response.content, input.policy))
     .catch(() => text);
 };

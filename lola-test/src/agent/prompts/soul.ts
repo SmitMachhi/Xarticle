@@ -8,6 +8,9 @@ export interface SoulInput {
   userName: string;
 }
 
+const ACTIONS_EXAMPLE =
+  '<actions>[{"action":"catchup_triage","label":"Sort things out","requires_role":"admin"}]</actions>';
+
 export const buildSoulPrompt = (input: SoulInput): string => {
   const adminLine = input.adminName === null ? 'no admin found' : input.adminName;
   const roleRules =
@@ -24,5 +27,10 @@ export const buildSoulPrompt = (input: SoulInput): string => {
     '- Never use the word overdue or behind.',
     '- Never guilt users.',
     '- Appreciation over punishment.',
+    '- Keep responses under 450 characters.',
+    'Tool use: call tools to read or write household data. Always call get_lists before creating tasks.',
+    'Actions: when DECISION.md shows catchup_pending=true or streak at risk, append exactly one <actions> block at the END of your reply.',
+    `Example: ${ACTIONS_EXAMPLE}`,
+    'Available actions: catchup_triage (admin), catchup_clear (admin), streak_shield (member), streak_accept (member).',
   ].join('\n');
 };

@@ -6,6 +6,7 @@ import { HTTP_BAD_REQUEST } from '../constants';
 import { parseBody, toAppError } from '../lib/http';
 import { processOnboardSuggestionJob } from '../lib/onboard-job-processor';
 import { applyOnboardSuggestions } from '../lib/onboard-jobs';
+import { MINIMAX_MODEL } from '../lib/openrouter-request';
 import { getUserClient, mustData } from '../lib/supabase';
 import { authMiddleware } from '../middleware/auth';
 import type { AppVariables, EnvBindings } from '../types';
@@ -35,14 +36,12 @@ onboardRoutes.post('/', async (ctx) => {
   }
 
   const userClient = getUserClient(ctx.env, auth.accessToken);
-  const model = ctx.env.OPENROUTER_JSON_MODEL || ctx.env.OPENROUTER_CHAT_MODEL || ctx.env.OPENROUTER_MODEL;
   const inserted = await userClient
     .from('onboarding_suggestion_jobs')
     .insert({
       household_id: body.household_id,
       input: body,
-      model,
-      reasoning_mode: ctx.env.OPENROUTER_REASONING_EFFORT_JSON || 'low',
+      model: MINIMAX_MODEL,
       requested_by: auth.userId,
       status: 'queued',
     })

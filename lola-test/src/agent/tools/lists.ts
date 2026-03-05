@@ -17,7 +17,7 @@ const updateSchema = createSchema.partial().extend({ list_id: z.string() });
 
 export const listTools: Record<string, ToolDefinition> = {
   create_list: {
-    description: 'create list',
+    description: 'create a new list (household, personal, or project type)',
     execute: async (context, args) => {
       const parsed = createSchema.parse(args);
       const service = getToolService(context);
@@ -31,7 +31,7 @@ export const listTools: Record<string, ToolDefinition> = {
     schema: { type: 'object', properties: { name: { type: 'string' } }, required: ['name'] },
   },
   get_lists: {
-    description: 'get lists',
+    description: 'get all active household lists with their IDs and types; always call this before creating tasks',
     execute: async (context) => {
       const service = getToolService(context);
       const lists = await service.from('lists').select('*').eq('household_id', context.householdId).eq('is_archived', false);
@@ -40,7 +40,7 @@ export const listTools: Record<string, ToolDefinition> = {
     schema: { type: 'object', properties: {} },
   },
   update_list: {
-    description: 'update list',
+    description: 'update list name, emoji, color, or type (changing type requires admin)',
     execute: async (context, args) => {
       const parsed = updateSchema.parse(args);
       const service = getToolService(context);

@@ -137,7 +137,7 @@ const classifyWithAi = async (
     const result = await runOpenRouterJson<unknown>(env, [
       { content: CATCHUP_PROMPT, role: 'system' },
       { content: JSON.stringify(payload), role: 'user' },
-    ], 'json_classification');
+    ]);
     return aiDecisionSchema.parse(result);
   } catch {
     return payload.map((task) => fallbackDecision(task));

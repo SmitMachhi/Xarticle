@@ -35,7 +35,7 @@ const reminderSchema = z.object({ reminder_time: z.string(), task_id: z.string()
 
 export const taskTools: Record<string, ToolDefinition> = {
   archive_task: {
-    description: 'archive task',
+    description: 'archive a task permanently; members can only archive their own tasks',
     execute: async (context, args) => {
       const parsed = idSchema.parse(args);
       const service = getToolService(context);
@@ -53,7 +53,7 @@ export const taskTools: Record<string, ToolDefinition> = {
     schema: { type: 'object', properties: { task_id: { type: 'string' } }, required: ['task_id'] },
   },
   assign_task: {
-    description: 'assign task to member',
+    description: 'assign a task to a specific household member (admin only)',
     execute: async (context, args) => {
       requireAdminRole(context.role);
       const parsed = z.object({ assigned_to: z.string(), task_id: z.string() }).parse(args);
@@ -79,7 +79,7 @@ export const taskTools: Record<string, ToolDefinition> = {
     },
   },
   claim_task: {
-    description: 'claim up-for-grabs task',
+    description: 'claim an unassigned up-for-grabs task for yourself',
     execute: async (context, args) => {
       const parsed = idSchema.parse(args);
       const service = getToolService(context);
@@ -89,7 +89,7 @@ export const taskTools: Record<string, ToolDefinition> = {
     schema: { type: 'object', properties: { task_id: { type: 'string' } }, required: ['task_id'] },
   },
   complete_task: {
-    description: 'complete task',
+    description: 'mark a task as completed; use get_tasks to find the task_id first',
     execute: async (context, args) => {
       const parsed = completeSchema.parse(args);
       const service = getToolService(context);
@@ -112,7 +112,7 @@ export const taskTools: Record<string, ToolDefinition> = {
     },
   },
   create_task: {
-    description: 'create a task',
+    description: 'create a task in a list; call get_lists first to find the correct list_id',
     execute: async (context, args) => {
       const parsed = createSchema.parse(args);
       const service = getToolService(context);
@@ -131,7 +131,7 @@ export const taskTools: Record<string, ToolDefinition> = {
     schema: { type: 'object', properties: { title: { type: 'string' }, list_id: { type: 'string' } }, required: ['title', 'list_id'] },
   },
   get_tasks: {
-    description: 'fetch household tasks',
+    description: 'fetch active household tasks; filter by list_id, assigned_to, or up_for_grabs',
     execute: async (context, args) => {
       const parsed = listSchema.parse(args);
       const service = getToolService(context);
@@ -151,7 +151,7 @@ export const taskTools: Record<string, ToolDefinition> = {
     schema: { type: 'object', properties: { list_id: { type: 'string' }, assigned_to: { type: 'string' }, up_for_grabs: { type: 'boolean' } } },
   },
   set_reminder: {
-    description: 'set reminder for task',
+    description: 'set a reminder time (HH:MM) for a task',
     execute: async (context, args) => {
       const parsed = reminderSchema.parse(args);
       const service = getToolService(context);
@@ -168,7 +168,7 @@ export const taskTools: Record<string, ToolDefinition> = {
     },
   },
   update_task: {
-    description: 'update task fields',
+    description: 'update task fields like title, due date, recurrence, or assignee',
     execute: async (context, args) => {
       const parsed = updateSchema.parse(args);
       const service = getToolService(context);

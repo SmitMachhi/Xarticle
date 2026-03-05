@@ -84,7 +84,7 @@ export const generateOnboardSuggestions = async (
   ];
 
   try {
-    const raw = await runOpenRouterJson<unknown>(env, messages, 'json_suggestion');
+    const raw = await runOpenRouterJson<unknown>(env, messages);
     return normalizeSuggestions(suggestionSchema.parse(raw), catalog);
   } catch {
     return fallbackSuggestions(catalog);
