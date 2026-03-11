@@ -2,6 +2,7 @@ import {
   GRAPHQL_HEDGE_DELAY_MS,
   GUEST_TOKEN_TTL_MS,
   HTTP_BAD_REQUEST,
+  HTTP_FORBIDDEN,
   HTTP_NOT_FOUND,
   HTTP_TOO_MANY_REQUESTS,
   HTTP_UNAUTHORIZED,
@@ -25,7 +26,7 @@ import { clearGuestToken, state } from './state'
 import { graphqlHeaders,guestActivateHeaders } from './xHeaders'
 import { readBearerToken, readMainScriptUrl, readQueryId } from './xParsing'
 
-const STALE_QUERY_STATUSES = new Set([HTTP_BAD_REQUEST, HTTP_NOT_FOUND, HTTP_UNAUTHORIZED])
+const STALE_QUERY_STATUSES = new Set([HTTP_BAD_REQUEST, HTTP_FORBIDDEN, HTTP_NOT_FOUND, HTTP_UNAUTHORIZED])
 const GRAPHQL_ROOTS = [TWITTER_API_ROOT, X_API_ROOT] as const
 
 interface GraphqlAttempt {

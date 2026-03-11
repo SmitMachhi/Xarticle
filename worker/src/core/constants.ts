@@ -75,10 +75,11 @@ export const ARTICLE_PATH_PATTERNS = [/\/i\/articles\/([A-Za-z0-9_-]+)/i, /\/[^/
 export const STATUS_PATH_PATTERNS = [/\/[^/]+\/status\/(\d+)/i, /\/i\/status\/(\d+)/i]
 
 export const HTTP_BAD_REQUEST = 400
+export const HTTP_UNAUTHORIZED = 401
+export const HTTP_FORBIDDEN = 403
 export const HTTP_NOT_FOUND = 404
 export const HTTP_TOO_MANY_REQUESTS = 429
 export const HTTP_BAD_GATEWAY = 502
-export const HTTP_UNAUTHORIZED = 401
 
 export const CORS_HEADERS = {
   'access-control-allow-headers': 'content-type',
