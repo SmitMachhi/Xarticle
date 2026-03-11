@@ -32,7 +32,7 @@ export const UrlSection = ({
         <button className="btn-muted" onClick={onPaste} type="button">Paste</button>
         <button className="btn-primary" disabled={!canLoad} onClick={onLoad}>{loading ? loadButtonLabel : 'Load Article'}</button>
       </div>
-      <p className="url-status" aria-live="polite">{notice || urlClassificationReason}</p>
+      <p className="url-status" aria-live="polite"><span key={notice || urlClassificationReason}>{notice || urlClassificationReason}</span></p>
     </section>
   )
 }

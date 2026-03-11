@@ -23,5 +23,5 @@ export const ArticleCopyButton = ({ payload }: ArticleCopyButtonProps) => {
   }
 
   const label = state === 'copied' ? 'Copied' : state === 'failed' ? 'Copy failed' : 'Copy text'
-  return <button aria-label={label} className={`article-copy-btn ${state === 'failed' ? 'is-failed' : ''}`} onClick={() => void onClick()} title={label} type="button">{state === 'copied' ? '✓' : '⧉'}</button>
+  return <button aria-label={label} className={`article-copy-btn ${state === 'failed' ? 'is-failed' : ''} ${state === 'copied' ? 'is-copied' : ''}`} onClick={() => void onClick()} title={label} type="button">{state === 'copied' ? '✓' : '⧉'}</button>
 }

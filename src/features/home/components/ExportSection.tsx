@@ -32,10 +32,10 @@ export const ExportSection = ({
       <label>Paper Size<select onChange={(event) => onPaperSizeChange(event.target.value as PaperSize)} value={paperSize}>{renderOptions(PAPER_SIZE_OPTIONS, paperSize)}</select></label>
       <label>Margin<select onChange={(event) => onMarginPresetChange(event.target.value as MarginPreset)} value={marginPreset}>{renderOptions(MARGIN_PRESET_OPTIONS, marginPreset)}</select></label>
       <div className="button-row">
-        <button className="btn-primary" disabled={!canDownload} onClick={onPdf}>{downloadState === 'pdf' ? 'Generating...' : 'Download for Humans (PDF)'}</button>
+        <button className={`btn-primary${downloadState === 'pdf' ? ' is-generating' : ''}`} disabled={!canDownload} onClick={onPdf}>{downloadState === 'pdf' ? 'Generating...' : 'Download for Humans (PDF)'}</button>
       </div>
       <div className="button-row">
-        <button className="btn-muted" disabled={!canDownload} onClick={onMarkdown}>{downloadState === 'markdown' ? 'Generating...' : 'Download for LLMs (Markdown)'}</button>
+        <button className={`btn-muted${downloadState === 'markdown' ? ' is-generating' : ''}`} disabled={!canDownload} onClick={onMarkdown}>{downloadState === 'markdown' ? 'Generating...' : 'Download for LLMs (Markdown)'}</button>
       </div>
     </section>
   )
