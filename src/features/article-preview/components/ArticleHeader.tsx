@@ -1,3 +1,4 @@
+import { proxyImageUrl } from '../../../lib/imageProxy'
 import type { ExtractedArticle } from '../../../types/article'
 
 interface ArticleHeaderProps {
@@ -10,7 +11,7 @@ export const ArticleHeader = ({ article }: ArticleHeaderProps) => {
     <header className="preview-header">
       <h1>{article.title}</h1>
       <div className="author-row">
-        {article.authorAvatarUrl ? <img alt={`${article.authorName} avatar`} className="avatar" src={article.authorAvatarUrl} /> : <div className="avatar-fallback">@</div>}
+        {article.authorAvatarUrl ? <img alt={`${article.authorName} avatar`} className="avatar" src={proxyImageUrl(article.authorAvatarUrl)} /> : <div className="avatar-fallback">@</div>}
         <div>
           <div className="author-name">{article.authorName}</div>
           <div className="author-meta">@{article.authorHandle}{published}</div>

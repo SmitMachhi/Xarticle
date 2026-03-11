@@ -2,6 +2,7 @@ import type { TDocumentDefinitions } from 'pdfmake/interfaces'
 
 import type { ExtractedArticle } from '../types/article'
 import { recordPlannedDownload } from './downloadTelemetry'
+import { proxyImageUrl } from './imageProxy'
 import { buildPdfDefinition } from './pdf-export/definition'
 import { fileNameForPdf } from './pdf-export/naming'
 import type { PdfExportOptions } from './pdf-export/options'
@@ -18,7 +19,7 @@ const blobToDataUrl = (blob: Blob): Promise<string> => {
 
 const loadImageDataUrl = async (url: string): Promise<string | null> => {
   try {
-    const response = await fetch(url)
+    const response = await fetch(proxyImageUrl(url))
     if (!response.ok) {
       return null
     }

@@ -1,6 +1,7 @@
 import { CORS_HEADERS, HTTP_NOT_FOUND } from './core/constants'
 import { jsonResponse } from './core/http'
 import { handleExtract } from './routes/extract'
+import { handleImage } from './routes/image'
 
 const notFound = (): Response => jsonResponse({ error: 'Not found.' }, HTTP_NOT_FOUND)
 
@@ -11,6 +12,9 @@ const routeRequest = async (request: Request): Promise<Response> => {
   }
   if (request.method === 'GET' && url.pathname === '/health') {
     return jsonResponse({ ok: true })
+  }
+  if (request.method === 'GET' && url.pathname === '/api/image') {
+    return await handleImage(request)
   }
   if (request.method === 'POST' && url.pathname === '/api/extract') {
     return await handleExtract(request)
