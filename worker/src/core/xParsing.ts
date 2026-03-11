@@ -10,6 +10,16 @@ export const readQueryId = (scriptText: string): string | null => scriptText.mat
 
 export const readBearerToken = (scriptText: string): string => scriptText.match(/AAAAA[0-9A-Za-z%]{30,220}/)?.[0] || DEFAULT_BEARER_TOKEN
 
+const TX_KEY_BYTES = 32
+
+export const readTransactionKey = (scriptText: string): Uint8Array | null => {
+  const hex = scriptText.match(/[,;(]["']([0-9a-f]{64})["'][,;)]/)?.[1]
+  if (!hex) return null
+  const bytes = new Uint8Array(TX_KEY_BYTES)
+  for (let i = 0; i < TX_KEY_BYTES; i++) bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16)
+  return bytes
+}
+
 const takePrimaryCandidate = (raw: unknown): unknown => {
   const source = asMap(raw)
   const data = asMap(source.data)

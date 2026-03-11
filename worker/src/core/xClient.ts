@@ -23,8 +23,8 @@ import {
 } from './durableState'
 import { withTimeout } from './http'
 import { clearGuestToken, state } from './state'
-import { graphqlHeaders,guestActivateHeaders } from './xHeaders'
-import { readBearerToken, readMainScriptUrl, readQueryId } from './xParsing'
+import { computeTransactionId, graphqlHeaders, guestActivateHeaders } from './xHeaders'
+import { readBearerToken, readMainScriptUrl, readQueryId, readTransactionKey } from './xParsing'
 
 const STALE_QUERY_STATUSES = new Set([HTTP_BAD_REQUEST, HTTP_FORBIDDEN, HTTP_NOT_FOUND, HTTP_UNAUTHORIZED])
 const GRAPHQL_ROOTS = [TWITTER_API_ROOT, X_API_ROOT] as const
@@ -62,6 +62,7 @@ const refreshQueryAndBearer = async (): Promise<{ bearerToken: string; queryId: 
   const queryId = readQueryId(scriptText)
   if (!queryId) throw new Error('Could not resolve TweetResultByRestId query id.')
   const bearerToken = readBearerToken(scriptText)
+  state.transactionKey = readTransactionKey(scriptText)
   setQueryState(queryId, bearerToken, now)
   await writeDurableQueryState(bearerToken, queryId, now)
   return { bearerToken, queryId }
@@ -111,7 +112,9 @@ const graphqlUrl = (root: string, statusId: string, queryId: string): string => 
 }
 
 const fetchGraphql = async (root: string, statusId: string, queryId: string, bearerToken: string, guestToken: string): Promise<Response> => {
-  return await withTimeout(graphqlUrl(root, statusId, queryId), { headers: graphqlHeaders(bearerToken, guestToken) }, STATUS_TIMEOUT_MS)
+  const path = `/graphql/${queryId}/TweetResultByRestId`
+  const txId = await computeTransactionId(state.transactionKey, 'GET', path)
+  return await withTimeout(graphqlUrl(root, statusId, queryId), { headers: graphqlHeaders(bearerToken, guestToken, txId) }, STATUS_TIMEOUT_MS)
 }
 
 const fetchGraphqlAttempt = async (

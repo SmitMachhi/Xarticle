@@ -5,6 +5,7 @@ export interface WorkerState {
   guestToken: string | null
   guestTokenExpiresAt: number
   queryResolvedAt: number
+  transactionKey: Uint8Array | null
   tweetResultQueryId: string | null
 }
 
@@ -13,6 +14,7 @@ export const state: WorkerState = {
   guestToken: null,
   guestTokenExpiresAt: 0,
   queryResolvedAt: 0,
+  transactionKey: null,
   tweetResultQueryId: DEFAULT_TWEET_RESULT_QUERY_ID,
 }
 
