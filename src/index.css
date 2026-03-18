@@ -624,6 +624,20 @@ button:disabled {
   transform: translateY(-1px);
 }
 
+.btn-secondary {
+  background: #fff;
+  border-color: #218f55;
+  color: #218f55;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-secondary:hover:enabled {
+  background: #f0faf4;
+  transform: translateY(-1px);
+}
+
+.btn-secondary::after,
 .btn-primary::after,
 .btn-muted::after {
   content: '';
@@ -635,18 +649,21 @@ button:disabled {
   transition: transform 360ms ease, opacity 180ms ease;
 }
 
+.btn-secondary:hover:enabled::after,
 .btn-primary:hover:enabled::after,
 .btn-muted:hover:enabled::after {
   transform: translateX(130%);
   opacity: 0.9;
 }
 
+.btn-secondary:active:enabled,
 .btn-primary:active:enabled,
 .btn-muted:active:enabled {
   transform: translateY(1px) scale(0.97);
   transition: transform 80ms ease;
 }
 
+.btn-secondary.is-generating,
 .btn-primary.is-generating,
 .btn-muted.is-generating {
   animation: generating-ring 1.6s ease-in-out infinite;
@@ -655,6 +672,10 @@ button:disabled {
 .button-row {
   display: grid;
   gap: 0.6rem;
+}
+
+.button-row-split {
+  grid-template-columns: 1fr auto;
 }
 
 .markdown-export {

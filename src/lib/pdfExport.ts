@@ -45,4 +45,9 @@ export const downloadArticlePdf = async (article: ExtractedArticle, opts: PdfExp
   void pdfMake.createPdf(definition).download(filename)
 }
 
+export const printArticlePdf = async (article: ExtractedArticle, opts: PdfExportOptions): Promise<void> => {
+  const definition = await buildArticlePdfDefinition(article, opts)
+  pdfMake.createPdf(definition).print()
+}
+
 export type { PdfExportOptions }
