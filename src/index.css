@@ -1147,6 +1147,7 @@ button:disabled {
   top: 0.52rem;
   z-index: 2;
   display: flex;
+  gap: 0.4rem;
   justify-content: flex-end;
   margin-top: 0.8rem;
 }
@@ -1552,5 +1553,47 @@ button:disabled {
 
   .panda-hero {
     animation: panda-bob 1.35s ease-in-out infinite !important;
+  }
+}
+
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  .hero-section,
+  .controls-panel,
+  .helper-card,
+  .info-section,
+  .site-footer,
+  .skip-link,
+  .article-tools,
+  .metric-grid {
+    display: none !important;
+  }
+
+  .preview-stack,
+  .preview-card {
+    box-shadow: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    background: #fff;
+  }
+
+  .article-body img {
+    max-width: 100%;
+    break-inside: avoid;
+  }
+
+  .article-body h2,
+  .article-body h3,
+  .article-body h4 {
+    break-after: avoid;
+  }
+
+  .article-body blockquote {
+    break-inside: avoid;
   }
 }
