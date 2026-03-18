@@ -48,6 +48,13 @@ const parseArticleContentBlocks = (tweet: ThreadloomTweet): ArticleBlock[] => {
       if (block.type === 'atomic' && block.url) {
         return { type: 'media', mediaType: 'image', url: block.url, caption: undefined } satisfies ArticleBlock
       }
+      if (block.type === 'code-block') {
+        const code = (block.text || '').trim()
+        return code ? { type: 'code', code, language: undefined } satisfies ArticleBlock : null
+      }
+      if (block.type === 'embed' && block.url) {
+        return { type: 'embed', text: block.text || block.url, url: block.url } satisfies ArticleBlock
+      }
       const rawText = (block.text || '').trim()
       return rawText ? convertBlockType(block, rawText, normalizeText(rawText)) : null
     })

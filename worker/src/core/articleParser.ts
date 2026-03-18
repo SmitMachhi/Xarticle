@@ -35,18 +35,39 @@ const buildMediaIdMap = (rawArticle: UnknownMap): Map<string, string> => {
   return idMap
 }
 
-const resolveAtomicImageUrl = (entityMap: UnknownMap, block: UnknownMap, mediaIdMap: Map<string, string>): string | null => {
+const resolveAtomicEntity = (entityMap: UnknownMap, block: UnknownMap): UnknownMap => {
   const ranges = asArray(block.entityRanges)
-  if (ranges.length === 0) return null
-  const key = String(asMap(ranges[0]).key ?? '')
-  const raw = asMap(entityMap[key])
-  const entity = asMap(raw.value || raw)
+  if (ranges.length === 0) return {}
+  const raw = asMap(entityMap[String(asMap(ranges[0]).key ?? '')])
+  return asMap(raw.value || raw)
+}
+
+const resolveAtomicImageUrl = (entity: UnknownMap, mediaIdMap: Map<string, string>): string | null => {
   if (entity.type !== 'MEDIA' && entity.type !== 'IMAGE') return null
   const data = asMap(entity.data)
   const directUrl = normalizeImageUrl(firstString(data.src, data.url, data.media_url_https))
   if (directUrl) return directUrl
   const mediaId = firstString(asMap(asArray(data.mediaItems)[0]).mediaId)
   return mediaId ? (mediaIdMap.get(mediaId) ?? null) : null
+}
+
+const resolveAtomicBlock = (entityMap: UnknownMap, block: UnknownMap, mediaIdMap: Map<string, string>): ContentBlock | null => {
+  const entity = resolveAtomicEntity(entityMap, block)
+  const entityType = firstString(entity.type)
+  if (entityType === 'MEDIA' || entityType === 'IMAGE') {
+    const url = resolveAtomicImageUrl(entity, mediaIdMap)
+    return url ? { type: 'atomic', text: '', url } : null
+  }
+  if (entityType === 'MARKDOWN') {
+    const markdown = firstString(asMap(entity.data).markdown) || ''
+    const stripped = markdown.replace(/^```[A-Za-z]*\n?/, '').replace(/\n?```$/, '').trim()
+    return stripped ? { type: 'code-block', text: stripped } : null
+  }
+  if (entityType === 'LINK') {
+    const url = firstString(asMap(entity.data).url)
+    return url ? { type: 'embed', text: url, url } : null
+  }
+  return null
 }
 
 const STYLE_MAP: Record<string, InlineMark['type']> = {
@@ -97,8 +118,7 @@ const toArticleBlocksFromState = (rawArticle: UnknownMap): ContentBlock[] => {
       const typed = asMap(block)
       const blockType = firstString(typed.type) || 'unstyled'
       if (blockType === 'atomic') {
-        const url = resolveAtomicImageUrl(entityMap, typed, mediaIdMap)
-        return url ? { type: 'atomic', text: '', url } : null
+        return resolveAtomicBlock(entityMap, typed, mediaIdMap)
       }
       const text = firstString(typed.text)
       if (!text) return null
