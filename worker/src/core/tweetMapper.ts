@@ -69,25 +69,41 @@ const toCoverImageUrl = (rawArticle: UnknownMap): string | null => {
   return normalizeImageUrl(firstString(coverMedia.media_url_https, coverMedia.media_url, asMap(coverMedia.original_info).url))
 }
 
-const resolveAtomicImageUrl = (entityMap: UnknownMap, block: UnknownMap): string | null => {
+const buildMediaIdMap = (rawArticle: UnknownMap): Map<string, string> => {
+  const idMap = new Map<string, string>()
+  for (const entry of asArray(rawArticle.media_entities)) {
+    const typed = asMap(entry)
+    const mediaId = firstString(typed.media_id)
+    const url = normalizeImageUrl(firstString(asMap(typed.media_info).original_img_url))
+    if (mediaId && url) idMap.set(mediaId, url)
+  }
+  return idMap
+}
+
+const resolveAtomicImageUrl = (entityMap: UnknownMap, block: UnknownMap, mediaIdMap: Map<string, string>): string | null => {
   const ranges = asArray(block.entityRanges)
   if (ranges.length === 0) return null
   const key = String(asMap(ranges[0]).key ?? '')
-  const entity = asMap(entityMap[key])
-  if (entity.type !== 'IMAGE') return null
+  const raw = asMap(entityMap[key])
+  const entity = asMap(raw.value || raw)
+  if (entity.type !== 'MEDIA' && entity.type !== 'IMAGE') return null
   const data = asMap(entity.data)
-  return normalizeImageUrl(firstString(data.src, data.url, data.media_url_https))
+  const directUrl = normalizeImageUrl(firstString(data.src, data.url, data.media_url_https))
+  if (directUrl) return directUrl
+  const mediaId = firstString(asMap(asArray(data.mediaItems)[0]).mediaId)
+  return mediaId ? (mediaIdMap.get(mediaId) ?? null) : null
 }
 
 const toArticleBlocksFromState = (rawArticle: UnknownMap): ContentBlock[] => {
   const contentState = asMap(rawArticle.content_state)
   const entityMap = asMap(contentState.entityMap)
+  const mediaIdMap = buildMediaIdMap(rawArticle)
   return asArray(contentState.blocks)
     .map((block) => {
       const typed = asMap(block)
       const blockType = firstString(typed.type) || 'unstyled'
       if (blockType === 'atomic') {
-        const url = resolveAtomicImageUrl(entityMap, typed)
+        const url = resolveAtomicImageUrl(entityMap, typed, mediaIdMap)
         return url ? { type: 'atomic', text: '', url } : null
       }
       const text = firstString(typed.text)
