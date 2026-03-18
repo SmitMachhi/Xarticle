@@ -92,7 +92,14 @@ export const buildPdfDefinition = async (
     pageSize: opts.paperSize,
     pageMargins: marginMap[opts.marginPreset],
     content,
-    footer: () => ({ text: 'Xarticle.co', alignment: 'left', margin: [PAGE_MARGIN_LEFT, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, PAGE_MARGIN_BOTTOM], fontSize: FOOTER_FONT_SIZE }),
+    footer: (currentPage, pageCount) => ({
+      columns: [
+        { text: 'Xarticle.co', alignment: 'left' },
+        { text: `${currentPage} / ${pageCount}`, alignment: 'right' },
+      ],
+      margin: [PAGE_MARGIN_LEFT, MARGIN_INLINE_NONE, PAGE_MARGIN_LEFT, PAGE_MARGIN_BOTTOM],
+      fontSize: FOOTER_FONT_SIZE,
+    }),
     styles: stylesForTheme(opts.themeMode),
     defaultStyle: { font: 'Roboto' },
     info: {

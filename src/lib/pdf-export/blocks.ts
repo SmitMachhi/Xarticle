@@ -9,12 +9,13 @@ import {
   MARGIN_MEDIUM,
   MARGIN_SMALL,
 } from './constants'
+import { inlineText } from './inline'
 
 type ImageResolver = (url: string) => Promise<string | null>
 
 const headingContent = (block: Extract<ArticleBlock, { type: 'heading' }>): Content => {
   const style = block.level === 1 ? 'h1' : block.level === 2 ? 'h2' : 'h3'
-  return { text: block.text, style, margin: [MARGIN_INLINE_NONE, MARGIN_MEDIUM, MARGIN_INLINE_NONE, MARGIN_MEDIUM] }
+  return { text: inlineText(block.text, block.marks), style, margin: [MARGIN_INLINE_NONE, MARGIN_MEDIUM, MARGIN_INLINE_NONE, MARGIN_MEDIUM] }
 }
 
 const mediaFallbackContent = (block: Extract<ArticleBlock, { type: 'media' }>): Content[] => {
@@ -33,10 +34,10 @@ const mediaContent = async (block: Extract<ArticleBlock, { type: 'media' }>, ima
 
 const contentForBlock = async (block: ArticleBlock, imageResolver: ImageResolver): Promise<Content[]> => {
   if (block.type === 'heading') return [headingContent(block)]
-  if (block.type === 'paragraph') return [{ text: block.text, style: 'paragraph', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_MEDIUM] }]
-  if (block.type === 'quote') return [{ text: block.text, style: 'quote', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_MEDIUM] }]
-  if (block.type === 'code') return [{ text: block.code, style: 'paragraph', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_CODE_BLOCK] }]
-  if (block.type === 'list') return [{ ul: block.items.map((item) => item.text), style: 'paragraph', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_MEDIUM] }]
+  if (block.type === 'paragraph') return [{ text: inlineText(block.text, block.marks), style: 'paragraph', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_MEDIUM] }]
+  if (block.type === 'quote') return [{ text: inlineText(block.text, block.marks), style: 'quote', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_MEDIUM] }]
+  if (block.type === 'code') return [{ text: block.code, style: 'codeBlock', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_CODE_BLOCK] }]
+  if (block.type === 'list') return [{ ul: block.items.map((item) => ({ text: inlineText(item.text, item.marks), style: 'paragraph' })), margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_MEDIUM] }]
   if (block.type === 'media') return await mediaContent(block, imageResolver)
   if (block.type === 'embed' && block.url) return [{ text: block.text, link: block.url, style: 'embed', margin: [MARGIN_INLINE_NONE, 2, MARGIN_INLINE_NONE, MARGIN_MEDIUM] }]
   if (block.type === 'embed') return [{ text: block.text, style: 'embed', margin: [MARGIN_INLINE_NONE, 2, MARGIN_INLINE_NONE, MARGIN_MEDIUM] }]

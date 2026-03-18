@@ -6,16 +6,20 @@ import { MARGIN_CODE_BLOCK, MARGIN_INLINE_NONE, MARGIN_SMALL, MARGIN_XLARGE } fr
 export const stylesForTheme = (themeMode: ThemeMode): StyleDictionary => {
   const textColor = themeMode === 'bw' ? '#111111' : '#171717'
   const metaColor = themeMode === 'bw' ? '#333333' : '#525252'
+  const codeBackground = themeMode === 'bw' ? '#f3f4f6' : '#f4fbf6'
   return {
     coverBadge: { fontSize: 11, bold: true, color: textColor },
     coverMeta: { fontSize: 12, color: metaColor },
     coverMetricLabel: { fontSize: 9, color: metaColor, bold: true },
     coverMetricValue: { fontSize: 13, color: textColor, bold: true },
+    codeBlock: { fontSize: 10, color: textColor, background: codeBackground },
     coverTitle: { fontSize: 28, bold: true, color: textColor },
     embed: { fontSize: 10, color: textColor, decoration: 'underline' },
     h1: { fontSize: 18, bold: true, color: textColor },
     h2: { fontSize: 16, bold: true, color: textColor },
     h3: { fontSize: 14, bold: true, color: textColor },
+    inlineCode: { background: codeBackground },
+    inlineLink: { color: textColor, decoration: 'underline' },
     mediaCaption: { fontSize: 9, color: metaColor, italics: true },
     meta: { fontSize: 10, color: metaColor },
     paragraph: { fontSize: 11, lineHeight: 1.4, color: textColor },
