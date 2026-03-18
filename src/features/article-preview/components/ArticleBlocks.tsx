@@ -13,7 +13,7 @@ const renderBlock = (block: ArticleBlock, key: string) => {
   if (block.type === 'heading') return renderHeading(block, key)
   if (block.type === 'paragraph') return <p key={key}><RichText marks={block.marks} text={block.text} /></p>
   if (block.type === 'quote') return <blockquote key={key}><RichText marks={block.marks} text={block.text} /></blockquote>
-  if (block.type === 'code') return <pre key={key}><code>{block.code}</code></pre>
+  if (block.type === 'code') return <pre className="code-block" key={key}><code>{block.code}</code></pre>
   if (block.type === 'list') return <ul key={key}>{block.items.map((item, i) => <li key={`${key}-${i}`}><RichText marks={item.marks} text={item.text} /></li>)}</ul>
   if (block.type === 'media') return <figure key={key} className="preview-media"><img alt={block.caption || block.mediaType} loading="lazy" src={proxyImageUrl(block.url)} /></figure>
   if (block.type === 'embed') return <p className="embed-line" key={key}>{block.url ? <a href={block.url} rel="noreferrer" target="_blank">{block.text}</a> : block.text}</p>

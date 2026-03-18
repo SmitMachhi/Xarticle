@@ -18,6 +18,16 @@ const fixtureForE2E = {
     article: {
       ...fixture.tweet.article,
       cover_media: undefined,
+      content: {
+        ...fixture.tweet.article.content,
+        blocks: fixture.tweet.article.content.blocks.map((block: { text?: string; type: string }) => {
+          if (block.type !== 'unstyled' || !block.text?.startsWith('```bash')) return block
+          return {
+            ...block,
+            text: `\`\`\`bash\n${'codex'.repeat(220)}\n\`\`\``,
+          }
+        }),
+      },
     },
   },
 }
@@ -46,7 +56,19 @@ test('status url renders preview and downloads pdf and markdown', async ({ page 
 
   await expect(page.getByRole('heading', { name: /openclaw/i })).toBeVisible()
 
-  const pdfButton = page.getByRole('button', { name: 'Download for Humans (PDF)' })
+  const previewCard = page.locator('.preview-content')
+  const article = page.locator('#preview-section-article')
+  const previewBounds = await previewCard.boundingBox()
+  const articleBounds = await article.boundingBox()
+  expect(previewBounds).not.toBeNull()
+  expect(articleBounds).not.toBeNull()
+  expect(articleBounds!.x).toBeGreaterThanOrEqual(previewBounds!.x)
+  expect(articleBounds!.x + articleBounds!.width).toBeLessThanOrEqual(previewBounds!.x + previewBounds!.width)
+
+  const codeBlock = page.locator('.article-body pre.code-block')
+  await expect(codeBlock).toHaveCount(1)
+
+  const pdfButton = page.getByRole('button', { name: 'Download PDF' })
   const markdownButton = page.getByRole('button', { name: /Download for LLMs/i })
 
   await expect(pdfButton).toBeEnabled()

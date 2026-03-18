@@ -1028,17 +1028,22 @@ button:disabled {
 
 .preview-stack {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.72rem;
-  justify-items: center;
+  justify-items: stretch;
+  min-width: 0;
 }
 
 .preview-card {
-  width: min(100%, 980px);
+  width: 100%;
+  max-width: 980px;
   margin: 0;
   padding: 1.2rem;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: #fbfdfb;
+  justify-self: center;
+  min-width: 0;
 }
 
 .preview-cover {
@@ -1161,6 +1166,7 @@ button:disabled {
   line-height: 1.58;
   max-width: none;
   width: 100%;
+  min-width: 0;
 }
 
 .article-tools {
@@ -1273,6 +1279,8 @@ button:disabled {
   padding: 0.62rem;
   overflow-x: auto;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .article-body .code-block code {
