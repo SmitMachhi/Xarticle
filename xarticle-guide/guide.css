@@ -137,6 +137,11 @@ body {
   box-shadow: 0 0 0 6px rgba(183, 117, 36, 0.12);
 }
 
+.legend-dot-selected {
+  background: #4d3720;
+  box-shadow: 0 0 0 6px rgba(77, 55, 32, 0.12);
+}
+
 .progress-label {
   font-size: 0.82rem;
   font-weight: 700;
@@ -187,6 +192,39 @@ body {
   background: #4d3720;
   border-color: #4d3720;
   color: #fff7ea;
+}
+
+.chip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.chip-compact {
+  text-align: left;
+}
+
+.chart-stack {
+  display: grid;
+  gap: 16px;
+}
+
+.chart-group {
+  border-top: 1px dashed rgba(130, 99, 58, 0.22);
+  padding-top: 16px;
+}
+
+.chart-group:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.chart-group-label {
+  margin: 0;
+  color: #8a5a23;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .diagram {
@@ -253,6 +291,11 @@ body {
 
 .why-line {
   margin-top: 14px;
+}
+
+.detail-line,
+.path-steps {
+  margin-top: 12px;
 }
 
 .split-panel {

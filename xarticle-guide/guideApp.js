@@ -1,38 +1,39 @@
 /* global document, HTMLElement */
 
-import { componentExplainers, journeySteps, systemNodes } from './guideData.js'
+import { runtimeComponents, runtimePaths, systemNodes } from './guideData.js'
 import { createGuideMarkup } from './guideRender.js'
 
 const createState = () => ({
-  componentId: componentExplainers[0].id,
+  componentId: runtimeComponents[0].id,
+  pathId: runtimePaths[0].id,
   selectedNodeId: null,
-  stepId: journeySteps[0].id,
-  viewId: 'real',
 })
 
 const readClickAction = (target) => ({
   componentId: target.closest('[data-component-button]')?.dataset.componentButton,
   nodeId: target.closest('[data-node-button]')?.dataset.nodeButton,
-  stepId: target.closest('[data-step-button]')?.dataset.stepButton,
-  viewId: target.closest('[data-view-button]')?.dataset.viewButton,
+  pathId: target.closest('[data-path-button]')?.dataset.pathButton,
 })
 
 const selectorByAction = (action) => {
-  if (action.stepId) return `[data-step-button="${action.stepId}"]`
+  if (action.pathId) return `[data-path-button="${action.pathId}"]`
   if (action.componentId) return `[data-component-button="${action.componentId}"]`
-  if (action.viewId) return `[data-view-button="${action.viewId}"]`
   if (!action.nodeId) return null
   return `[data-node-button="${action.nodeId}"]`
 }
 
 const syncNodeSelection = (state, nodeId) => {
   const node = systemNodes.find((item) => item.id === nodeId)
+  const matchingPaths = runtimePaths.filter((item) => item.focusNodeIds.includes(nodeId))
   if (node?.componentId) {
     state.componentId = node.componentId
   }
+  if (matchingPaths.length === 1) {
+    state.pathId = matchingPaths[0].id
+  }
 }
 
-const hasAction = (action) => Boolean(action.stepId || action.componentId || action.viewId || action.nodeId)
+const hasAction = (action) => Boolean(action.pathId || action.componentId || action.nodeId)
 
 const createAnnouncer = () => {
   const announcer = document.createElement('div')
@@ -44,15 +45,15 @@ const createAnnouncer = () => {
 }
 
 const toAnnouncement = (state, action) => {
-  if (action.stepId) {
-    const step = journeySteps.find((item) => item.id === state.stepId) ?? journeySteps[0]
-    return step.title
+  if (action.pathId) {
+    const path = runtimePaths.find((item) => item.id === state.pathId) ?? runtimePaths[0]
+    return `${path.title}: ${path.copy}`
   }
   if (action.nodeId || action.componentId) {
-    const component = componentExplainers.find((item) => item.id === state.componentId) ?? componentExplainers[0]
-    return component.title
+    const component = runtimeComponents.find((item) => item.id === state.componentId) ?? runtimeComponents[0]
+    return `${component.title}: ${component.how}`
   }
-  return state.viewId === 'starter' ? 'Starter version view' : 'Real app view'
+  return 'Xarticle runtime guide'
 }
 
 export const mountGuide = (root) => {
@@ -70,16 +71,12 @@ export const mountGuide = (root) => {
     if (!(target instanceof HTMLElement)) return
     const action = readClickAction(target)
     if (!hasAction(action)) return
-    if (action.stepId) {
-      state.stepId = action.stepId
+    if (action.pathId) {
+      state.pathId = action.pathId
       state.selectedNodeId = null
     }
     if (action.componentId) {
       state.componentId = action.componentId
-      state.selectedNodeId = null
-    }
-    if (action.viewId) {
-      state.viewId = action.viewId
       state.selectedNodeId = null
     }
     if (action.nodeId) {
@@ -90,5 +87,5 @@ export const mountGuide = (root) => {
     announcer.textContent = toAnnouncement(state, action)
   }
   render()
-  announcer.textContent = journeySteps[0].title
+  announcer.textContent = runtimePaths[0].title
 }

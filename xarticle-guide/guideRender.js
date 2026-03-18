@@ -1,15 +1,12 @@
 import {
-  buildChecklist,
-  compareViews,
-  componentExplainers,
+  chartGroups,
+  chartSummary,
   fundamentals,
   glossary,
-  journeySteps,
+  runtimeComponents,
+  runtimePaths,
   systemNodes,
 } from './guideData.js'
-
-const compareOrder = ['real', 'starter']
-const PERCENT_SCALE = 100
 
 const escapeHtml = (value) =>
   value
@@ -20,9 +17,10 @@ const escapeHtml = (value) =>
 
 const panelIdByKey = {
   'component-button': 'component-panel',
-  'step-button': 'journey-panel',
-  'view-button': 'compare-panel',
+  'path-button': 'path-panel',
 }
+
+const byId = (items, id) => items.find((item) => item.id === id) ?? items[0]
 
 const renderButtons = (items, activeId, key) =>
   items
@@ -35,33 +33,18 @@ const renderButtons = (items, activeId, key) =>
     )
     .join('')
 
-const renderDiagram = (activeStep, selectedNodeId) =>
-  systemNodes
-    .map((node) => {
-      const active = activeStep.highlightIds.includes(node.id) ? ' is-active' : ''
-      const selected = selectedNodeId === node.id ? ' is-selected' : ''
-      return `
-        <button class="node${active}${selected}" data-node-button="${node.id}" aria-pressed="${selected !== ''}">
-          <h3>${escapeHtml(node.label)}</h3>
-          <p>${escapeHtml(node.note)}</p>
-        </button>
-      `
-    })
-    .join('')
-
-const renderList = (items) => items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')
-
-const renderFactCards = () =>
-  fundamentals
+const renderComponentButtons = (activeId) =>
+  runtimeComponents
     .map(
       (item) => `
-        <article class="fact-card">
-          <h3>${escapeHtml(item.title)}</h3>
-          <p>${escapeHtml(item.copy)}</p>
-        </article>
+        <button class="chip chip-compact" data-component-button="${item.id}" aria-controls="${panelIdByKey['component-button']}" aria-pressed="${item.id === activeId}">
+          ${escapeHtml(item.label)}
+        </button>
       `,
     )
     .join('')
+
+const renderList = (items) => items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')
 
 const renderGlossary = () =>
   glossary
@@ -75,99 +58,107 @@ const renderGlossary = () =>
     )
     .join('')
 
-const getViewModel = (state) => {
-  const activeStep = journeySteps.find((step) => step.id === state.stepId) ?? journeySteps[0]
-  const activeComponent = componentExplainers.find((item) => item.id === state.componentId) ?? componentExplainers[0]
-  const activeView = compareViews[state.viewId] ?? compareViews.real
-  const activeStepNumber = journeySteps.findIndex((step) => step.id === activeStep.id) + 1
-  return {
-    activeComponent,
-    activeNodeId: state.selectedNodeId,
-    activeStep,
-    activeStepNumber,
-    activeView,
-    progressWidth: `${(activeStepNumber / journeySteps.length) * PERCENT_SCALE}%`,
-  }
+const renderFactCards = () =>
+  fundamentals
+    .map(
+      (item) => `
+        <article class="fact-card">
+          <h3>${escapeHtml(item.title)}</h3>
+          <p>${escapeHtml(item.copy)}</p>
+        </article>
+      `,
+    )
+    .join('')
+
+const renderNode = (node, activeNodeIds, selectedNodeId) => {
+  const active = activeNodeIds.includes(node.id) ? ' is-active' : ''
+  const selected = selectedNodeId === node.id ? ' is-selected' : ''
+  return `
+    <button class="node${active}${selected}" data-node-button="${node.id}" data-node-id="${node.id}" aria-controls="component-panel" aria-pressed="${selected !== ''}">
+      <h3>${escapeHtml(node.label)}</h3>
+      <p>${escapeHtml(node.note)}</p>
+    </button>
+  `
 }
+
+const renderChartGroup = (group, activeNodeIds, selectedNodeId) => `
+  <section class="chart-group">
+    <p class="chart-group-label">${escapeHtml(group.title)}</p>
+    <div class="diagram">
+      ${group.nodeIds.map((nodeId) => renderNode(byId(systemNodes, nodeId), activeNodeIds, selectedNodeId)).join('')}
+    </div>
+  </section>
+`
 
 const renderHero = () => `
   <header class="hero">
     <p class="eyebrow">Standalone guide for Xarticle.co only</p>
     <h1>Xarticle.co system guide</h1>
     <p class="hero-copy">
-      This page explains how Xarticle.co works from the first pasted link to the final preview and export.
-      It uses plain language, real app parts, and a smaller starter version you can build on your own.
+      This page explains the real runtime system from the first pasted URL to the final preview and export.
+      It explicitly shows the GraphQL status path, the raw HTML article path, and the shared clean article model in the middle.
     </p>
   </header>
 `
 
-const renderDiagramSection = ({ activeNodeId, activeStep, activeStepNumber, progressWidth }) => `
+const renderChartSection = (activePath, selectedNodeId) => `
   <section class="panel">
-    <p class="section-tag">Big picture</p>
-    <h2>The whole system from A to Z</h2>
-    <p class="section-copy">
-      Read this like a story: the browser starts the request, the worker fetches source data, parsers clean it,
-      and the frontend shows one trusted article result.
-    </p>
+    <p class="section-tag">Master chart</p>
+    <h2 data-panel="chart-title">${escapeHtml(chartSummary.title)}</h2>
+    <p class="section-copy" data-panel="chart-copy">${escapeHtml(chartSummary.copy)}</p>
     <div class="diagram-topline">
       <article class="legend-card">
         <h3 data-panel="legend-title">How to read this map</h3>
-        <p>Bright boxes are active in the current step. Click any box to jump to the plain-English explanation below.</p>
+        <p>Bright boxes belong to the selected extraction path. The darker outline shows the box you clicked, and the detail panel explains the runtime module behind that box.</p>
         <div class="legend-row">
           <span class="legend-dot legend-dot-active"></span>
-          <span>Active right now</span>
+          <span>Part of the selected path</span>
         </div>
         <div class="legend-row">
-          <span class="legend-dot"></span>
-          <span>Still part of the system, just not the current step</span>
+          <span class="legend-dot legend-dot-selected"></span>
+          <span>The exact component you are inspecting</span>
         </div>
       </article>
       <article class="progress-card">
-        <p class="progress-label">Story progress</p>
-        <h3 data-panel="progress-copy">Step ${activeStepNumber} of ${journeySteps.length}: ${escapeHtml(activeStep.title.replace(/^Step \d+:\s*/, ''))}</h3>
-        <div class="progress-track" aria-hidden="true">
-          <span class="progress-fill" style="width: ${progressWidth}"></span>
-        </div>
+        <p class="progress-label">Big truth</p>
+        <h3>One app, two extraction paths</h3>
+        <p>Status URLs go through GraphQL. Article URLs go through raw HTML. Both paths end in the same clean article model.</p>
       </article>
     </div>
-    <div class="diagram">${renderDiagram(activeStep, activeNodeId)}</div>
+    <div class="chart-stack">
+      ${chartGroups.map((group) => renderChartGroup(group, activePath.focusNodeIds, selectedNodeId)).join('')}
+    </div>
   </section>
 `
 
-const renderJourneySection = (activeStep) => `
+const renderPathSection = (activePath) => `
   <section class="panel">
-    <p class="section-tag">Journey</p>
-    <h2>Follow one request step by step</h2>
-    <div class="chip-row">${renderButtons(journeySteps, activeStep.id, 'step-button')}</div>
-    <article class="story-card" id="journey-panel" aria-live="polite">
-      <h3 data-panel="journey-title">${escapeHtml(activeStep.title)}</h3>
-      <p data-panel="journey-copy">${escapeHtml(activeStep.copy)}</p>
+    <p class="section-tag">Runtime paths</p>
+    <h2>Pick the extraction path you want to study</h2>
+    <div class="chip-row">${renderButtons(runtimePaths, activePath.id, 'path-button')}</div>
+    <article class="story-card" id="path-panel">
+      <h3 data-panel="path-title">${escapeHtml(activePath.title)}</h3>
+      <p data-panel="path-copy">${escapeHtml(activePath.copy)}</p>
+      <ol class="stack-list path-steps">${renderList(activePath.steps)}</ol>
     </article>
   </section>
 `
 
 const renderComponentSection = (activeComponent) => `
   <section class="panel">
-    <p class="section-tag">Deep dive</p>
-    <h2>Click a system part to learn what it does</h2>
-    <div class="chip-row">${renderButtons(componentExplainers, activeComponent.id, 'component-button')}</div>
-    <article class="story-card" id="component-panel" aria-live="polite">
+    <p class="section-tag">Component encyclopedia</p>
+    <h2>Every important runtime component and what it does</h2>
+    <div class="chip-row chip-grid">${renderComponentButtons(activeComponent.id)}</div>
+    <article class="story-card" id="component-panel">
       <h3 data-panel="component-title">${escapeHtml(activeComponent.title)}</h3>
-      <p data-panel="component-copy">${escapeHtml(activeComponent.copy)}</p>
-      <p class="why-line"><strong>Why it exists:</strong> ${escapeHtml(activeComponent.why)}</p>
-    </article>
-  </section>
-`
-
-const renderCompareSection = (activeView) => `
-  <section class="panel">
-    <p class="section-tag">Build your own</p>
-    <h2>Real app versus starter version</h2>
-    <div class="chip-row">${renderButtons(compareOrder.map((id) => compareViews[id]), activeView.id, 'view-button')}</div>
-    <article class="story-card" id="compare-panel" aria-live="polite">
-      <h3 data-panel="compare-title">${escapeHtml(activeView.title)}</h3>
-      <p data-panel="compare-copy">${escapeHtml(activeView.copy)}</p>
-      <ul class="stack-list">${renderList(activeView.layers)}</ul>
+      <p class="detail-line"><strong>File:</strong> <span data-panel="component-path">${escapeHtml(activeComponent.path)}</span></p>
+      <p data-panel="component-what"><strong>What it does:</strong> ${escapeHtml(activeComponent.what)}</p>
+      <p data-panel="component-how"><strong>How it works:</strong> ${escapeHtml(activeComponent.how)}</p>
+      <p data-panel="component-why"><strong>Why it exists:</strong> ${escapeHtml(activeComponent.why)}</p>
+      <p><strong>Input:</strong> ${escapeHtml(activeComponent.input)}</p>
+      <p><strong>Output:</strong> ${escapeHtml(activeComponent.output)}</p>
+      <p><strong>Depends on:</strong> ${escapeHtml(activeComponent.dependsOn)}</p>
+      <p><strong>Used by:</strong> ${escapeHtml(activeComponent.usedBy)}</p>
     </article>
   </section>
 `
@@ -187,13 +178,11 @@ const renderReferenceSection = () => `
   </section>
 `
 
-const renderChecklistSection = () => `
-  <section class="panel">
-    <p class="section-tag">Starter checklist</p>
-    <h2>How to build your own smaller version</h2>
-    <ol class="checklist">${renderList(buildChecklist)}</ol>
-  </section>
-`
+const getViewModel = (state) => ({
+  activeComponent: byId(runtimeComponents, state.componentId),
+  activePath: byId(runtimePaths, state.pathId),
+  selectedNodeId: state.selectedNodeId,
+})
 
 export const createGuideMarkup = (state) => {
   const viewModel = getViewModel(state)
@@ -201,12 +190,10 @@ export const createGuideMarkup = (state) => {
     <div class="guide-shell">
       ${renderHero()}
       <main class="layout">
-        ${renderDiagramSection(viewModel)}
-        ${renderJourneySection(viewModel.activeStep)}
+        ${renderChartSection(viewModel.activePath, viewModel.selectedNodeId)}
+        ${renderPathSection(viewModel.activePath)}
         ${renderComponentSection(viewModel.activeComponent)}
-        ${renderCompareSection(viewModel.activeView)}
         ${renderReferenceSection()}
-        ${renderChecklistSection()}
       </main>
     </div>
   `
