@@ -109,23 +109,36 @@ const extractMarks = (block: UnknownMap, entityMap: UnknownMap): InlineMark[] =>
   return marks
 }
 
+const extractAttachedMarkdown = (block: UnknownMap, entityMap: UnknownMap): ContentBlock[] => {
+  const extra: ContentBlock[] = []
+  for (const range of asArray(block.entityRanges)) {
+    const entity = resolveEntity(entityMap, String(asMap(range).key ?? ''))
+    if (firstString(entity.type) !== 'MARKDOWN') continue
+    const markdown = firstString(asMap(entity.data).markdown) || ''
+    const stripped = markdown.replace(/^```[A-Za-z]*\n?/, '').replace(/\n?```$/, '').trim()
+    if (stripped) extra.push({ type: 'code-block', text: stripped })
+  }
+  return extra
+}
+
 const toArticleBlocksFromState = (rawArticle: UnknownMap): ContentBlock[] => {
   const contentState = asMap(rawArticle.content_state)
   const entityMap = asMap(contentState.entityMap)
   const mediaIdMap = buildMediaIdMap(rawArticle)
   return asArray(contentState.blocks)
-    .map((block) => {
+    .flatMap((block) => {
       const typed = asMap(block)
       const blockType = firstString(typed.type) || 'unstyled'
       if (blockType === 'atomic') {
-        return resolveAtomicBlock(entityMap, typed, mediaIdMap)
+        const resolved = resolveAtomicBlock(entityMap, typed, mediaIdMap)
+        return resolved ? [resolved] : []
       }
       const text = firstString(typed.text)
-      if (!text) return null
+      if (!text) return []
       const marks = extractMarks(typed, entityMap)
-      return marks.length > 0 ? { type: blockType, text, marks } : { type: blockType, text }
+      const primary: ContentBlock = marks.length > 0 ? { type: blockType, text, marks } : { type: blockType, text }
+      return [primary, ...extractAttachedMarkdown(typed, entityMap)]
     })
-    .filter((block): block is ContentBlock => block !== null)
 }
 
 const toArticleBlocks = (rawArticle: UnknownMap): ContentBlock[] => {
