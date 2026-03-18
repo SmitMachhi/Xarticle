@@ -27,7 +27,7 @@ const parseHeading = (node: HTMLHeadingElement): ArticleBlock | null => {
 
 const parseList = (node: HTMLUListElement | HTMLOListElement): ArticleBlock | null => {
   const items = Array.from(node.querySelectorAll('li')).map((item) => normalizeText(item.textContent || '')).filter(Boolean)
-  return items.length > 0 ? { type: 'list', items } : null
+  return items.length > 0 ? { type: 'list', items: items.map((text) => ({ text })) } : null
 }
 
 const parseCode = (node: HTMLPreElement): ArticleBlock | null => {
@@ -63,7 +63,7 @@ const parseNode = (node: Element): ArticleBlock | null => {
 }
 
 const dedupeFingerprint = (block: ArticleBlock): string => {
-  if (block.type === 'list') return `list:${block.items.join('|')}`
+  if (block.type === 'list') return `list:${block.items.map((i) => i.text).join('|')}`
   if (block.type === 'code') return `code:${block.language || 'plain'}:${block.code}`
   if (block.type === 'media') return `media:${block.url}`
   if (block.type === 'embed') return `embed:${block.url || block.text}`

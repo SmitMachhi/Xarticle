@@ -5,7 +5,7 @@ const toTextByType = (block: ArticleBlock): string => {
     return block.code
   }
   if (block.type === 'list') {
-    return block.items.join('\n')
+    return block.items.map((item) => item.text).join('\n')
   }
   if (block.type === 'media') {
     return block.caption || ''

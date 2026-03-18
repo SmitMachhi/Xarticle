@@ -4,7 +4,15 @@ export interface ThreadloomTweetAuthor {
   screen_name?: string
 }
 
+export interface ThreadloomInlineMark {
+  offset: number
+  length: number
+  type: 'bold' | 'italic' | 'underline' | 'code' | 'link'
+  url?: string
+}
+
 export interface ThreadloomArticleBlock {
+  marks?: ThreadloomInlineMark[]
   text?: string
   type?: string
   url?: string

@@ -26,7 +26,7 @@ const flushParagraph = (state: ParseState): void => {
 
 const flushList = (state: ParseState): void => {
   if (state.listBuffer.length === 0) return
-  state.blocks.push({ type: 'list', items: [...state.listBuffer] })
+  state.blocks.push({ type: 'list', items: state.listBuffer.map((text) => ({ text })) })
   state.listBuffer = []
 }
 

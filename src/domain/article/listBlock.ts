@@ -1,4 +1,6 @@
+import type { ListItem } from './inlineMark'
+
 export interface ListBlock {
   type: 'list'
-  items: string[]
+  items: ListItem[]
 }

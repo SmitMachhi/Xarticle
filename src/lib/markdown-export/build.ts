@@ -17,7 +17,7 @@ const renderers: Renderers = {
     const codeBlock = block as Extract<ArticleBlock, { type: 'code' }>
     return `\`\`\`${codeBlock.language || ''}\n${codeBlock.code}\n\`\`\``
   },
-  list: (block) => (block as Extract<ArticleBlock, { type: 'list' }>).items.map((item) => `- ${item}`).join('\n'),
+  list: (block) => (block as Extract<ArticleBlock, { type: 'list' }>).items.map((item) => `- ${item.text}`).join('\n'),
   media: (block, links) => {
     const media = block as Extract<ArticleBlock, { type: 'media' }>
     return `![${media.caption || media.mediaType}](${links?.get(media.url) ?? media.url})`

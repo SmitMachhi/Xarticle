@@ -36,7 +36,7 @@ const contentForBlock = async (block: ArticleBlock, imageResolver: ImageResolver
   if (block.type === 'paragraph') return [{ text: block.text, style: 'paragraph', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_MEDIUM] }]
   if (block.type === 'quote') return [{ text: block.text, style: 'quote', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_MEDIUM] }]
   if (block.type === 'code') return [{ text: block.code, style: 'paragraph', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_CODE_BLOCK] }]
-  if (block.type === 'list') return [{ ul: [...block.items], style: 'paragraph', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_MEDIUM] }]
+  if (block.type === 'list') return [{ ul: block.items.map((item) => item.text), style: 'paragraph', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_MEDIUM] }]
   if (block.type === 'media') return await mediaContent(block, imageResolver)
   if (block.type === 'embed' && block.url) return [{ text: block.text, link: block.url, style: 'embed', margin: [MARGIN_INLINE_NONE, 2, MARGIN_INLINE_NONE, MARGIN_MEDIUM] }]
   if (block.type === 'embed') return [{ text: block.text, style: 'embed', margin: [MARGIN_INLINE_NONE, 2, MARGIN_INLINE_NONE, MARGIN_MEDIUM] }]
