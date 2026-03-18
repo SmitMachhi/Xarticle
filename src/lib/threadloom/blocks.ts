@@ -33,6 +33,9 @@ const mergeAdjacentLists = (blocks: ArticleBlock[]): ArticleBlock[] => {
 const parseArticleContentBlocks = (tweet: ThreadloomTweet): ArticleBlock[] => {
   const parsed = (tweet.article?.content?.blocks || [])
     .map((block) => {
+      if (block.type === 'atomic' && block.url) {
+        return { type: 'media', mediaType: 'image', url: block.url, caption: undefined } satisfies ArticleBlock
+      }
       const rawText = (block.text || '').trim()
       return rawText ? convertBlockType(block.type, rawText, normalizeText(rawText)) : null
     })
@@ -101,8 +104,18 @@ const dedupeAdjacentParagraphs = (blocks: ArticleBlock[]): ArticleBlock[] => {
   return deduped
 }
 
+const inlineMediaUrls = (blocks: ArticleBlock[]): Set<string> => {
+  const urls = new Set<string>()
+  for (const block of blocks) {
+    if (block.type === 'media') urls.add(block.url)
+  }
+  return urls
+}
+
 export const buildTweetBlocks = (tweet: ThreadloomTweet): ArticleBlock[] => {
   const contentBlocks = parseArticleContentBlocks(tweet)
+  const inlineUrls = inlineMediaUrls(contentBlocks)
+  const extraMedia = toMediaBlocks(tweet).filter((b) => b.type !== 'media' || !inlineUrls.has(b.url))
   const fallbackBlocks = contentBlocks.length === 0 && tweet.article?.preview_text ? [{ type: 'paragraph', text: normalizeText(tweet.article.preview_text) } satisfies ArticleBlock] : []
-  return dedupeAdjacentParagraphs([...fallbackBlocks, ...contentBlocks, ...toMediaBlocks(tweet)])
+  return dedupeAdjacentParagraphs([...fallbackBlocks, ...contentBlocks, ...extraMedia])
 }

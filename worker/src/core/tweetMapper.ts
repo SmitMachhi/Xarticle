@@ -62,22 +62,41 @@ const toAuthor = (tweetNode: UnknownMap) => {
   }
 }
 
+type ContentBlock = { type: string; text: string; url?: string }
+
 const toCoverImageUrl = (rawArticle: UnknownMap): string | null => {
   const coverMedia = asMap(rawArticle.cover_media)
   return normalizeImageUrl(firstString(coverMedia.media_url_https, coverMedia.media_url, asMap(coverMedia.original_info).url))
 }
 
-const toArticleBlocksFromState = (rawArticle: UnknownMap): Array<{ text: string; type: string }> => {
-  return asArray(asMap(rawArticle.content_state).blocks)
-    .map((block) => {
-      const typed = asMap(block)
-      const text = firstString(typed.text)
-      return text ? { type: firstString(typed.type) || 'unstyled', text } : null
-    })
-    .filter((block): block is { text: string; type: string } => block !== null)
+const resolveAtomicImageUrl = (entityMap: UnknownMap, block: UnknownMap): string | null => {
+  const ranges = asArray(block.entityRanges)
+  if (ranges.length === 0) return null
+  const key = String(asMap(ranges[0]).key ?? '')
+  const entity = asMap(entityMap[key])
+  if (entity.type !== 'IMAGE') return null
+  const data = asMap(entity.data)
+  return normalizeImageUrl(firstString(data.src, data.url, data.media_url_https))
 }
 
-const toArticleBlocks = (rawArticle: UnknownMap): Array<{ text: string; type: string }> => {
+const toArticleBlocksFromState = (rawArticle: UnknownMap): ContentBlock[] => {
+  const contentState = asMap(rawArticle.content_state)
+  const entityMap = asMap(contentState.entityMap)
+  return asArray(contentState.blocks)
+    .map((block) => {
+      const typed = asMap(block)
+      const blockType = firstString(typed.type) || 'unstyled'
+      if (blockType === 'atomic') {
+        const url = resolveAtomicImageUrl(entityMap, typed)
+        return url ? { type: 'atomic', text: '', url } : null
+      }
+      const text = firstString(typed.text)
+      return text ? { type: blockType, text } : null
+    })
+    .filter((block): block is ContentBlock => block !== null)
+}
+
+const toArticleBlocks = (rawArticle: UnknownMap): ContentBlock[] => {
   const fromState = toArticleBlocksFromState(rawArticle)
   if (fromState.length > 0) return fromState
   const plainText = firstString(rawArticle.plain_text, asMap(rawArticle.content_state).plain_text, rawArticle.preview_text) || ''

@@ -7,6 +7,7 @@ export interface ThreadloomTweetAuthor {
 export interface ThreadloomArticleBlock {
   text?: string
   type?: string
+  url?: string
 }
 
 export interface ThreadloomMediaInfo {
