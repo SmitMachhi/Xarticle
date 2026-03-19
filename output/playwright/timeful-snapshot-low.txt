@@ -1,6 +1,0 @@
-### Page
-- Page URL: https://timeful.app/
-- Page Title: Timeful (formerly Schej) - Find a time to meet
-- Console: 2 errors, 0 warnings
-### Snapshot
-- [Snapshot](.playwright-cli/page-2026-02-24T22-48-03-460Z.yml)

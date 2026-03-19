@@ -1,7 +1,0 @@
-name = "lola-api"
-main = "src/index.ts"
-compatibility_date = "2024-01-01"
-
-[vars]
-APP_ENV = "production"
-APP_BUNDLE_ID = "com.lola.app"
