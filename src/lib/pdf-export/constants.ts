@@ -1,9 +1,10 @@
 import type { MarginPreset } from '../../types/article'
+import type { ImageLimits } from './image/sizing'
 
 export const COVER_IMAGE_CAPTION = 'cover image'
-export const IMAGE_FIT_WIDTH = 500
-export const COVER_IMAGE_FIT_HEIGHT = 250
-export const BODY_IMAGE_FIT_HEIGHT = 260
+// Target area ~ a 380x285pt (4:3) image; caps keep wide shots inside the column and tall phone shots off a full page.
+export const BODY_IMAGE_LIMITS: ImageLimits = { area: 108_300, maxWidth: 460, maxHeight: 380 }
+export const COVER_IMAGE_LIMITS: ImageLimits = { area: 140_000, maxWidth: 500, maxHeight: 300 }
 
 export const STATUS_ID_PATTERN = /\/status\/(\d+)/
 export const FILENAME_SEGMENT_LIMIT = 42

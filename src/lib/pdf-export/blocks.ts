@@ -2,9 +2,8 @@ import type { Content, CustomTableLayout } from 'pdfmake/interfaces'
 
 import type { ArticleBlock } from '../../types/article'
 import {
-  BODY_IMAGE_FIT_HEIGHT,
+  BODY_IMAGE_LIMITS,
   DIVIDER_LINE_WIDTH,
-  IMAGE_FIT_WIDTH,
   MARGIN_CODE_BLOCK,
   MARGIN_INLINE_NONE,
   MARGIN_LARGE,
@@ -16,6 +15,7 @@ import {
   VIDEO_LINK_LABEL,
 } from './constants'
 import { pdfSafeText } from './glyphs'
+import { fitImage } from './image/sizing'
 import { inlineText } from './inline'
 import type { PdfPalette } from './styles'
 
@@ -57,15 +57,15 @@ const dividerContent = (palette: PdfPalette): Content => ({
 
 const mediaExtras = (block: Extract<ArticleBlock, { type: 'media' }>): Content[] => {
   const extras: Content[] = []
-  if (block.link) extras.push({ text: VIDEO_LINK_LABEL, link: block.link, style: 'embed', margin: CAPTION_MARGIN })
-  if (block.caption) extras.push({ text: pdfSafeText(block.caption), style: 'mediaCaption', margin: CAPTION_MARGIN })
+  if (block.link) extras.push({ text: VIDEO_LINK_LABEL, link: block.link, style: 'embed', alignment: 'center', margin: CAPTION_MARGIN })
+  if (block.caption) extras.push({ text: pdfSafeText(block.caption), style: 'mediaCaption', alignment: 'center', margin: CAPTION_MARGIN })
   return extras
 }
 
 const mediaContent = async (block: Extract<ArticleBlock, { type: 'media' }>, imageResolver: ImageResolver): Promise<Content[]> => {
   const imageDataUrl = await imageResolver(block.url)
   const visual: Content = imageDataUrl
-    ? { image: imageDataUrl, fit: [IMAGE_FIT_WIDTH, BODY_IMAGE_FIT_HEIGHT], link: block.link, margin: [MARGIN_INLINE_NONE, MARGIN_MEDIUM, MARGIN_INLINE_NONE, MARGIN_SMALL] }
+    ? { image: imageDataUrl, fit: fitImage(imageDataUrl, BODY_IMAGE_LIMITS), alignment: 'center', link: block.link, margin: [MARGIN_INLINE_NONE, MARGIN_MEDIUM, MARGIN_INLINE_NONE, MARGIN_SMALL] }
     : { text: `Media: ${block.url}`, style: 'embed', link: block.url, margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_SMALL] }
   return [visual, ...mediaExtras(block)]
 }

@@ -4,11 +4,10 @@ import type { ArticleBlock, ExtractedArticle } from '../../types/article'
 import { blocksToContent } from './blocks'
 import {
   COVER_IMAGE_CAPTION,
-  COVER_IMAGE_FIT_HEIGHT,
+  COVER_IMAGE_LIMITS,
   DATE_FORMAT,
   DATE_LOCALE,
   FOOTER_FONT_SIZE,
-  IMAGE_FIT_WIDTH,
   MARGIN_INLINE_NONE,
   MARGIN_LARGE,
   MARGIN_MEDIUM,
@@ -20,6 +19,7 @@ import {
   PAGE_MARGIN_LEFT,
 } from './constants'
 import { pdfSafeText } from './glyphs'
+import { fitImage } from './image/sizing'
 import type { PdfExportOptions } from './options'
 import { paletteForTheme, stylesForTheme } from './styles'
 
@@ -71,7 +71,7 @@ const bodyHeader = (article: ExtractedArticle): Content[] => {
 
 const coverPage = (article: ExtractedArticle, coverImageUrl: string | null, coverMetaStyle: PdfExportOptions['coverMetaStyle']): Content => {
   const metadata = coverMetaStyle === 'minimal' ? `@${article.authorHandle}` : `@${article.authorHandle}${article.publishedAt ? ` • ${formatDate(article.publishedAt)}` : ''}`
-  const media: Content[] = coverImageUrl ? [{ image: coverImageUrl, fit: [IMAGE_FIT_WIDTH, COVER_IMAGE_FIT_HEIGHT], margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_XLARGE] }] : []
+  const media: Content[] = coverImageUrl ? [{ image: coverImageUrl, fit: fitImage(coverImageUrl, COVER_IMAGE_LIMITS), alignment: 'center', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_XLARGE] }] : []
   return {
     pageBreak: 'after',
     stack: [
