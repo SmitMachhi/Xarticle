@@ -59,7 +59,7 @@ describe('status regression parsing', () => {
 })
 
 describe('pdf definition regression', () => {
-  it('puts the cover page first when enabled', async () => {
+  it('puts the cover block first and lets the article share page 1', async () => {
     const payload = loadFixture('elvissun-status.json')
     const article = parseThreadloomStatusResponse(payload, 'https://x.com/elvissun/status/2025920521871716562?s=20')
 
@@ -67,7 +67,7 @@ describe('pdf definition regression', () => {
     expect(Array.isArray(doc.content)).toBe(true)
 
     const first = (doc.content as Array<{ pageBreak?: string }>)[0]
-    expect(first.pageBreak).toBe('after')
+    expect(first.pageBreak).toBeUndefined()
     const titleCount = collectTexts(doc.content).filter((text) => text === article.title).length
     expect(titleCount).toBe(1)
     expect(collectTexts(doc.content)).not.toContain('source: public status parser')
@@ -90,7 +90,7 @@ describe('pdf definition regression', () => {
     })
 
     const firstPage = (doc.content as Array<{ stack?: Array<{ image?: string }>; pageBreak?: string }>)[0]
-    expect(firstPage.pageBreak).toBe('after')
+    expect(firstPage.pageBreak).toBeUndefined()
     expect(firstPage.stack?.[0]?.image).toBe('data:image/png;base64,cover')
   })
 

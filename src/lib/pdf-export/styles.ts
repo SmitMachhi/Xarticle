@@ -32,8 +32,8 @@ export const stylesForTheme = (themeMode: ThemeMode): StyleDictionary => {
     inlineLink: { color: text, decoration: 'underline' },
     mediaCaption: { fontSize: 9, color: meta, italics: true },
     meta: { fontSize: 10, color: meta },
-    paragraph: { fontSize: 11, lineHeight: 1.4, color: text },
-    quote: { fontSize: 11, lineHeight: 1.4, italics: true, color: meta },
+    paragraph: { fontSize: 10, lineHeight: 1.3, color: text },
+    quote: { fontSize: 10, lineHeight: 1.3, italics: true, color: meta },
     title: { fontSize: 22, bold: true, color: text },
   }
 }

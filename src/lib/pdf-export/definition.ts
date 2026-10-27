@@ -1,13 +1,13 @@
 import type { Content, Node, NodeQueries, TDocumentDefinitions } from 'pdfmake/interfaces'
 
 import type { ArticleBlock, ExtractedArticle } from '../../types/article'
-import { blocksToContent } from './blocks'
+import { blocksToContent, dividerContent } from './blocks'
 import {
   COVER_IMAGE_CAPTION,
-  COVER_IMAGE_LIMITS,
   DATE_FORMAT,
   DATE_LOCALE,
   FOOTER_FONT_SIZE,
+  IMAGE_LIMITS,
   MARGIN_INLINE_NONE,
   MARGIN_LARGE,
   MARGIN_MEDIUM,
@@ -71,9 +71,8 @@ const bodyHeader = (article: ExtractedArticle): Content[] => {
 
 const coverPage = (article: ExtractedArticle, coverImageUrl: string | null, coverMetaStyle: PdfExportOptions['coverMetaStyle']): Content => {
   const metadata = coverMetaStyle === 'minimal' ? `@${article.authorHandle}` : `@${article.authorHandle}${article.publishedAt ? ` • ${formatDate(article.publishedAt)}` : ''}`
-  const media: Content[] = coverImageUrl ? [{ image: coverImageUrl, fit: fitImage(coverImageUrl, COVER_IMAGE_LIMITS), alignment: 'center', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_XLARGE] }] : []
+  const media: Content[] = coverImageUrl ? [{ image: coverImageUrl, fit: fitImage(coverImageUrl, IMAGE_LIMITS), alignment: 'center', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_XLARGE] }] : []
   return {
-    pageBreak: 'after',
     stack: [
       ...media,
       { text: 'Xarticle.co', style: 'coverBadge', margin: [MARGIN_INLINE_NONE, MARGIN_SMALL, MARGIN_INLINE_NONE, MARGIN_XXLARGE] },
@@ -93,10 +92,12 @@ export const buildPdfDefinition = async (
   imageResolver: ImageResolver,
 ): Promise<TDocumentDefinitions> => {
   const { bodyBlocks, coverMediaUrl } = splitCoverMedia(article.blocks, opts.coverPageMode === 'always')
-  const bodyContent = await blocksToContent(bodyBlocks, imageResolver, paletteForTheme(opts.themeMode))
+  const palette = paletteForTheme(opts.themeMode)
+  const bodyContent = await blocksToContent(bodyBlocks, imageResolver, palette)
   const coverMedia = coverMediaUrl ? await imageResolver(coverMediaUrl) : null
   const content: Content[] = []
-  if (opts.coverPageMode === 'always') content.push(coverPage(article, coverMedia, opts.coverMetaStyle))
+  // The cover shares page 1 with the article to save paper; a rule separates the two.
+  if (opts.coverPageMode === 'always') content.push(coverPage(article, coverMedia, opts.coverMetaStyle), dividerContent(palette))
   if (opts.coverPageMode !== 'always') content.push(...bodyHeader(article))
   content.push(...bodyContent)
 

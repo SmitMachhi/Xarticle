@@ -2,14 +2,16 @@ import type { Content, CustomTableLayout } from 'pdfmake/interfaces'
 
 import type { ArticleBlock } from '../../types/article'
 import {
-  BODY_IMAGE_LIMITS,
   DIVIDER_LINE_WIDTH,
+  IMAGE_LIMITS,
+  MARGIN_BLOCK,
   MARGIN_CODE_BLOCK,
+  MARGIN_HEADING_BOTTOM,
+  MARGIN_HEADING_TOP,
   MARGIN_INLINE_NONE,
   MARGIN_LARGE,
   MARGIN_MEDIUM,
   MARGIN_SMALL,
-  MARGIN_XLARGE,
   QUOTE_BAR_WIDTH,
   QUOTE_PADDING_LEFT,
   VIDEO_LINK_LABEL,
@@ -22,13 +24,13 @@ import type { PdfPalette } from './styles'
 type ImageResolver = (url: string) => Promise<string | null>
 type Margins = [number, number, number, number]
 
-const BLOCK_MARGIN: Margins = [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_MEDIUM]
+const BLOCK_MARGIN: Margins = [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_BLOCK]
 const CAPTION_MARGIN: Margins = [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_MEDIUM]
 const HEADING_STYLES = ['h1', 'h2', 'h3'] as const
 
 const headingContent = (block: Extract<ArticleBlock, { type: 'heading' }>): Content => {
   const style = HEADING_STYLES[block.level - 1]
-  return { text: inlineText(block.text, block.marks), style, headlineLevel: block.level, margin: [MARGIN_INLINE_NONE, MARGIN_XLARGE, MARGIN_INLINE_NONE, MARGIN_MEDIUM] }
+  return { text: inlineText(block.text, block.marks), style, headlineLevel: block.level, margin: [MARGIN_INLINE_NONE, MARGIN_HEADING_TOP, MARGIN_INLINE_NONE, MARGIN_HEADING_BOTTOM] }
 }
 
 const listContent = (block: Extract<ArticleBlock, { type: 'list' }>): Content => {
@@ -49,7 +51,7 @@ const quoteContent = (block: Extract<ArticleBlock, { type: 'quote' }>, palette: 
   margin: [MARGIN_INLINE_NONE, MARGIN_SMALL, MARGIN_INLINE_NONE, MARGIN_LARGE],
 })
 
-const dividerContent = (palette: PdfPalette): Content => ({
+export const dividerContent = (palette: PdfPalette): Content => ({
   table: { widths: ['*'], body: [['']] },
   layout: { hLineWidth: (index) => (index === 0 ? DIVIDER_LINE_WIDTH : MARGIN_INLINE_NONE), vLineWidth: () => MARGIN_INLINE_NONE, hLineColor: () => palette.rule },
   margin: [MARGIN_INLINE_NONE, MARGIN_LARGE, MARGIN_INLINE_NONE, MARGIN_SMALL],
@@ -65,7 +67,7 @@ const mediaExtras = (block: Extract<ArticleBlock, { type: 'media' }>): Content[]
 const mediaContent = async (block: Extract<ArticleBlock, { type: 'media' }>, imageResolver: ImageResolver): Promise<Content[]> => {
   const imageDataUrl = await imageResolver(block.url)
   const visual: Content = imageDataUrl
-    ? { image: imageDataUrl, fit: fitImage(imageDataUrl, BODY_IMAGE_LIMITS), alignment: 'center', link: block.link, margin: [MARGIN_INLINE_NONE, MARGIN_MEDIUM, MARGIN_INLINE_NONE, MARGIN_SMALL] }
+    ? { image: imageDataUrl, fit: fitImage(imageDataUrl, IMAGE_LIMITS), alignment: 'center', link: block.link, margin: [MARGIN_INLINE_NONE, MARGIN_MEDIUM, MARGIN_INLINE_NONE, MARGIN_SMALL] }
     : { text: `Media: ${block.url}`, style: 'embed', link: block.url, margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_SMALL] }
   return [visual, ...mediaExtras(block)]
 }
