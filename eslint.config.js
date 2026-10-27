@@ -50,6 +50,7 @@ export default defineConfig([
     '.playwright-cli',
     '.wrangler',
     'coverage',
+    '.claude',
   ]),
   {
     files: ['**/*.{js,mjs,cjs,ts,tsx}'],

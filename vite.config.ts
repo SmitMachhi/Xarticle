@@ -11,6 +11,6 @@ export default defineConfig({
     },
   },
   test: {
-    exclude: ['tests/e2e/**', 'node_modules/**', 'services/**'],
+    exclude: ['tests/e2e/**', 'node_modules/**', 'services/**', '.claude/**'],
   },
 })
