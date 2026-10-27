@@ -38,8 +38,8 @@ const fetchRawTweet = async (
     if (!isStaleQueryFailure(error)) {
       throw error
     }
-    const refreshed = await resolveQueryAndBearer(true)
     await resetGuestToken()
+    const refreshed = await resolveQueryAndBearer(true)
     const refreshGuestToken = await activateGuestToken(refreshed.bearerToken)
     return await graphqlFetchTweetById(
       normalizedStatusId,

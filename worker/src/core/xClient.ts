@@ -1,4 +1,6 @@
 import {
+  DEFAULT_BEARER_TOKEN,
+  DEFAULT_TWEET_RESULT_QUERY_ID,
   GRAPHQL_HEDGE_DELAY_MS,
   GUEST_TOKEN_TTL_MS,
   HTTP_BAD_REQUEST,
@@ -29,6 +31,13 @@ import { readBearerToken, readMainScriptUrl, readQueryId, readTransactionKey } f
 const STALE_QUERY_STATUSES = new Set([HTTP_BAD_REQUEST, HTTP_FORBIDDEN, HTTP_NOT_FOUND, HTTP_UNAUTHORIZED])
 const GRAPHQL_ROOTS = [TWITTER_API_ROOT, X_API_ROOT] as const
 
+interface QueryState {
+  bearerToken: string
+  queryId: string
+}
+
+const FALLBACK_QUERY_STATE: QueryState = { bearerToken: DEFAULT_BEARER_TOKEN, queryId: DEFAULT_TWEET_RESULT_QUERY_ID }
+
 interface GraphqlAttempt {
   error?: string
   response?: Response
@@ -46,31 +55,33 @@ const setQueryState = (queryId: string, bearerToken: string, resolvedAt: number)
   state.queryResolvedAt = resolvedAt
 }
 
-const fetchHomepageHtml = async (): Promise<string> => {
-  const response = await withTimeout(MAIN_SCRIPT_URL, { headers: { accept: 'text/html,application/xhtml+xml' } }, STATUS_TIMEOUT_MS)
-  if (!response.ok) throw new Error(`Failed to fetch X homepage (HTTP ${response.status}).`)
+const fetchText = async (url: string, accept: string): Promise<string> => {
+  const response = await withTimeout(url, { headers: { accept } }, STATUS_TIMEOUT_MS)
+  if (!response.ok) throw new Error(`Failed to fetch ${url} (HTTP ${response.status}).`)
   return await response.text()
 }
 
-const refreshQueryAndBearer = async (): Promise<{ bearerToken: string; queryId: string }> => {
-  const now = Date.now()
-  const mainScriptUrl = readMainScriptUrl(await fetchHomepageHtml())
-  if (!mainScriptUrl) throw new Error('Could not resolve X main script URL.')
-  const scriptResponse = await withTimeout(mainScriptUrl, { headers: { accept: '*/*' } }, STATUS_TIMEOUT_MS)
-  if (!scriptResponse.ok) throw new Error(`Failed to fetch X main script (HTTP ${scriptResponse.status}).`)
-  const scriptText = await scriptResponse.text()
+const resolveFromMainScript = async (): Promise<QueryState | null> => {
+  const mainScriptUrl = readMainScriptUrl(await fetchText(MAIN_SCRIPT_URL, 'text/html,application/xhtml+xml'))
+  if (!mainScriptUrl) return null
+  const scriptText = await fetchText(mainScriptUrl, '*/*')
   const queryId = readQueryId(scriptText)
-  if (!queryId) throw new Error('Could not resolve TweetResultByRestId query id.')
-  const bearerToken = readBearerToken(scriptText)
+  if (!queryId) return null
   state.transactionKey = readTransactionKey(scriptText)
+  return { bearerToken: readBearerToken(scriptText), queryId }
+}
+
+// The x-web bundle has no compatible operation, so fall back to the known-good id instead of failing.
+const refreshQueryAndBearer = async (): Promise<QueryState> => {
+  const now = Date.now()
+  const resolved = await resolveFromMainScript().catch(() => null)
+  const { bearerToken, queryId } = resolved ?? FALLBACK_QUERY_STATE
   setQueryState(queryId, bearerToken, now)
-  await writeDurableQueryState(bearerToken, queryId, now)
+  if (resolved) await writeDurableQueryState(bearerToken, queryId, now)
   return { bearerToken, queryId }
 }
 
-export const resolveQueryAndBearer = async (
-  forceRefresh = false,
-): Promise<{ bearerToken: string; queryId: string }> => {
+export const resolveQueryAndBearer = async (forceRefresh = false): Promise<QueryState> => {
   if (!forceRefresh && state.tweetResultQueryId && state.bearerToken) {
     return { queryId: state.tweetResultQueryId!, bearerToken: state.bearerToken! }
   }
