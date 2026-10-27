@@ -1,9 +1,12 @@
-import type { ArticleBlock, InlineMark, ListItem } from '../../types/article'
-import { normalizeText, parseFencedCode } from './normalize'
+import type { ArticleBlock, HeadingLevel, InlineMark, ListItem } from '../../types/article'
+import { normalizeRichText, normalizeText, parseFencedCode } from './normalize'
 import type { ThreadloomArticleBlock, ThreadloomMediaItem, ThreadloomTweet } from './types'
 
 const COVER_CAPTION = 'Cover image'
 const OVERLAP_THRESHOLD = 48
+
+const HEADING_TYPES = ['header-one', 'header-two', 'header-three']
+const LIST_TYPES: Record<string, boolean> = { 'ordered-list-item': true, 'unordered-list-item': false }
 
 const toMarks = (block: ThreadloomArticleBlock): InlineMark[] | undefined => {
   if (!block.marks || block.marks.length === 0) return undefined
@@ -12,24 +15,23 @@ const toMarks = (block: ThreadloomArticleBlock): InlineMark[] | undefined => {
 
 const toListItem = (text: string, marks?: InlineMark[]): ListItem => (marks ? { text, marks } : { text })
 
-const convertBlockType = (block: ThreadloomArticleBlock, rawText: string, normalized: string): ArticleBlock => {
-  const marks = toMarks(block)
-  const fencedCode = parseFencedCode(rawText)
+const convertBlockType = (block: ThreadloomArticleBlock, rawText: string): ArticleBlock => {
+  const fencedCode = parseFencedCode(rawText.trim())
   if (fencedCode) return { type: 'code', code: fencedCode.code, language: fencedCode.language }
-  if (block.type === 'code-block') return { type: 'code', code: rawText, language: undefined }
-  if (block.type === 'header-one') return { type: 'heading', level: 1, text: normalized, marks }
-  if (block.type === 'header-two') return { type: 'heading', level: 2, text: normalized, marks }
-  if (block.type === 'header-three') return { type: 'heading', level: 3, text: normalized, marks }
-  if (block.type === 'ordered-list-item' || block.type === 'unordered-list-item') return { type: 'list', items: [toListItem(normalized, marks)] }
-  if (block.type === 'blockquote') return { type: 'quote', text: normalized, marks }
-  return { type: 'paragraph', text: normalized, marks }
+  const { text, marks } = normalizeRichText(rawText, toMarks(block))
+  const type = block.type || ''
+  const headingIndex = HEADING_TYPES.indexOf(type)
+  if (headingIndex >= 0) return { type: 'heading', level: (headingIndex + 1) as HeadingLevel, text, marks }
+  if (type in LIST_TYPES) return { type: 'list', ordered: LIST_TYPES[type], items: [toListItem(text, marks)] }
+  if (type === 'blockquote') return { type: 'quote', text, marks }
+  return { type: 'paragraph', text, marks }
 }
 
 const mergeAdjacentBlocks = (blocks: ArticleBlock[]): ArticleBlock[] => {
   const merged: ArticleBlock[] = []
   for (const block of blocks) {
     const previous = merged[merged.length - 1]
-    if (block.type === 'list' && previous?.type === 'list') {
+    if (block.type === 'list' && previous?.type === 'list' && Boolean(block.ordered) === Boolean(previous.ordered)) {
       previous.items.push(...block.items)
       continue
     }
@@ -47,16 +49,20 @@ const toCodeBlock = (block: ThreadloomArticleBlock): ArticleBlock | null => {
   return code ? { type: 'code', code, language: undefined } : null
 }
 
+const toMediaBlock = (block: ThreadloomArticleBlock & { url: string }): ArticleBlock => {
+  const media: ArticleBlock = { type: 'media', mediaType: block.video ? 'video-thumbnail' : 'image', url: block.url, caption: block.caption?.trim() || undefined }
+  return block.video ? { ...media, link: block.video } : media
+}
+
 const toContentBlock = (block: ThreadloomArticleBlock): ArticleBlock | null => {
-  if (block.type === 'atomic' && block.url) {
-    return { type: 'media', mediaType: 'image', url: block.url, caption: undefined }
-  }
+  if (block.type === 'atomic' && block.url) return toMediaBlock({ ...block, url: block.url })
+  if (block.type === 'divider') return { type: 'divider' }
   if (block.type === 'code-block') return toCodeBlock(block)
   if (block.type === 'embed' && block.url) {
     return { type: 'embed', text: block.text || block.url, url: block.url }
   }
-  const rawText = (block.text || '').trim()
-  return rawText ? convertBlockType(block, rawText, normalizeText(rawText)) : null
+  const rawText = block.text || ''
+  return rawText.trim() ? convertBlockType(block, rawText) : null
 }
 
 const parseArticleContentBlocks = (tweet: ThreadloomTweet): ArticleBlock[] => {
@@ -117,12 +123,12 @@ const dedupeAdjacentParagraphs = (blocks: ArticleBlock[]): ArticleBlock[] => {
       const previousText = normalizeText(previous.text)
       if (previousText === current) continue
       if (shouldReplacePrevious(current, previousText)) {
-        previous.text = block.text.trim()
+        deduped[deduped.length - 1] = block
         continue
       }
       if (shouldSkipCurrent(current, previousText)) continue
     }
-    deduped.push({ type: 'paragraph', text: block.text.trim() })
+    deduped.push(block)
   }
   return deduped
 }

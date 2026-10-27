@@ -1,16 +1,14 @@
 import { toArticle } from './articleParser'
 import {
+  asArray,
+  asMap,
   firstNumber,
   firstString,
   normalizeImageUrl,
   stripUrlFromTail,
   toUnixTimestamp,
+  type UnknownMap,
 } from './primitives'
-
-type UnknownMap = Record<string, unknown>
-
-const asMap = (value: unknown): UnknownMap => (value && typeof value === 'object' ? (value as UnknownMap) : {})
-const asArray = (value: unknown): unknown[] => (Array.isArray(value) ? value : [])
 
 const pickMediaList = (legacy: UnknownMap): unknown[] => {
   const extended = asArray(asMap(legacy.extended_entities).media)
@@ -79,6 +77,10 @@ const mediaPayload = (photos: string[]) => ({
   media_entities: photos.map((url) => ({ media_info: { original_img_url: url } })),
 })
 
+const quotedStatusId = (tweetNode: UnknownMap, legacy: UnknownMap): string | null => {
+  return firstString(legacy.quoted_status_id_str, asMap(asMap(tweetNode.quoted_status_result).result).rest_id) || null
+}
+
 export const toTweetPayload = (tweetNode: UnknownMap, requestedStatusId: string): Record<string, unknown> => {
   const legacy = asMap(tweetNode.legacy)
   const author = toAuthor(tweetNode)
@@ -96,6 +98,7 @@ export const toTweetPayload = (tweetNode: UnknownMap, requestedStatusId: string)
     created_timestamp: toUnixTimestamp(createdAt) ?? null,
     id,
     likes: firstNumber(legacy.favorite_count) ?? null,
+    quoted_status_id: quotedStatusId(tweetNode, legacy),
     ...mediaPayload(photos),
     raw_text: { text: normalizedText },
     replies: firstNumber(legacy.reply_count) ?? null,

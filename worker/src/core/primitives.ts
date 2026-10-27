@@ -1,5 +1,10 @@
 import { MILLISECONDS_IN_SECOND } from './constants'
 
+export type UnknownMap = Record<string, unknown>
+
+export const asMap = (value: unknown): UnknownMap => (value && typeof value === 'object' ? (value as UnknownMap) : {})
+export const asArray = (value: unknown): unknown[] => (Array.isArray(value) ? value : [])
+
 export const firstString = (...values: unknown[]): string | undefined => {
   for (const value of values) {
     if (typeof value === 'string' && value.trim()) {

@@ -67,7 +67,7 @@ describe('pdf definition regression', () => {
     expect(Array.isArray(doc.content)).toBe(true)
 
     const first = (doc.content as Array<{ pageBreak?: string }>)[0]
-    expect(first.pageBreak).toBeUndefined()
+    expect(first.pageBreak).toBe('after')
     const titleCount = collectTexts(doc.content).filter((text) => text === article.title).length
     expect(titleCount).toBe(1)
     expect(collectTexts(doc.content)).not.toContain('source: public status parser')
@@ -90,7 +90,7 @@ describe('pdf definition regression', () => {
     })
 
     const firstPage = (doc.content as Array<{ stack?: Array<{ image?: string }>; pageBreak?: string }>)[0]
-    expect(firstPage.pageBreak).toBeUndefined()
+    expect(firstPage.pageBreak).toBe('after')
     expect(firstPage.stack?.[0]?.image).toBe('data:image/png;base64,cover')
   })
 

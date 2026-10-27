@@ -1,10 +1,12 @@
-import type { Content, TDocumentDefinitions } from 'pdfmake/interfaces'
+import type { Content, Node, NodeQueries, TDocumentDefinitions } from 'pdfmake/interfaces'
 
 import type { ArticleBlock, ExtractedArticle } from '../../types/article'
 import { blocksToContent } from './blocks'
 import {
   COVER_IMAGE_CAPTION,
   COVER_IMAGE_FIT_HEIGHT,
+  DATE_FORMAT,
+  DATE_LOCALE,
   FOOTER_FONT_SIZE,
   IMAGE_FIT_WIDTH,
   MARGIN_INLINE_NONE,
@@ -17,8 +19,9 @@ import {
   PAGE_MARGIN_BOTTOM,
   PAGE_MARGIN_LEFT,
 } from './constants'
+import { pdfSafeText } from './glyphs'
 import type { PdfExportOptions } from './options'
-import { stylesForTheme } from './styles'
+import { paletteForTheme, stylesForTheme } from './styles'
 
 type ImageResolver = (url: string) => Promise<string | null>
 
@@ -29,6 +32,14 @@ const metricRows = [
   { key: 'views', label: 'Views' },
   { key: 'bookmarks', label: 'Bookmarks' },
 ] as const
+
+const formatDate = (value: string | Date): string => new Date(value).toLocaleDateString(DATE_LOCALE, DATE_FORMAT)
+
+// Footer nodes are reported with their own (smaller) top, so only nodes below the heading count as body content.
+const keepHeadingWithNext = (node: Node, queries: NodeQueries): boolean => {
+  if (!node.headlineLevel) return false
+  return !queries.getFollowingNodesOnPage().some((next) => next.startPosition.top > node.startPosition.top)
+}
 
 const splitCoverMedia = (blocks: ArticleBlock[], coverEnabled: boolean): { bodyBlocks: ArticleBlock[]; coverMediaUrl: string | null } => {
   if (!coverEnabled) return { bodyBlocks: blocks, coverMediaUrl: null }
@@ -54,23 +65,24 @@ const coverMetricColumns = (article: ExtractedArticle): Content[] => {
 
 const bodyHeader = (article: ExtractedArticle): Content[] => {
   const metadata = [`@${article.authorHandle}`]
-  if (article.publishedAt) metadata.push(new Date(article.publishedAt).toLocaleString())
-  return [{ text: article.title, style: 'h1', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_MEDIUM] }, { text: `${article.authorName} • ${metadata.join(' • ')}`, style: 'meta', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_LARGE] }]
+  if (article.publishedAt) metadata.push(formatDate(article.publishedAt))
+  return [{ text: pdfSafeText(article.title), style: 'h1', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_MEDIUM] }, { text: `${pdfSafeText(article.authorName)} • ${metadata.join(' • ')}`, style: 'meta', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_LARGE] }]
 }
 
 const coverPage = (article: ExtractedArticle, coverImageUrl: string | null, coverMetaStyle: PdfExportOptions['coverMetaStyle']): Content => {
-  const metadata = coverMetaStyle === 'minimal' ? `@${article.authorHandle}` : `@${article.authorHandle}${article.publishedAt ? ` • ${new Date(article.publishedAt).toLocaleString()}` : ''}`
+  const metadata = coverMetaStyle === 'minimal' ? `@${article.authorHandle}` : `@${article.authorHandle}${article.publishedAt ? ` • ${formatDate(article.publishedAt)}` : ''}`
   const media: Content[] = coverImageUrl ? [{ image: coverImageUrl, fit: [IMAGE_FIT_WIDTH, COVER_IMAGE_FIT_HEIGHT], margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_XLARGE] }] : []
   return {
+    pageBreak: 'after',
     stack: [
       ...media,
       { text: 'Xarticle.co', style: 'coverBadge', margin: [MARGIN_INLINE_NONE, MARGIN_SMALL, MARGIN_INLINE_NONE, MARGIN_XXLARGE] },
-      { text: article.title, style: 'coverTitle', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_LARGE] },
-      { text: article.authorName, style: 'title', margin: [MARGIN_INLINE_NONE, MARGIN_SMALL, MARGIN_INLINE_NONE, 2] },
+      { text: pdfSafeText(article.title), style: 'coverTitle', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_LARGE] },
+      { text: pdfSafeText(article.authorName), style: 'title', margin: [MARGIN_INLINE_NONE, MARGIN_SMALL, MARGIN_INLINE_NONE, 2] },
       { text: metadata, style: 'coverMeta', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_XLARGE] },
       { text: article.canonicalUrl, style: 'embed', link: article.canonicalUrl, margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_LARGE] },
       { columns: coverMetricColumns(article), columnGap: MARGIN_LARGE },
-      { text: `generated ${new Date().toLocaleString()}`, style: 'meta', margin: [MARGIN_INLINE_NONE, MARGIN_LARGE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE] },
+      { text: `generated ${formatDate(new Date())}`, style: 'meta', margin: [MARGIN_INLINE_NONE, MARGIN_LARGE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE] },
     ],
   }
 }
@@ -81,7 +93,7 @@ export const buildPdfDefinition = async (
   imageResolver: ImageResolver,
 ): Promise<TDocumentDefinitions> => {
   const { bodyBlocks, coverMediaUrl } = splitCoverMedia(article.blocks, opts.coverPageMode === 'always')
-  const bodyContent = await blocksToContent(bodyBlocks, imageResolver)
+  const bodyContent = await blocksToContent(bodyBlocks, imageResolver, paletteForTheme(opts.themeMode))
   const coverMedia = coverMediaUrl ? await imageResolver(coverMediaUrl) : null
   const content: Content[] = []
   if (opts.coverPageMode === 'always') content.push(coverPage(article, coverMedia, opts.coverMetaStyle))
@@ -92,6 +104,7 @@ export const buildPdfDefinition = async (
     pageSize: opts.paperSize,
     pageMargins: marginMap[opts.marginPreset],
     content,
+    pageBreakBefore: keepHeadingWithNext,
     footer: (currentPage, pageCount) => ({
       columns: [
         { text: 'Xarticle.co', alignment: 'left' },

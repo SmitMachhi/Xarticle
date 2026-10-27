@@ -1,5 +1,6 @@
 export type { ArticleBlock } from './articleBlock'
 export type { CodeBlock } from './codeBlock'
+export type { DividerBlock } from './dividerBlock'
 export type { EmbedBlock } from './embedBlock'
 export type { CoverMetaStyle, CoverPageMode, MarginPreset, PaperSize, ThemeMode } from './exportOptions'
 export type { ExtractedArticle } from './extractedArticle'

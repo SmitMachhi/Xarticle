@@ -1,6 +1,9 @@
 import type { ArticleBlock } from '../../../types/article'
 
 const toTextByType = (block: ArticleBlock): string => {
+  if (block.type === 'divider') {
+    return ''
+  }
   if (block.type === 'code') {
     return block.code
   }

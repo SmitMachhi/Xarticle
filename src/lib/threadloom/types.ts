@@ -12,10 +12,12 @@ export interface ThreadloomInlineMark {
 }
 
 export interface ThreadloomArticleBlock {
+  caption?: string
   marks?: ThreadloomInlineMark[]
   text?: string
   type?: string
   url?: string
+  video?: string
 }
 
 export interface ThreadloomMediaInfo {

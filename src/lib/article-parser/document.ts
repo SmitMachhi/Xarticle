@@ -62,7 +62,7 @@ const parseNode = (node: Element): ArticleBlock | null => {
   return null
 }
 
-const dedupeFingerprint = (block: ArticleBlock): string => {
+const dedupeFingerprint = (block: Exclude<ArticleBlock, { type: 'divider' }>): string => {
   if (block.type === 'list') return `list:${block.items.map((i) => i.text).join('|')}`
   if (block.type === 'code') return `code:${block.language || 'plain'}:${block.code}`
   if (block.type === 'media') return `media:${block.url}`
@@ -73,6 +73,7 @@ const dedupeFingerprint = (block: ArticleBlock): string => {
 const dedupeBlocks = (blocks: ArticleBlock[]): ArticleBlock[] => {
   const seen = new Set<string>()
   return blocks.filter((block) => {
+    if (block.type === 'divider') return true
     const fingerprint = dedupeFingerprint(block)
     const fresh = !seen.has(fingerprint)
     if (fresh) seen.add(fingerprint)

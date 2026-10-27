@@ -17,11 +17,16 @@ const renderers: Renderers = {
     const codeBlock = block as Extract<ArticleBlock, { type: 'code' }>
     return `\`\`\`${codeBlock.language || ''}\n${codeBlock.code}\n\`\`\``
   },
-  list: (block) => (block as Extract<ArticleBlock, { type: 'list' }>).items.map((item) => `- ${item.text}`).join('\n'),
+  list: (block) => {
+    const list = block as Extract<ArticleBlock, { type: 'list' }>
+    return list.items.map((item, index) => `${list.ordered ? `${index + 1}.` : '-'} ${item.text}`).join('\n')
+  },
   media: (block, links) => {
     const media = block as Extract<ArticleBlock, { type: 'media' }>
-    return `![${media.caption || media.mediaType}](${links?.get(media.url) ?? media.url})`
+    const image = `![${media.caption || media.mediaType}](${links?.get(media.url) ?? media.url})`
+    return media.link ? `[${image}](${media.link})` : image
   },
+  divider: () => '---',
   embed: (block) => {
     const embed = block as Extract<ArticleBlock, { type: 'embed' }>
     return embed.url ? `[${embed.text}](${embed.url})` : embed.text

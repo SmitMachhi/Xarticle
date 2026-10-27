@@ -16,6 +16,13 @@ export const MARGIN_XLARGE = 14
 export const MARGIN_XXLARGE = 16
 export const MARGIN_CODE_BLOCK = 10
 
+export const QUOTE_BAR_WIDTH = 2.5
+export const QUOTE_PADDING_LEFT = 10
+export const DIVIDER_LINE_WIDTH = 0.75
+export const VIDEO_LINK_LABEL = 'Watch video'
+export const DATE_FORMAT: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' }
+export const DATE_LOCALE = 'en-US'
+
 export const PAGE_MARGIN_LEFT = 24
 export const PAGE_MARGIN_BOTTOM = 12
 export const FOOTER_FONT_SIZE = 8

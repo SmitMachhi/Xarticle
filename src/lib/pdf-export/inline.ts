@@ -1,4 +1,5 @@
 import type { InlineMark } from '../../types/article'
+import { pdfSafeText } from './glyphs'
 
 type PdfTextFragment = string | {
   text: string
@@ -28,14 +29,14 @@ const withMark = (fragment: Exclude<PdfTextFragment, string>, mark: InlineMark):
 }
 
 export const inlineText = (text: string, marks?: InlineMark[]): PdfTextFragment | PdfTextFragment[] => {
-  if (!marks || marks.length === 0) return text
+  if (!marks || marks.length === 0) return pdfSafeText(text)
   const fragments: PdfTextFragment[] = []
   const breakpoints = breakpointsFor(text, marks)
   for (let index = 0; index < breakpoints.length - 1; index += 1) {
     const start = breakpoints[index]
     const end = breakpoints[index + 1]
     if (end <= start) continue
-    const slice = text.slice(start, end)
+    const slice = pdfSafeText(text.slice(start, end))
     const activeMarks = marks.filter((mark) => mark.offset <= start && mark.offset + mark.length >= end)
     if (activeMarks.length === 0) {
       fragments.push(slice)

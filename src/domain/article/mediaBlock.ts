@@ -3,4 +3,5 @@ export interface MediaBlock {
   mediaType: 'image' | 'video-thumbnail'
   url: string
   caption?: string
+  link?: string
 }

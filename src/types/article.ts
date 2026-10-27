@@ -3,6 +3,7 @@ export type {
   CodeBlock,
   CoverMetaStyle,
   CoverPageMode,
+  DividerBlock,
   EmbedBlock,
   ExtractedArticle,
   ExtractionMode,

@@ -71,15 +71,21 @@ const fetchArticleHtml = async (parsedUrl: URL): Promise<Response> => {
   return await withTimeout(parsedUrl.toString(), { method: 'GET', redirect: 'follow', headers: { accept: 'text/html,application/xhtml+xml' } }, ARTICLE_TIMEOUT_MS)
 }
 
+type StatusTweet = { article?: unknown; quoted_status_id?: string | null } | undefined
+
+const extractStatus = async (statusId: string): Promise<Response> => {
+  const payload = await fetchStatusPayload(statusId)
+  const tweet = payload.tweet as StatusTweet
+  if (tweet?.article) return jsonResponse({ kind: 'status', payloads: [payload], warnings: [] })
+  const quotedId = tweet?.quoted_status_id
+  const quoted = quotedId ? await fetchStatusPayload(quotedId) : null
+  if (!(quoted?.tweet as StatusTweet)?.article) throw new Error('This status does not include an X Article.')
+  return jsonResponse({ kind: 'status', payloads: [quoted], warnings: ['Opened the article quoted by this post.'] })
+}
+
 const extractByUrl = async (parsedUrl: URL): Promise<Response> => {
   const statusId = extractStatusId(parsedUrl)
-  if (statusId) {
-    const payload = await fetchStatusPayload(statusId)
-    if (!(payload.tweet as { article?: unknown } | undefined)?.article) {
-      throw new Error('This status does not include an X Article.')
-    }
-    return jsonResponse({ kind: 'status', payloads: [payload], warnings: [] })
-  }
+  if (statusId) return await extractStatus(statusId)
   const articleId = extractArticleId(parsedUrl)
   if (!articleId) {
     return jsonResponse({ error: 'This URL does not point to a supported status or article.' }, HTTP_BAD_REQUEST)

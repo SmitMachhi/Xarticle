@@ -1217,9 +1217,21 @@ button:disabled {
   margin: 0.95rem 0 0.32rem;
 }
 
+.article-body p,
+.article-body li,
+.article-body blockquote {
+  white-space: pre-line;
+}
+
 .article-body p {
   margin: 0 0 0.56rem;
   line-height: 1.53;
+}
+
+.article-body hr {
+  margin: 1.1rem 0;
+  border: 0;
+  border-top: 1px solid var(--line-strong);
 }
 
 @keyframes preview-shimmer {

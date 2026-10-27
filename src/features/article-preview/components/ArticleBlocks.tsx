@@ -9,13 +9,30 @@ const renderHeading = (block: Extract<ArticleBlock, { type: 'heading' }>, key: s
   return <h4 key={key}>{content}</h4>
 }
 
+const renderList = (block: Extract<ArticleBlock, { type: 'list' }>, key: string) => {
+  const items = block.items.map((item, i) => <li key={`${key}-${i}`}><RichText marks={item.marks} text={item.text} /></li>)
+  return block.ordered ? <ol key={key}>{items}</ol> : <ul key={key}>{items}</ul>
+}
+
+const renderMedia = (block: Extract<ArticleBlock, { type: 'media' }>, key: string) => {
+  const image = <img alt={block.caption || block.mediaType} loading="lazy" src={proxyImageUrl(block.url)} />
+  return (
+    <figure key={key} className="preview-media">
+      {block.link ? <a href={block.link} rel="noreferrer" target="_blank">{image}</a> : image}
+      {block.link ? <figcaption><a href={block.link} rel="noreferrer" target="_blank">Watch video</a></figcaption> : null}
+      {block.caption ? <figcaption>{block.caption}</figcaption> : null}
+    </figure>
+  )
+}
+
 const renderBlock = (block: ArticleBlock, key: string) => {
   if (block.type === 'heading') return renderHeading(block, key)
   if (block.type === 'paragraph') return <p key={key}><RichText marks={block.marks} text={block.text} /></p>
   if (block.type === 'quote') return <blockquote key={key}><RichText marks={block.marks} text={block.text} /></blockquote>
   if (block.type === 'code') return <pre className="code-block" key={key}><code>{block.code}</code></pre>
-  if (block.type === 'list') return <ul key={key}>{block.items.map((item, i) => <li key={`${key}-${i}`}><RichText marks={item.marks} text={item.text} /></li>)}</ul>
-  if (block.type === 'media') return <figure key={key} className="preview-media"><img alt={block.caption || block.mediaType} loading="lazy" src={proxyImageUrl(block.url)} /></figure>
+  if (block.type === 'list') return renderList(block, key)
+  if (block.type === 'media') return renderMedia(block, key)
+  if (block.type === 'divider') return <hr key={key} />
   if (block.type === 'embed') return <p className="embed-line" key={key}>{block.url ? <a href={block.url} rel="noreferrer" target="_blank">{block.text}</a> : block.text}</p>
   return null
 }
