@@ -1,38 +1,35 @@
+import type { FormEvent } from 'react'
+
+import { URL_PLACEHOLDER } from '../constants/uiContent'
+
 interface UrlSectionProps {
   canLoad: boolean
-  loadButtonLabel: string
+  error: string | null
   loading: boolean
+  loadingLabel: string | null
   notice: string | null
   onLoad: () => void
   onPaste: () => void
   onUrlChange: (value: string) => void
-  urlClassificationReason: string
   urlInput: string
   urlInputRef: React.MutableRefObject<HTMLInputElement | null>
+  urlProblem: string | null
 }
 
-export const UrlSection = ({
-  canLoad,
-  loadButtonLabel,
-  loading,
-  notice,
-  onLoad,
-  onPaste,
-  onUrlChange,
-  urlClassificationReason,
-  urlInput,
-  urlInputRef,
-}: UrlSectionProps) => {
+export const UrlSection = ({ canLoad, error, loading, loadingLabel, notice, onLoad, onPaste, onUrlChange, urlInput, urlInputRef, urlProblem }: UrlSectionProps) => {
+  const onSubmit = (event: FormEvent): void => {
+    event.preventDefault()
+    if (canLoad) onLoad()
+  }
+  const message = error || urlProblem || notice
   return (
-    <section className="section-block">
-      <h2 className="section-title">Paste URL</h2>
-      <label htmlFor="url">X URL</label>
-      <div className="row">
-        <input id="url" onChange={(event) => onUrlChange(event.target.value)} ref={urlInputRef} type="text" value={urlInput} />
-        <button className="btn-muted" onClick={onPaste} type="button">Paste</button>
-        <button className="btn-primary" disabled={!canLoad} onClick={onLoad}>{loading ? loadButtonLabel : 'Load Article'}</button>
+    <form className="url-form" onSubmit={onSubmit}>
+      <div className="url-row">
+        <input aria-label="X URL" autoComplete="off" id="url" inputMode="url" onChange={(event) => onUrlChange(event.target.value)} placeholder={URL_PLACEHOLDER} ref={urlInputRef} spellCheck={false} type="text" value={urlInput} />
+        <button className="btn-quiet" onClick={onPaste} type="button">Paste</button>
+        <button className="btn-primary" disabled={!canLoad} type="submit">{loading ? loadingLabel : 'Load Article'}</button>
       </div>
-      <p className="url-status" aria-live="polite"><span key={notice || urlClassificationReason}>{notice || urlClassificationReason}</span></p>
-    </section>
+      {message ? <p className={error || urlProblem ? 'form-message is-error' : 'form-message'} role={error ? 'alert' : undefined}>{message}</p> : null}
+    </form>
   )
 }

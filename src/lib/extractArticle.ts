@@ -1,7 +1,7 @@
 import type { ExtractRequestResult, ProviderAttempt } from '../types/article'
 import { parseXHtmlDocument } from './articleParser'
 import { parseThreadloomStatusResponse } from './threadloomParser'
-import { extractStatusId, isSupportedXInputUrl, normalizeInputUrl } from './xUrl'
+import { isSupportedXInputUrl, normalizeInputUrl } from './xUrl'
 
 const EXTRACT_ENDPOINT = import.meta.env.VITE_EXTRACT_API_URL?.trim() || '/api/extract'
 const EXTRACT_TIMEOUT_MS = 25_000
@@ -79,10 +79,6 @@ const validateArticleUrl = (rawUrl: string): URL => {
   return parsed
 }
 
-const withAttempts = (attempts: ProviderAttempt[]): string => {
-  return attempts.map((attempt) => `${attempt.provider}: ${attempt.ok ? 'ok' : `failed (${attempt.message})`}`).join(' | ')
-}
-
 const applyWarnings = (warnings: string[] | undefined, article: ExtractRequestResult['article']): void => {
   if (warnings?.length) article.warnings.push(...warnings)
 }
@@ -97,7 +93,6 @@ export const extractArticleFromUrl = async (
 ): Promise<ExtractRequestResult> => {
   const sourceUrl = validateArticleUrl(rawUrl).toString()
   const attempts: ProviderAttempt[] = []
-  const statusUrl = Boolean(extractStatusId(new URL(sourceUrl)))
   try {
     emitStage(options, 'fetching')
     const result = await fetchBackendExtract(sourceUrl)
@@ -116,8 +111,6 @@ export const extractArticleFromUrl = async (
     article.providerAttempts = [...attempts]
     return { article }
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Extraction backend failed.'
-    attempts.push({ provider: statusUrl ? 'threadloom' : 'companion', ok: false, message })
-    throw new Error(`Extraction failed. ${withAttempts(attempts)}`)
+    throw new Error(error instanceof Error ? error.message : 'Could not load this link.')
   }
 }

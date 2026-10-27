@@ -1,9 +1,12 @@
 import type { MarginPreset, PaperSize } from '../../../types/article'
 import { MARGIN_PRESET_OPTIONS, PAPER_SIZE_OPTIONS } from '../constants/uiContent'
+import { CopyTextButton } from './CopyTextButton'
 
 interface ExportSectionProps {
   canDownload: boolean
+  copyPayload: string
   downloadState: 'idle' | 'pdf' | 'print' | 'markdown'
+  error: string | null
   marginPreset: MarginPreset
   onMarginPresetChange: (value: MarginPreset) => void
   onMarkdown: () => void
@@ -13,33 +16,23 @@ interface ExportSectionProps {
   paperSize: PaperSize
 }
 
-const renderOptions = <T extends string>(items: ReadonlyArray<{ label: string; value: T }>, current: T) => {
-  return items.map((item) => <option key={item.value} value={item.value}>{item.label}{item.value === current ? ' (selected)' : ''}</option>)
-}
+const renderOptions = <T extends string>(items: ReadonlyArray<{ label: string; value: T }>) => items.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)
 
-export const ExportSection = ({
-  canDownload,
-  downloadState,
-  marginPreset,
-  onMarginPresetChange,
-  onMarkdown,
-  onPdf,
-  onPaperSizeChange,
-  onPrint,
-  paperSize,
-}: ExportSectionProps) => {
+export const ExportSection = (props: ExportSectionProps) => {
+  const { canDownload, downloadState } = props
   return (
-    <section className="section-block">
-      <h2 className="section-title">Export</h2>
-      <label>Paper Size<select onChange={(event) => onPaperSizeChange(event.target.value as PaperSize)} value={paperSize}>{renderOptions(PAPER_SIZE_OPTIONS, paperSize)}</select></label>
-      <label>Margin<select onChange={(event) => onMarginPresetChange(event.target.value as MarginPreset)} value={marginPreset}>{renderOptions(MARGIN_PRESET_OPTIONS, marginPreset)}</select></label>
-      <div className="button-row button-row-split">
-        <button className={`btn-primary${downloadState === 'pdf' ? ' is-generating' : ''}`} disabled={!canDownload} onClick={onPdf}>{downloadState === 'pdf' ? 'Generating...' : 'Download PDF'}</button>
-        <button className={`btn-secondary${downloadState === 'print' ? ' is-generating' : ''}`} disabled={!canDownload} onClick={onPrint}>{downloadState === 'print' ? 'Preparing...' : 'Print PDF'}</button>
+    <section aria-label="Export" className="export-bar card">
+      <div className="export-actions">
+        <button className="btn-primary" disabled={!canDownload} onClick={props.onPdf}>{downloadState === 'pdf' ? 'Generating…' : 'Download PDF'}</button>
+        <button className="btn-quiet" disabled={!canDownload} onClick={props.onPrint}>{downloadState === 'print' ? 'Preparing…' : 'Print'}</button>
+        <button className="btn-quiet" disabled={!canDownload} onClick={props.onMarkdown} title="Markdown file, ready to paste into an LLM">{downloadState === 'markdown' ? 'Generating…' : 'Markdown'}</button>
+        <CopyTextButton payload={props.copyPayload} />
       </div>
-      <div className="button-row">
-        <button className={`btn-muted${downloadState === 'markdown' ? ' is-generating' : ''}`} disabled={!canDownload} onClick={onMarkdown}>{downloadState === 'markdown' ? 'Generating...' : 'Download for LLMs (Markdown)'}</button>
+      <div className="export-settings">
+        <select aria-label="Paper size" onChange={(event) => props.onPaperSizeChange(event.target.value as PaperSize)} value={props.paperSize}>{renderOptions(PAPER_SIZE_OPTIONS)}</select>
+        <select aria-label="Margins" onChange={(event) => props.onMarginPresetChange(event.target.value as MarginPreset)} value={props.marginPreset}>{renderOptions(MARGIN_PRESET_OPTIONS)}</select>
       </div>
+      {props.error ? <p className="form-message is-error" role="alert">{props.error}</p> : null}
     </section>
   )
 }

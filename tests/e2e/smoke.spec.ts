@@ -69,7 +69,7 @@ test('status url renders preview and downloads pdf and markdown', async ({ page 
   await expect(codeBlock).toHaveCount(1)
 
   const pdfButton = page.getByRole('button', { name: 'Download PDF' })
-  const markdownButton = page.getByRole('button', { name: /Download for LLMs/i })
+  const markdownButton = page.getByRole('button', { name: 'Markdown' })
 
   await expect(pdfButton).toBeEnabled()
   await expect(markdownButton).toBeEnabled()

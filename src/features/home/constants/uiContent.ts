@@ -2,19 +2,10 @@ import type { MarginPreset, PaperSize } from '../../../types/article'
 
 export const APP_NAME = 'Xarticle.co'
 export const HERO_TITLE = 'Turn one URL into clean exports.'
-export const HERO_IDLE_LABEL = 'Drop Link'
-export const HERO_IDLE_COPY = 'Paste a public X status or article URL to start.'
-export const HERO_WORKING_LABEL = 'Working'
-export const HERO_WORKING_COPY = 'Fetching and parsing the article now...'
+export const URL_PLACEHOLDER = 'Paste an X post or article link'
 export const FOOTER_CREDIT_LABEL = 'Made with ❤️ by'
 export const FOOTER_CREDIT_NAME = '@thesmitmachhi'
 export const FOOTER_CREDIT_URL = 'https://x.com/thesmitmachhi'
-
-export const HOW_IT_WORKS = [
-  'Paste one public X Article link.',
-  'Preview extracted content in your browser.',
-  'Download PDF for humans or Markdown for LLMs.',
-] as const
 
 export const FAQ_ITEMS = [
   {
@@ -33,6 +24,6 @@ export const PAPER_SIZE_OPTIONS: ReadonlyArray<{ value: PaperSize; label: string
 ]
 
 export const MARGIN_PRESET_OPTIONS: ReadonlyArray<{ value: MarginPreset; label: string }> = [
-  { value: 'default', label: 'Default' },
-  { value: 'minimum', label: 'Minimum' },
+  { value: 'default', label: 'Normal margins' },
+  { value: 'minimum', label: 'Narrow margins' },
 ]
