@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+
 import pandaSeriousGear from '../../../assets/panda_pose_serious_gear.png'
 import pandaWave from '../../../assets/panda_pose_wave.png'
 import pandaWinkHeart from '../../../assets/panda_pose_wink_heart.png'

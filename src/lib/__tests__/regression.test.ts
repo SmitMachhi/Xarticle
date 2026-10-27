@@ -4,9 +4,9 @@ import { fileURLToPath } from 'node:url'
 
 import { describe, expect, it } from 'vitest'
 
+import type { ExtractedArticle } from '../../types/article'
 import { buildArticlePdfDefinition, type PdfExportOptions } from '../pdfExport'
 import { parseThreadloomStatusResponse } from '../threadloomParser'
-import type { ExtractedArticle } from '../../types/article'
 
 const loadFixture = (name: string): unknown => {
   const currentDir = dirname(fileURLToPath(import.meta.url))
