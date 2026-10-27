@@ -5,6 +5,10 @@ on:
     branches:
       - master
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   test-and-build:
@@ -37,3 +41,46 @@ jobs:
 
       - name: playwright smoke
         run: npm run test:e2e
+
+      - name: keep tested build
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          retention-days: 1
+
+  # Only ships to xarticle.co after every check above passes, and ships the exact build that was tested.
+  deploy:
+    needs: test-and-build
+    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-pages-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Pages Functions in functions/ are bundled from source at deploy time.
+      - name: install dependencies
+        run: npm ci
+
+      - name: fetch tested build
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: deploy to cloudflare pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name twitter-article-downloader --branch master

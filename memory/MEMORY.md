@@ -5,8 +5,10 @@
 **xarticle.co is served by Cloudflare PAGES (`twitter-article-downloader` project).**
 **API routes (/api/extract, /api/image) are served by Pages Functions in `functions/api/`.**
 
+**Normal path: push to `master`.** `.github/workflows/ci.yml` runs lint, tests, build and the Playwright smoke test, then its `deploy` job ships that exact build. A failing check blocks the deploy.
+
 ```bash
-# Correct deploy command (deploys static assets + Pages Functions together):
+# Manual deploy (bypasses CI checks; deploys static assets + Pages Functions together):
 npm run build && npx wrangler pages deploy dist --project-name twitter-article-downloader --branch=master
 
 # WRONG - deploys to Worker only (workers.dev URL, NOT xarticle.co):
