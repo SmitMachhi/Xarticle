@@ -31,3 +31,9 @@
     - explicit timeouts/retries/backoff for network/IO
     - no secrets in code, logs, fixtures, or commit history
 12. Verification before commit must include all relevant checks for the stack (lint/static analysis, tests, and build/type checks where applicable).
+13. UI restraint (follow Jakub Krehel's "Less is more": https://jakub.kr/writing/less-is-more):
+    - no gratuitous text or additions, and no eyebrow/kicker labels
+    - question every addition: why is it here, and does it make the result better? if not, cut it
+    - keep only what is essential; simple, predictable UI lowers cognitive load
+    - don't animate by default; the more often an action repeats, the less motion it gets
+    - understand the user and the problem before adding or removing anything
