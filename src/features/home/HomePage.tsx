@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 
-import { DotPattern } from '../../components/magicui/dot-pattern'
 import { toPlainTextPayload } from '../article-preview/utils/text'
 import { CreditFooter } from './components/CreditFooter'
 import { ExportSection } from './components/ExportSection'
@@ -24,7 +23,6 @@ export const HomePage = () => {
 
   return (
     <div className="relative flex min-h-dvh flex-col">
-      <DotPattern className="fixed text-neutral-300 [mask-image:radial-gradient(ellipse_70%_55%_at_50%_45%,black,transparent)] print:hidden" />
       <main className="relative mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 pb-12 sm:px-6" id="main-content">
         <TopBar />
         <HeroSection centered={!article && !loading}>

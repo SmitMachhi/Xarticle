@@ -43,7 +43,7 @@ npx wrangler deploy
 - `src/lib/imageProxy.ts` — `proxyImageUrl(url)` utility
 - `worker/src/routes/image.ts` — image proxy endpoint
 - `src/index.css` — Tailwind v4 theme + article prose styles; components use Tailwind classes
-- `src/components/magicui/` — vendored Magic UI components (dot-pattern, aurora-text, shimmer-button, border-beam, blur-fade), pulled from magicui.design/r/<name>.json; lint-relaxed in eslint.config.js
+- `src/components/magicui/` — vendored Magic UI components (aurora-text, shimmer-button, border-beam, blur-fade); page background is a warm paper grain in index.css, pulled from magicui.design/r/<name>.json; lint-relaxed in eslint.config.js
 
 ## Curriculum App
 
