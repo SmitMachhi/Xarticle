@@ -1,4 +1,4 @@
-import type { Content, Node, NodeQueries, TDocumentDefinitions } from 'pdfmake/interfaces'
+import type { Column, Content, Node, NodeQueries, TDocumentDefinitions } from 'pdfmake/interfaces'
 
 import type { ArticleBlock, ExtractedArticle } from '../../types/article'
 import { blocksToContent, dividerContent } from './blocks'
@@ -7,9 +7,9 @@ import {
   DATE_FORMAT,
   DATE_LOCALE,
   FOOTER_FONT_SIZE,
-  IMAGE_LIMITS,
+  HEADER_COLUMN_GAP,
+  HEADER_THUMB,
   MARGIN_INLINE_NONE,
-  MARGIN_MEDIUM,
   MARGIN_SMALL,
   marginMap,
   PAGE_MARGIN_BOTTOM,
@@ -17,16 +17,14 @@ import {
   URL_PROTOCOL_PATTERN,
 } from './constants'
 import { pdfSafeText } from './glyphs'
-import { fitImage } from './image/sizing'
 import type { PdfExportOptions } from './options'
 import { paletteForTheme, stylesForTheme } from './styles'
 
 type ImageResolver = (url: string) => Promise<string | null>
 
+// Only the three stats readers care about, to keep the header to one short line.
 const metricRows = [
   { key: 'likes', label: 'likes' },
-  { key: 'replies', label: 'replies' },
-  { key: 'reposts', label: 'reposts' },
   { key: 'views', label: 'views' },
   { key: 'bookmarks', label: 'bookmarks' },
 ] as const
@@ -53,19 +51,26 @@ const statsLine = (article: ExtractedArticle): string => metricRows.flatMap(({ k
   return value === null ? [] : [`${value.toLocaleString(DATE_LOCALE)} ${label}`]
 }).join(' · ')
 
-// Title, byline and stats in three tight lines: print readers get the source without a full-page cover.
-const articleHeader = (article: ExtractedArticle, metaStyle: PdfExportOptions['coverMetaStyle']): Content[] => {
+const headerText = (article: ExtractedArticle, metaStyle: PdfExportOptions['coverMetaStyle']): Column => {
   const byline = [`${pdfSafeText(article.authorName)} @${article.authorHandle}`]
   if (metaStyle === 'full' && article.publishedAt) byline.push(formatDate(article.publishedAt))
   const stats = statsLine(article)
-  return [
-    { text: pdfSafeText(article.title), style: 'h1', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_SMALL] },
-    { text: [`${byline.join(' · ')} · `, { text: article.canonicalUrl.replace(URL_PROTOCOL_PATTERN, ''), link: article.canonicalUrl, decoration: 'underline' }], style: 'meta' },
-    ...(stats ? [{ text: stats, style: 'meta' }] : []),
-  ]
+  return {
+    width: '*',
+    stack: [
+      { text: pdfSafeText(article.title), style: 'headerTitle', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_SMALL] },
+      { text: byline.join(' · '), style: 'headerMeta' },
+      ...(stats ? [{ text: stats, style: 'headerMeta' }] : []),
+      { text: article.canonicalUrl.replace(URL_PROTOCOL_PATTERN, ''), link: article.canonicalUrl, decoration: 'underline', style: 'headerMeta' },
+    ],
+  }
 }
 
-const coverImage = (url: string | null): Content[] => url ? [{ image: url, fit: fitImage(url, IMAGE_LIMITS), alignment: 'center', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_MEDIUM] }] : []
+// Cover thumbnail beside the title keeps the whole header under ~90pt, so page 1 is mostly article.
+const articleHeader = (article: ExtractedArticle, coverUrl: string | null, metaStyle: PdfExportOptions['coverMetaStyle']): Content => {
+  const thumbnail: Column[] = coverUrl ? [{ image: coverUrl, fit: [HEADER_THUMB.width, HEADER_THUMB.height], width: HEADER_THUMB.width }] : []
+  return { columns: [...thumbnail, headerText(article, metaStyle)], columnGap: HEADER_COLUMN_GAP }
+}
 
 export const buildPdfDefinition = async (
   article: ExtractedArticle,
@@ -77,7 +82,7 @@ export const buildPdfDefinition = async (
   const bodyContent = await blocksToContent(bodyBlocks, imageResolver, palette)
   const coverMedia = coverMediaUrl ? await imageResolver(coverMediaUrl) : null
   // The header shares page 1 with the article to save paper; a rule separates the two.
-  const content: Content[] = [...coverImage(coverMedia), ...articleHeader(article, opts.coverMetaStyle), dividerContent(palette), ...bodyContent]
+  const content: Content[] = [articleHeader(article, coverMedia, opts.coverMetaStyle), dividerContent(palette), ...bodyContent]
 
   return {
     pageSize: opts.paperSize,

@@ -23,6 +23,8 @@ export const stylesForTheme = (themeMode: ThemeMode): StyleDictionary => {
     h1: { fontSize: 21, bold: true, color: text },
     h2: { fontSize: 17, bold: true, color: text },
     h3: { fontSize: 14, bold: true, color: text },
+    headerMeta: { fontSize: 9, color: meta },
+    headerTitle: { fontSize: 15, bold: true, color: text, lineHeight: 1.1 },
     inlineCode: { background: code },
     inlineLink: { color: text, decoration: 'underline' },
     mediaCaption: { fontSize: 9, color: meta, italics: true },

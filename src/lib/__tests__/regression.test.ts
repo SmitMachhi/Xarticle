@@ -89,9 +89,9 @@ describe('pdf definition regression', () => {
       return null
     })
 
-    const firstPage = (doc.content as Array<{ image?: string; pageBreak?: string }>)[0]
+    const firstPage = (doc.content as Array<{ columns?: Array<{ image?: string }>; pageBreak?: string }>)[0]
     expect(firstPage.pageBreak).toBeUndefined()
-    expect(firstPage.image).toBe('data:image/png;base64,cover')
+    expect(firstPage.columns?.[0]?.image).toBe('data:image/png;base64,cover')
   })
 
   it('skips the cover page when disabled', async () => {
