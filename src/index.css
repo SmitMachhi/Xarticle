@@ -1,9 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap');
 @import 'tailwindcss';
 
 @theme {
   --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
   --font-serif: 'Instrument Serif', ui-serif, Georgia, serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   /* Magic UI keyframes (aurora-text, shimmer-button) */
   --animate-aurora: aurora 8s ease-in-out infinite alternate;
