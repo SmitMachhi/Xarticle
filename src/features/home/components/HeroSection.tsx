@@ -7,7 +7,7 @@ import { AURORA_COLORS, HERO_TITLE_ACCENT, HERO_TITLE_LEAD } from '../constants/
 export const HeroSection = ({ centered, children }: { centered: boolean; children: ReactNode }) => {
   return (
     <section className={`flex flex-col items-center gap-6 text-center print:hidden ${centered ? 'flex-1 justify-center' : 'pt-10'}`}>
-      <h1 className="font-mono text-3xl leading-tight font-medium tracking-tighter text-balance sm:text-5xl">
+      <h1 className="font-mono text-3xl leading-tight font-bold tracking-tighter text-balance sm:text-5xl">
         {HERO_TITLE_LEAD} <AuroraText colors={AURORA_COLORS}>{HERO_TITLE_ACCENT}</AuroraText>
       </h1>
       {children}
