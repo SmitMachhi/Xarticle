@@ -61,4 +61,4 @@ npx wrangler deploy
 - Single column layout: URL input → Preview → Export bar (shown only when article loaded)
 - PDFs are always US Letter with narrow margins (no paper or margin pickers)
 - Download success flash: `.btn-success` for 1.5s after download
-- FAQ and footer removed; creator credit lives in the top bar
+- No FAQ, no pandas on the page (panda is only the favicon); brand centered at top, hero vertically centered until an article loads, creator credit bottom-right
