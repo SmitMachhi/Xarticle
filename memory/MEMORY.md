@@ -42,7 +42,8 @@ npx wrangler deploy
 - `src/features/home/components/ExportSection.tsx` — horizontal export bar
 - `src/lib/imageProxy.ts` — `proxyImageUrl(url)` utility
 - `worker/src/routes/image.ts` — image proxy endpoint
-- `src/index.css` — all styles
+- `src/index.css` — Tailwind v4 theme + article prose styles; components use Tailwind classes
+- `src/components/magicui/` — vendored Magic UI components (dot-pattern, aurora-text, shimmer-button, border-beam, blur-fade), pulled from magicui.design/r/<name>.json; lint-relaxed in eslint.config.js
 
 ## Curriculum App
 
@@ -60,4 +61,4 @@ npx wrangler deploy
 - Single column layout: URL input → Preview → Export bar (shown only when article loaded)
 - PDFs are always US Letter with narrow margins (no paper or margin pickers)
 - Download success flash: `.btn-success` for 1.5s after download
-- InfoSection/FAQ removed from main flow
+- FAQ and footer removed; creator credit lives in the top bar

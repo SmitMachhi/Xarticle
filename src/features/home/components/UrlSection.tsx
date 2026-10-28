@@ -1,6 +1,9 @@
 import type { FormEvent } from 'react'
 
-import { URL_PLACEHOLDER } from '../constants/uiContent'
+import { BorderBeam } from '../../../components/magicui/border-beam'
+import { ShimmerButton } from '../../../components/magicui/shimmer-button'
+import { FLOATING_SURFACE, GHOST_BUTTON } from '../constants/styles'
+import { LOADING_BEAM_COLORS, URL_PLACEHOLDER } from '../constants/uiContent'
 
 interface UrlSectionProps {
   canLoad: boolean
@@ -23,13 +26,14 @@ export const UrlSection = ({ canLoad, error, loading, loadingLabel, notice, onLo
   }
   const message = error || urlProblem || notice
   return (
-    <form className="url-form" onSubmit={onSubmit}>
-      <div className="url-row">
-        <input aria-label="X URL" autoComplete="off" id="url" inputMode="url" onChange={(event) => onUrlChange(event.target.value)} placeholder={URL_PLACEHOLDER} ref={urlInputRef} spellCheck={false} type="text" value={urlInput} />
-        <button className="btn-quiet" onClick={onPaste} type="button">Paste</button>
-        <button className="btn-primary" disabled={!canLoad} type="submit">{loading ? loadingLabel : 'Load Article'}</button>
+    <form className="w-full max-w-xl" onSubmit={onSubmit}>
+      <div className={`relative flex items-center gap-1 rounded-full p-1.5 transition focus-within:border-neutral-300 focus-within:ring-4 focus-within:ring-emerald-500/10 ${FLOATING_SURFACE}`}>
+        <input aria-label="X URL" autoComplete="off" className="min-w-0 flex-1 bg-transparent pl-4 text-[15px] outline-none placeholder:text-neutral-400" id="url" inputMode="url" onChange={(event) => onUrlChange(event.target.value)} placeholder={URL_PLACEHOLDER} ref={urlInputRef} spellCheck={false} type="text" value={urlInput} />
+        <button className={GHOST_BUTTON} onClick={onPaste} type="button">Paste</button>
+        <ShimmerButton background="#0a0a0a" className="h-9 px-4 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50" disabled={!canLoad} type="submit">{loading ? loadingLabel : <><span className="sm:hidden">Load</span><span className="hidden sm:inline">Load Article</span></>}</ShimmerButton>
+        {loading ? <BorderBeam colorFrom={LOADING_BEAM_COLORS.from} colorTo={LOADING_BEAM_COLORS.to} size={90} /> : null}
       </div>
-      {message ? <p className={error || urlProblem ? 'form-message is-error' : 'form-message'} role={error ? 'alert' : undefined}>{message}</p> : null}
+      {message ? <p className={`mt-3 text-sm ${error || urlProblem ? 'text-red-600' : 'text-neutral-500'}`} role={error ? 'alert' : undefined}>{message}</p> : null}
     </form>
   )
 }

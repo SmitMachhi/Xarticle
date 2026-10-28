@@ -1,5 +1,7 @@
 import { useState } from 'react'
 
+import { GHOST_BUTTON } from '../constants/styles'
+
 const RESET_DELAY_MS = 1_600
 const LABELS = { idle: 'Copy text', copied: 'Copied', failed: 'Copy failed' } as const
 
@@ -12,5 +14,5 @@ export const CopyTextButton = ({ payload }: { payload: string }) => {
     window.setTimeout(() => setState('idle'), RESET_DELAY_MS)
   }
 
-  return <button className="btn-quiet" disabled={!payload} onClick={() => void onClick()} type="button">{LABELS[state]}</button>
+  return <button className={GHOST_BUTTON} disabled={!payload} onClick={() => void onClick()} type="button">{LABELS[state]}</button>
 }
