@@ -2,5 +2,5 @@
 export const PRIMARY_BUTTON = 'inline-flex h-9 items-center justify-center rounded-full bg-neutral-900 px-4 text-sm font-medium text-white transition-colors hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50'
 export const ICON_BUTTON = 'inline-flex size-9 shrink-0 items-center justify-center rounded-full text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-50'
 export const ICON_SIZE = 18
-export const FLOATING_SURFACE = 'border border-neutral-200/80 bg-white/90 shadow-[0_8px_30px_rgba(0,0,0,0.06)] backdrop-blur'
+export const FLOATING_SURFACE = 'border border-neutral-300 bg-white/90 shadow-[0_8px_30px_rgba(0,0,0,0.06)] backdrop-blur'
 export const CARD = 'rounded-3xl border border-neutral-200/80 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.04)]'

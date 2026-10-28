@@ -28,7 +28,7 @@ export const UrlSection = ({ canLoad, error, loading, loadingLabel, notice, onLo
   const message = error || urlProblem || notice
   return (
     <form className="w-full max-w-xl" onSubmit={onSubmit}>
-      <div className={`relative flex items-center gap-1 rounded-full p-1.5 transition focus-within:border-neutral-300 focus-within:ring-4 focus-within:ring-emerald-500/10 ${FLOATING_SURFACE}`}>
+      <div className={`relative flex items-center gap-1 rounded-full p-1.5 transition focus-within:border-neutral-400 focus-within:ring-4 focus-within:ring-emerald-500/10 ${FLOATING_SURFACE}`}>
         <input aria-label="X URL" autoComplete="off" className="min-w-0 flex-1 bg-transparent pl-4 text-[15px] outline-none placeholder:text-neutral-400" id="url" inputMode="url" onChange={(event) => onUrlChange(event.target.value)} placeholder={URL_PLACEHOLDER} ref={urlInputRef} spellCheck={false} type="text" value={urlInput} />
         <button aria-label="Paste" className={ICON_BUTTON} onClick={onPaste} title="Paste" type="button"><ClipboardPaste size={ICON_SIZE} /></button>
         <ShimmerButton background="#0a0a0a" className="h-9 px-4 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50" disabled={!canLoad} type="submit">{loading ? loadingLabel : 'Load Article'}</ShimmerButton>
