@@ -18,12 +18,7 @@ export const paletteForTheme = (themeMode: ThemeMode): PdfPalette => {
 export const stylesForTheme = (themeMode: ThemeMode): StyleDictionary => {
   const { code, meta, text } = paletteForTheme(themeMode)
   return {
-    coverBadge: { fontSize: 11, bold: true, color: text },
-    coverMeta: { fontSize: 12, color: meta },
-    coverMetricLabel: { fontSize: 9, color: meta, bold: true },
-    coverMetricValue: { fontSize: 13, color: text, bold: true },
     codeBlock: { fontSize: 10, color: text, background: code },
-    coverTitle: { fontSize: 30, bold: true, color: text, lineHeight: 1.1 },
     embed: { fontSize: 10, color: text, decoration: 'underline' },
     h1: { fontSize: 21, bold: true, color: text },
     h2: { fontSize: 17, bold: true, color: text },
@@ -34,6 +29,5 @@ export const stylesForTheme = (themeMode: ThemeMode): StyleDictionary => {
     meta: { fontSize: 10, color: meta },
     paragraph: { fontSize: 10, lineHeight: 1.3, color: text },
     quote: { fontSize: 10, lineHeight: 1.3, italics: true, color: meta },
-    title: { fontSize: 22, bold: true, color: text },
   }
 }

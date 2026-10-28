@@ -70,7 +70,7 @@ describe('pdf rendering fidelity', () => {
     expect(content.find((item) => item.style === 'h2')?.headlineLevel).toBe(2)
     expect(content.find((item) => item.style === 'paragraph')?.text).toBe('-> arrows and × marks')
     expect(content.some((item) => Array.isArray(item.ol))).toBe(true)
-    expect(content.filter((item) => item.table)).toHaveLength(2)
+    expect(content.filter((item) => item.table)).toHaveLength(3)
     expect(typeof doc.pageBreakBefore).toBe('function')
   })
 })

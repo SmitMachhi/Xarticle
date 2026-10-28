@@ -9,14 +9,12 @@ import {
   FOOTER_FONT_SIZE,
   IMAGE_LIMITS,
   MARGIN_INLINE_NONE,
-  MARGIN_LARGE,
   MARGIN_MEDIUM,
   MARGIN_SMALL,
-  MARGIN_XLARGE,
-  MARGIN_XXLARGE,
   marginMap,
   PAGE_MARGIN_BOTTOM,
   PAGE_MARGIN_LEFT,
+  URL_PROTOCOL_PATTERN,
 } from './constants'
 import { pdfSafeText } from './glyphs'
 import { fitImage } from './image/sizing'
@@ -26,11 +24,11 @@ import { paletteForTheme, stylesForTheme } from './styles'
 type ImageResolver = (url: string) => Promise<string | null>
 
 const metricRows = [
-  { key: 'likes', label: 'Likes' },
-  { key: 'replies', label: 'Replies' },
-  { key: 'reposts', label: 'Reposts' },
-  { key: 'views', label: 'Views' },
-  { key: 'bookmarks', label: 'Bookmarks' },
+  { key: 'likes', label: 'likes' },
+  { key: 'replies', label: 'replies' },
+  { key: 'reposts', label: 'reposts' },
+  { key: 'views', label: 'views' },
+  { key: 'bookmarks', label: 'bookmarks' },
 ] as const
 
 const formatDate = (value: string | Date): string => new Date(value).toLocaleDateString(DATE_LOCALE, DATE_FORMAT)
@@ -50,41 +48,24 @@ const splitCoverMedia = (blocks: ArticleBlock[], coverEnabled: boolean): { bodyB
   return { bodyBlocks: blocks.filter((_, itemIndex) => itemIndex !== index), coverMediaUrl: cover.url }
 }
 
-const coverMetricColumns = (article: ExtractedArticle): Content[] => {
-  return metricRows.map((item) => {
-    const metricValue = article.metrics[item.key]
-    const text = metricValue === null ? 'N/A' : metricValue.toLocaleString()
-    return {
-      stack: [
-        { text: item.label, style: 'coverMetricLabel' },
-        { text, style: 'coverMetricValue' },
-      ],
-    }
-  })
+const statsLine = (article: ExtractedArticle): string => metricRows.flatMap(({ key, label }) => {
+  const value = article.metrics[key]
+  return value === null ? [] : [`${value.toLocaleString(DATE_LOCALE)} ${label}`]
+}).join(' · ')
+
+// Title, byline and stats in three tight lines: print readers get the source without a full-page cover.
+const articleHeader = (article: ExtractedArticle, metaStyle: PdfExportOptions['coverMetaStyle']): Content[] => {
+  const byline = [`${pdfSafeText(article.authorName)} @${article.authorHandle}`]
+  if (metaStyle === 'full' && article.publishedAt) byline.push(formatDate(article.publishedAt))
+  const stats = statsLine(article)
+  return [
+    { text: pdfSafeText(article.title), style: 'h1', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_SMALL] },
+    { text: [`${byline.join(' · ')} · `, { text: article.canonicalUrl.replace(URL_PROTOCOL_PATTERN, ''), link: article.canonicalUrl, decoration: 'underline' }], style: 'meta' },
+    ...(stats ? [{ text: stats, style: 'meta' }] : []),
+  ]
 }
 
-const bodyHeader = (article: ExtractedArticle): Content[] => {
-  const metadata = [`@${article.authorHandle}`]
-  if (article.publishedAt) metadata.push(formatDate(article.publishedAt))
-  return [{ text: pdfSafeText(article.title), style: 'h1', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_MEDIUM] }, { text: `${pdfSafeText(article.authorName)} • ${metadata.join(' • ')}`, style: 'meta', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_LARGE] }]
-}
-
-const coverPage = (article: ExtractedArticle, coverImageUrl: string | null, coverMetaStyle: PdfExportOptions['coverMetaStyle']): Content => {
-  const metadata = coverMetaStyle === 'minimal' ? `@${article.authorHandle}` : `@${article.authorHandle}${article.publishedAt ? ` • ${formatDate(article.publishedAt)}` : ''}`
-  const media: Content[] = coverImageUrl ? [{ image: coverImageUrl, fit: fitImage(coverImageUrl, IMAGE_LIMITS), alignment: 'center', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_XLARGE] }] : []
-  return {
-    stack: [
-      ...media,
-      { text: 'Xarticle.co', style: 'coverBadge', margin: [MARGIN_INLINE_NONE, MARGIN_SMALL, MARGIN_INLINE_NONE, MARGIN_XXLARGE] },
-      { text: pdfSafeText(article.title), style: 'coverTitle', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_LARGE] },
-      { text: pdfSafeText(article.authorName), style: 'title', margin: [MARGIN_INLINE_NONE, MARGIN_SMALL, MARGIN_INLINE_NONE, 2] },
-      { text: metadata, style: 'coverMeta', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_XLARGE] },
-      { text: article.canonicalUrl, style: 'embed', link: article.canonicalUrl, margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_LARGE] },
-      { columns: coverMetricColumns(article), columnGap: MARGIN_LARGE },
-      { text: `generated ${formatDate(new Date())}`, style: 'meta', margin: [MARGIN_INLINE_NONE, MARGIN_LARGE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE] },
-    ],
-  }
-}
+const coverImage = (url: string | null): Content[] => url ? [{ image: url, fit: fitImage(url, IMAGE_LIMITS), alignment: 'center', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_MEDIUM] }] : []
 
 export const buildPdfDefinition = async (
   article: ExtractedArticle,
@@ -95,11 +76,8 @@ export const buildPdfDefinition = async (
   const palette = paletteForTheme(opts.themeMode)
   const bodyContent = await blocksToContent(bodyBlocks, imageResolver, palette)
   const coverMedia = coverMediaUrl ? await imageResolver(coverMediaUrl) : null
-  const content: Content[] = []
-  // The cover shares page 1 with the article to save paper; a rule separates the two.
-  if (opts.coverPageMode === 'always') content.push(coverPage(article, coverMedia, opts.coverMetaStyle), dividerContent(palette))
-  if (opts.coverPageMode !== 'always') content.push(...bodyHeader(article))
-  content.push(...bodyContent)
+  // The header shares page 1 with the article to save paper; a rule separates the two.
+  const content: Content[] = [...coverImage(coverMedia), ...articleHeader(article, opts.coverMetaStyle), dividerContent(palette), ...bodyContent]
 
   return {
     pageSize: opts.paperSize,

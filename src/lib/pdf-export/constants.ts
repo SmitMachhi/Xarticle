@@ -5,6 +5,7 @@ export const COVER_IMAGE_CAPTION = 'cover image'
 // Compact print layout: every image (cover included) targets the area of a ~280x210pt 4:3 image.
 export const IMAGE_LIMITS: ImageLimits = { area: 60_000, maxWidth: 460, maxHeight: 240 }
 
+export const URL_PROTOCOL_PATTERN = /^https?:\/\//
 export const STATUS_ID_PATTERN = /\/status\/(\d+)/
 export const FILENAME_SEGMENT_LIMIT = 42
 
@@ -12,8 +13,6 @@ export const MARGIN_INLINE_NONE = 0
 export const MARGIN_SMALL = 4
 export const MARGIN_MEDIUM = 8
 export const MARGIN_LARGE = 12
-export const MARGIN_XLARGE = 14
-export const MARGIN_XXLARGE = 16
 export const MARGIN_CODE_BLOCK = 10
 export const MARGIN_BLOCK = 5
 export const MARGIN_HEADING_TOP = 10
