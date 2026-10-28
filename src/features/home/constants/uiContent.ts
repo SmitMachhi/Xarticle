@@ -1,6 +1,6 @@
 export const APP_NAME = 'Xarticle.co'
-export const HERO_TITLE_LEAD = 'Turn X articles into'
-export const HERO_TITLE_ACCENT = 'clean PDFs'
+export const HERO_TITLE_LEAD = 'Save any X article'
+export const HERO_TITLE_ACCENT = 'as a PDF'
 export const URL_PLACEHOLDER = 'Paste an X post or article link'
 export const CREDIT_NAME = '@thesmitmachhi'
 export const CREDIT_URL = 'https://x.com/thesmitmachhi'
