@@ -32,7 +32,7 @@ const fixtureForE2E = {
   },
 }
 
-test('status url renders preview and downloads pdf and markdown', async ({ page }) => {
+test('status url renders preview and downloads pdf', async ({ page }) => {
   await page.addInitScript(() => {
     ;(window as unknown as { __xapDownloads: string[] }).__xapDownloads = []
   })
@@ -69,13 +69,14 @@ test('status url renders preview and downloads pdf and markdown', async ({ page 
   await expect(codeBlock).toHaveCount(1)
 
   const pdfButton = page.getByRole('button', { name: 'Download PDF' })
-  const markdownButton = page.getByRole('button', { name: 'Markdown' })
+  const printButton = page.getByRole('button', { name: 'Print' })
 
   await expect(pdfButton).toBeEnabled()
-  await expect(markdownButton).toBeEnabled()
+  await expect(printButton).toBeEnabled()
+  await expect(page.getByRole('button', { name: 'Copy text' })).toBeEnabled()
+  await expect(page.getByRole('button', { name: 'Markdown' })).toHaveCount(0)
 
   await pdfButton.click()
-  await markdownButton.click({ modifiers: ['Shift'] })
 
   const requestedDownloads = await page.evaluate(() => (window as unknown as { __xapDownloads: string[] }).__xapDownloads)
   expect(requestedDownloads.some((name) => name.endsWith('.pdf'))).toBe(true)

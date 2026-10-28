@@ -29,7 +29,7 @@ export const HomePage = () => {
         <HeroSection hasArticle={Boolean(article)} hasError={Boolean(error)} loading={loading}>
           <UrlSection canLoad={extraction.canLoad} error={article ? null : error} loading={loading} loadingLabel={extraction.loadingMessage} notice={clipboard.notice} onLoad={() => void extraction.loadArticle()} onPaste={() => void clipboard.pasteFromClipboard(extraction.setUrlInput, (value) => extraction.setError(value))} onUrlChange={(value) => extraction.setUrlInput(value)} urlInput={extraction.urlInput} urlInputRef={clipboard.inputRef} urlProblem={urlProblem} />
         </HeroSection>
-        {article ? <ExportSection canDownload={exportState.canDownload} copyPayload={copyPayload} downloadState={exportState.downloadState} error={error} onMarkdown={() => void exportState.downloadMarkdown()} onPdf={() => void exportState.downloadPdf()} onPrint={() => void exportState.printPdf()} /> : null}
+        {article ? <ExportSection canDownload={exportState.canDownload} copyPayload={copyPayload} downloadState={exportState.downloadState} error={error} onPdf={() => void exportState.downloadPdf()} onPrint={() => void exportState.printPdf()} /> : null}
         <PreviewSection article={article} loading={loading} />
       </main>
     </div>

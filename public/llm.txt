@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
 title: "Xarticle.co"
-description: "Stateless web app that converts public X/Twitter status/article URLs into clean PDF or Markdown exports."
+description: "Stateless web app that converts public X/Twitter status/article URLs into clean, print-ready PDFs."
 last_updated: "2026-02-27"
 source: "https://xarticle.co"
 api_routes: "POST /api/extract, GET /health"
@@ -36,9 +36,8 @@ Xarticle.co converts one public X URL into a structured, exportable article view
 
 ## Output Formats
 
-- PDF (paper size + margin options)
-- Markdown (`.md`)
-- Offline Markdown ZIP (`article.md` + `assets/`) when media is present
+- PDF (US Letter, narrow margins)
+- Plain text copied to the clipboard
 
 ## Runtime Notes
 

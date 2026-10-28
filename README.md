@@ -8,9 +8,8 @@ Turn one public X/Twitter URL into clean exports.
 - Calls a single stateless backend endpoint: `POST /api/extract`.
 - Extracts status/article content and renders an in-browser preview.
 - Exports:
-  - PDF for human reading
-  - Markdown for LLM workflows
-  - Offline Markdown ZIP (`article.md` + `assets/`) when media exists
+  - PDF (download or print)
+  - Plain text copied to the clipboard
 
 ## Current Architecture
 
@@ -20,7 +19,6 @@ Turn one public X/Twitter URL into clean exports.
 - Parsing and exports are modularized under `src/lib/*`:
   - article parsing
   - thread/status parsing
-  - markdown export pipeline
   - pdf export pipeline
 - Browser extension companion scripts are TypeScript under `extension/`
 

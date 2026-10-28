@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "clsx": "^2.1.1",
-    "jszip": "^3.10.1",
+    "lucide-react": "^1.63.0",
     "motion": "^14.7.1",
     "pdfmake": "^0.3.5",
     "react": "^19.2.0",

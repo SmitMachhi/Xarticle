@@ -1,11 +1,10 @@
 import { useState } from 'react'
 
-import { downloadArticleMarkdownWithMode } from '../../../lib/markdownExport'
 import type { PdfExportOptions } from '../../../lib/pdf-export/options'
 import { downloadArticlePdf, printArticlePdf } from '../../../lib/pdfExport'
 import type { ExtractedArticle } from '../../../types/article'
 
-type DownloadState = 'idle' | 'pdf' | 'print' | 'markdown'
+type DownloadState = 'idle' | 'pdf' | 'print'
 
 // One print-friendly layout: US Letter, narrow margins.
 const PDF_OPTIONS: PdfExportOptions = { paperSize: 'LETTER', marginPreset: 'minimum', themeMode: 'color', coverMetaStyle: 'full', coverPageMode: 'always' }
@@ -15,7 +14,6 @@ interface ExportState {
   downloadState: DownloadState
   downloadPdf: () => Promise<void>
   printPdf: () => Promise<void>
-  downloadMarkdown: () => Promise<void>
 }
 
 export const useExportState = (
@@ -53,19 +51,5 @@ export const useExportState = (
     }
   }
 
-  const downloadMarkdown = async (): Promise<void> => {
-    if (!article) {
-      return
-    }
-    setDownloadState('markdown')
-    try {
-      await downloadArticleMarkdownWithMode(article, 'auto')
-    } catch (error) {
-      onError(error instanceof Error ? error.message : 'Markdown generation failed.')
-    } finally {
-      setDownloadState('idle')
-    }
-  }
-
-  return { canDownload, downloadState, downloadPdf, printPdf, downloadMarkdown }
+  return { canDownload, downloadState, downloadPdf, printPdf }
 }
