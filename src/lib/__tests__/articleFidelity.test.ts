@@ -64,7 +64,7 @@ describe('pdf rendering fidelity', () => {
   }
 
   it('maps unsupported glyphs, numbers ordered lists and keeps headings with their text', async () => {
-    const doc = await buildArticlePdfDefinition(article, { paperSize: 'A4', marginPreset: 'default', themeMode: 'color', coverMetaStyle: 'full', coverPageMode: 'off' }, async () => null)
+    const doc = await buildArticlePdfDefinition(article, { paperSize: 'LETTER', marginPreset: 'minimum', themeMode: 'color', coverMetaStyle: 'full', coverPageMode: 'off' }, async () => null)
     const content = doc.content as unknown as Array<Record<string, unknown>>
     expect(content[0].text).toBe('Glyphs test')
     expect(content.find((item) => item.style === 'h2')?.headlineLevel).toBe(2)

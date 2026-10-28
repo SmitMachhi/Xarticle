@@ -32,8 +32,8 @@ const collectTexts = (value: unknown): string[] => {
 }
 
 const baseOpts: PdfExportOptions = {
-  paperSize: 'A4',
-  marginPreset: 'default',
+  paperSize: 'LETTER',
+  marginPreset: 'minimum',
   themeMode: 'color',
   coverPageMode: 'always',
   coverMetaStyle: 'full',

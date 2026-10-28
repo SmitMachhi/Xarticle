@@ -1,18 +1,18 @@
 import { useState } from 'react'
 
 import { downloadArticleMarkdownWithMode } from '../../../lib/markdownExport'
+import type { PdfExportOptions } from '../../../lib/pdf-export/options'
 import { downloadArticlePdf, printArticlePdf } from '../../../lib/pdfExport'
-import type { ExtractedArticle, MarginPreset, PaperSize } from '../../../types/article'
+import type { ExtractedArticle } from '../../../types/article'
 
 type DownloadState = 'idle' | 'pdf' | 'print' | 'markdown'
+
+// One print-friendly layout: US Letter, narrow margins.
+const PDF_OPTIONS: PdfExportOptions = { paperSize: 'LETTER', marginPreset: 'minimum', themeMode: 'color', coverMetaStyle: 'full', coverPageMode: 'always' }
 
 interface ExportState {
   canDownload: boolean
   downloadState: DownloadState
-  marginPreset: MarginPreset
-  paperSize: PaperSize
-  setMarginPreset: (value: MarginPreset) => void
-  setPaperSize: (value: PaperSize) => void
   downloadPdf: () => Promise<void>
   printPdf: () => Promise<void>
   downloadMarkdown: () => Promise<void>
@@ -23,8 +23,6 @@ export const useExportState = (
   onError: (message: string) => void,
 ): ExportState => {
   const [downloadState, setDownloadState] = useState<DownloadState>('idle')
-  const [marginPreset, setMarginPreset] = useState<MarginPreset>('default')
-  const [paperSize, setPaperSize] = useState<PaperSize>('A4')
   const canDownload = Boolean(article) && downloadState === 'idle'
 
   const downloadPdf = async (): Promise<void> => {
@@ -33,7 +31,7 @@ export const useExportState = (
     }
     setDownloadState('pdf')
     try {
-      await downloadArticlePdf(article, { paperSize, marginPreset, themeMode: 'color', coverMetaStyle: 'full', coverPageMode: 'always' })
+      await downloadArticlePdf(article, PDF_OPTIONS)
     } catch (error) {
       onError(error instanceof Error ? error.message : 'PDF generation failed.')
     } finally {
@@ -47,7 +45,7 @@ export const useExportState = (
     }
     setDownloadState('print')
     try {
-      await printArticlePdf(article, { paperSize, marginPreset, themeMode: 'color', coverMetaStyle: 'full', coverPageMode: 'always' })
+      await printArticlePdf(article, PDF_OPTIONS)
     } catch (error) {
       onError(error instanceof Error ? error.message : 'PDF print failed.')
     } finally {
@@ -69,5 +67,5 @@ export const useExportState = (
     }
   }
 
-  return { canDownload, downloadState, marginPreset, paperSize, setMarginPreset, setPaperSize, downloadPdf, printPdf, downloadMarkdown }
+  return { canDownload, downloadState, downloadPdf, printPdf, downloadMarkdown }
 }

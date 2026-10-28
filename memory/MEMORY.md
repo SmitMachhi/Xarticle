@@ -58,6 +58,6 @@ npx wrangler deploy
 
 - Auto-load on paste (Ctrl+V or Paste button) — no manual "Load Article" click needed
 - Single column layout: URL input → Preview → Export bar (shown only when article loaded)
-- localStorage persists `xarticle_paperSize` and `xarticle_marginPreset`
+- PDFs are always US Letter with narrow margins (no paper or margin pickers)
 - Download success flash: `.btn-success` for 1.5s after download
 - InfoSection/FAQ removed from main flow

@@ -1,5 +1,3 @@
-import type { MarginPreset, PaperSize } from '../../../types/article'
-
 export const APP_NAME = 'Xarticle.co'
 export const HERO_TITLE = 'Turn one URL into clean exports.'
 export const URL_PLACEHOLDER = 'Paste an X post or article link'
@@ -17,13 +15,3 @@ export const FAQ_ITEMS = [
     answer: 'Yes. No login is required.',
   },
 ] as const
-
-export const PAPER_SIZE_OPTIONS: ReadonlyArray<{ value: PaperSize; label: string }> = [
-  { value: 'A4', label: 'A4' },
-  { value: 'LETTER', label: 'Letter' },
-]
-
-export const MARGIN_PRESET_OPTIONS: ReadonlyArray<{ value: MarginPreset; label: string }> = [
-  { value: 'default', label: 'Normal margins' },
-  { value: 'minimum', label: 'Narrow margins' },
-]
