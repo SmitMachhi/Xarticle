@@ -1,25 +1,9 @@
-import { FILENAME_SEGMENT_LIMIT, STATUS_ID_PATTERN } from './constants'
+import { FILENAME_FALLBACK, FILENAME_TITLE_LIMIT } from './constants'
 
-const toFilenameSafe = (value: string): string => {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, FILENAME_SEGMENT_LIMIT)
-}
+// Characters Windows, macOS and Linux refuse in file names, plus control characters.
+const ILLEGAL_FILENAME_CHARS = /[<>:"/\\|?*\p{Cc}]/gu
 
-const statusIdFromUrl = (url: string): string | null => {
-  try {
-    return new URL(url).pathname.match(STATUS_ID_PATTERN)?.[1] || null
-  } catch {
-    return null
-  }
-}
-
-const compactStamp = (): string => {
-  return new Date().toISOString().replace(/[-:]/g, '').replace(/\..*$/, '').replace('T', '-')
-}
-
-export const fileNameForPdf = (title: string, handle: string, canonicalUrl: string, isBw: boolean): string => {
-  const titleSlug = toFilenameSafe(title || 'article')
-  const handleSlug = toFilenameSafe(handle || 'unknown')
-  const statusId = statusIdFromUrl(canonicalUrl)
-  const core = statusId ? `${handleSlug}-${statusId}` : `${titleSlug}-${handleSlug}`
-  return `xarticle-${core}-${isBw ? 'bw' : 'color'}-${compactStamp()}.pdf`
+export const fileNameForPdf = (title: string): string => {
+  const name = title.replace(ILLEGAL_FILENAME_CHARS, ' ').replace(/\s+/g, ' ').slice(0, FILENAME_TITLE_LIMIT).replace(/[\s.]+$/, '').trim()
+  return `${name || FILENAME_FALLBACK}.pdf`
 }

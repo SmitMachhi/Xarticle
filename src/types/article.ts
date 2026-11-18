@@ -21,5 +21,7 @@ export type {
   ParagraphBlock,
   ProviderAttempt,
   QuoteBlock,
+  TableBlock,
+  TableCell,
   ThemeMode,
 } from '../domain/article'

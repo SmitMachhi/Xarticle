@@ -7,6 +7,9 @@ const toTextByType = (block: ArticleBlock): string => {
   if (block.type === 'code') {
     return block.code
   }
+  if (block.type === 'table') {
+    return [block.header, ...block.rows].map((row) => row.map((cell) => cell.text).join(' | ')).join('\n')
+  }
   if (block.type === 'list') {
     return block.items.map((item) => item.text).join('\n')
   }

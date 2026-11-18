@@ -31,5 +31,7 @@ export const stylesForTheme = (themeMode: ThemeMode): StyleDictionary => {
     meta: { fontSize: 10, color: meta },
     paragraph: { fontSize: 10, lineHeight: 1.3, color: text },
     quote: { fontSize: 10, lineHeight: 1.3, italics: true, color: meta },
+    tableCell: { fontSize: 9, lineHeight: 1.2, color: text },
+    tableHeader: { fontSize: 9, bold: true, color: text },
   }
 }

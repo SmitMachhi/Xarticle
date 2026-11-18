@@ -1,4 +1,5 @@
 import type { ArticleBlock } from '../../types/article'
+import { codeOrTableBlock } from '../markdownTable'
 import {
   HEADING_LEVEL_ONE,
   HEADING_LEVEL_THREE,
@@ -34,7 +35,7 @@ const parseCode = (node: HTMLPreElement): ArticleBlock | null => {
   const code = (node.textContent || '').replace(/\r\n/g, '\n').trim()
   if (!code) return null
   const languageMatch = (node.querySelector('code')?.className || '').match(/language-([A-Za-z0-9_+-]+)/)
-  return { type: 'code', code, language: languageMatch?.[1] }
+  return codeOrTableBlock(code, languageMatch?.[1])
 }
 
 const parseImage = (node: HTMLImageElement): ArticleBlock | null => {
@@ -67,6 +68,7 @@ const dedupeFingerprint = (block: Exclude<ArticleBlock, { type: 'divider' }>): s
   if (block.type === 'code') return `code:${block.language || 'plain'}:${block.code}`
   if (block.type === 'media') return `media:${block.url}`
   if (block.type === 'embed') return `embed:${block.url || block.text}`
+  if (block.type === 'table') return `table:${JSON.stringify([block.header, ...block.rows])}`
   return `${block.type}:${block.text}`
 }
 

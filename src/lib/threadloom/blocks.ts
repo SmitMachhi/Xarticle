@@ -1,4 +1,5 @@
 import type { ArticleBlock, HeadingLevel, InlineMark, ListItem } from '../../types/article'
+import { codeOrTableBlock } from '../markdownTable'
 import { normalizeRichText, normalizeText, parseFencedCode } from './normalize'
 import type { ThreadloomArticleBlock, ThreadloomMediaItem, ThreadloomTweet } from './types'
 
@@ -69,7 +70,7 @@ const parseArticleContentBlocks = (tweet: ThreadloomTweet): ArticleBlock[] => {
   const parsed = (tweet.article?.content?.blocks || [])
     .map(toContentBlock)
     .filter((block): block is ArticleBlock => block !== null)
-  return mergeAdjacentBlocks(parsed)
+  return mergeAdjacentBlocks(parsed).map((block) => (block.type === 'code' ? codeOrTableBlock(block.code, block.language) : block))
 }
 
 const pushUrl = (urls: Set<string>, value: string | undefined): void => {

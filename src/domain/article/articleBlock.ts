@@ -6,5 +6,6 @@ import type { ListBlock } from './listBlock'
 import type { MediaBlock } from './mediaBlock'
 import type { ParagraphBlock } from './paragraphBlock'
 import type { QuoteBlock } from './quoteBlock'
+import type { TableBlock } from './tableBlock'
 
-export type ArticleBlock = HeadingBlock | ParagraphBlock | QuoteBlock | CodeBlock | ListBlock | MediaBlock | EmbedBlock | DividerBlock
+export type ArticleBlock = HeadingBlock | ParagraphBlock | QuoteBlock | CodeBlock | ListBlock | MediaBlock | EmbedBlock | DividerBlock | TableBlock

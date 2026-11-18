@@ -40,7 +40,7 @@ export const buildArticlePdfDefinition = async (
 
 export const downloadArticlePdf = async (article: ExtractedArticle, opts: PdfExportOptions): Promise<void> => {
   const definition = await buildArticlePdfDefinition(article, opts)
-  const filename = fileNameForPdf(article.title, article.authorHandle, article.canonicalUrl, opts.themeMode === 'bw')
+  const filename = fileNameForPdf(article.title)
   recordPlannedDownload(filename)
   void pdfMake.createPdf(definition).download(filename)
 }
