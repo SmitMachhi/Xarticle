@@ -20,6 +20,7 @@ import { pdfSafeText } from './glyphs'
 import { fitImage } from './image/sizing'
 import { inlineText } from './inline'
 import type { PdfPalette } from './styles'
+import { tableContent } from './table'
 
 type ImageResolver = (url: string) => Promise<string | null>
 type Margins = [number, number, number, number]
@@ -85,6 +86,7 @@ const contentForBlock = async (block: ArticleBlock, imageResolver: ImageResolver
   if (block.type === 'media') return await mediaContent(block, imageResolver)
   if (block.type === 'embed') return [embedContent(block)]
   if (block.type === 'divider') return [dividerContent(palette)]
+  if (block.type === 'table') return [tableContent(block, palette)]
   return []
 }
 

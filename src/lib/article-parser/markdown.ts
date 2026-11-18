@@ -1,4 +1,5 @@
 import type { ArticleBlock, ExtractedArticle } from '../../types/article'
+import { codeOrTableBlock } from '../markdownTable'
 import { getHandleFromUrl, normalizeInputUrl } from '../xUrl'
 import { HEADING_LEVEL_THREE } from './constants'
 import { parseMetricsFromText } from './metrics'
@@ -32,7 +33,7 @@ const flushList = (state: ParseState): void => {
 
 const flushCode = (state: ParseState): void => {
   const code = state.codeBuffer.join('\n').trim()
-  if (code) state.blocks.push({ type: 'code', code, language: state.codeLanguage })
+  if (code) state.blocks.push(codeOrTableBlock(code, state.codeLanguage))
   state.codeBuffer = []
   state.codeLanguage = undefined
 }

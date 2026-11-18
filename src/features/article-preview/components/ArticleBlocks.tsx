@@ -25,15 +25,29 @@ const renderMedia = (block: Extract<ArticleBlock, { type: 'media' }>, key: strin
   )
 }
 
+const renderTable = (block: Extract<ArticleBlock, { type: 'table' }>, key: string) => (
+  <div className="table-wrap" key={key}>
+    <table>
+      <thead><tr>{block.header.map((cell, c) => <th key={c}><RichText marks={cell.marks} text={cell.text} /></th>)}</tr></thead>
+      <tbody>{block.rows.map((row, r) => <tr key={r}>{row.map((cell, c) => <td key={c}><RichText marks={cell.marks} text={cell.text} /></td>)}</tr>)}</tbody>
+    </table>
+  </div>
+)
+
+const renderEmbed = (block: Extract<ArticleBlock, { type: 'embed' }>, key: string) => (
+  <p className="embed-line" key={key}>{block.url ? <a href={block.url} rel="noreferrer" target="_blank">{block.text}</a> : block.text}</p>
+)
+
 const renderBlock = (block: ArticleBlock, key: string) => {
   if (block.type === 'heading') return renderHeading(block, key)
   if (block.type === 'paragraph') return <p key={key}><RichText marks={block.marks} text={block.text} /></p>
   if (block.type === 'quote') return <blockquote key={key}><RichText marks={block.marks} text={block.text} /></blockquote>
   if (block.type === 'code') return <pre className="code-block" key={key}><code>{block.code}</code></pre>
   if (block.type === 'list') return renderList(block, key)
+  if (block.type === 'table') return renderTable(block, key)
   if (block.type === 'media') return renderMedia(block, key)
   if (block.type === 'divider') return <hr key={key} />
-  if (block.type === 'embed') return <p className="embed-line" key={key}>{block.url ? <a href={block.url} rel="noreferrer" target="_blank">{block.text}</a> : block.text}</p>
+  if (block.type === 'embed') return renderEmbed(block, key)
   return null
 }
 
