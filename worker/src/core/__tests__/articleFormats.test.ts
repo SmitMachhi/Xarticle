@@ -19,7 +19,7 @@ const ENTITIES = [
 
 const BLOCKS = [
   text('unstyled', 'keep struck', [{ style: 'Strikethrough', offset: 5, length: 6 }]),
-  text('code-block', 'if x:'),
+  text('code-block', '  if x:'),
   text('code', '    run()'),
   atomic(0), atomic(1), atomic(2, 'E = \\frac{m}{c^2}'), atomic(3), atomic(4), atomic(5),
 ]
@@ -39,7 +39,7 @@ describe('X article formats', () => {
 
   it('keeps strikethrough and joins code lines with their indentation', () => {
     expect(blocks[0]).toMatchObject({ type: 'paragraph', marks: [{ offset: 5, length: 6, type: 'strikethrough' }] })
-    expect(blocks[1]).toEqual({ type: 'code', code: 'if x:\n    run()', language: undefined })
+    expect(blocks[1]).toEqual({ type: 'code', code: '  if x:\n    run()', language: undefined })
   })
 
   it('keeps every gallery image, posts, latex and separate markdown panels', () => {

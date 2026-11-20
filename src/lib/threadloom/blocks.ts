@@ -9,6 +9,7 @@ const OVERLAP_THRESHOLD = 48
 const HEADING_TYPES = ['header-one', 'header-two', 'header-three']
 const LIST_TYPES: Record<string, boolean> = { 'ordered-list-item': true, 'unordered-list-item': false }
 const CODE_LINE_TYPES = new Set(['code-block', 'code'])
+const LEADING_BLANK_LINES = /^(?:[ \t]*\n)+/
 
 const toMarks = (block: ThreadloomArticleBlock): InlineMark[] | undefined => {
   if (!block.marks || block.marks.length === 0) return undefined
@@ -71,7 +72,7 @@ const toSimpleBlock = (block: ThreadloomArticleBlock): ArticleBlock | null => {
 const toContentBlocks = (block: ThreadloomArticleBlock): ArticleBlock[] => {
   const text = (block.text || '').trim()
   if (block.type === 'markdown') return parseMarkdownBlocks(text)
-  if (isCodeLine(block)) return text ? [{ type: 'code', code: text }] : []
+  if (isCodeLine(block)) return text ? [{ type: 'code', code: (block.text || '').replace(LEADING_BLANK_LINES, '').trimEnd() }] : []
   if (block.type === 'latex') return text ? [{ type: 'math', text }] : []
   const single = toSimpleBlock(block)
   return single ? [single] : []
