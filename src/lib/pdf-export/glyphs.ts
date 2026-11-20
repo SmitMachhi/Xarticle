@@ -29,3 +29,18 @@ export const pdfSafeText = (value: string): string => {
     .replace(UNSUPPORTED_PATTERN, '')
     .replace(KEYCAP_PATTERN, '')
 }
+
+// Courier (the code font) only has WinAnsi glyphs and prints garbage for anything else. Tree drawings
+// become ASCII, like `tree --charset=ascii`; any other character outside WinAnsi becomes "?".
+const BOX_FALLBACKS: Record<string, string> = { '─': '-', '━': '-', '═': '=', '│': '|', '┃': '|', '║': '|', '├': '|', '┤': '|', '└': '`' }
+const BOX_PATTERN = /[─-╿]/gu
+const BOX_JOINT = '+'
+const WIN_ANSI_EXTRAS = '€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ'
+const NON_WIN_ANSI = new RegExp(`[^\\t\\n\\x20-\\x7E\\xA0-\\xFF${WIN_ANSI_EXTRAS}]`, 'gu')
+const MISSING_GLYPH = '?'
+
+export const codeSafeText = (value: string): string => {
+  return pdfSafeText(value)
+    .replace(BOX_PATTERN, (match) => BOX_FALLBACKS[match] ?? BOX_JOINT)
+    .replace(NON_WIN_ANSI, MISSING_GLYPH)
+}

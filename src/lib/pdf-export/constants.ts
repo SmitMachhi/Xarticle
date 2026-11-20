@@ -25,6 +25,7 @@ export const QUOTE_PADDING_LEFT = 10
 export const DIVIDER_LINE_WIDTH = 0.75
 export const TABLE_RULE_WIDTH = 0.5
 export const TABLE_PADDING = { x: 5, y: 3 }
+export const CODE_BLOCK_PADDING = 8
 export const TABLE_COLUMN_CHARS = { min: 8, max: 48 }
 export const VIDEO_LINK_LABEL = 'Watch video'
 export const DATE_FORMAT: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' }

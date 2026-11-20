@@ -2,6 +2,9 @@ import type { StyleDictionary } from 'pdfmake/interfaces'
 
 import type { ThemeMode } from '../../types/article'
 
+// pdfmake's built-in monospace font, registered in runtime.ts.
+const CODE_FONT = 'Courier'
+
 export interface PdfPalette {
   accent: string
   code: string
@@ -18,14 +21,14 @@ export const paletteForTheme = (themeMode: ThemeMode): PdfPalette => {
 export const stylesForTheme = (themeMode: ThemeMode): StyleDictionary => {
   const { code, meta, text } = paletteForTheme(themeMode)
   return {
-    codeBlock: { fontSize: 10, color: text, background: code, preserveLeadingSpaces: true },
+    codeBlock: { font: CODE_FONT, fontSize: 9, lineHeight: 1.3, color: text, preserveLeadingSpaces: true },
     embed: { fontSize: 10, color: text, decoration: 'underline' },
     h1: { fontSize: 21, bold: true, color: text },
     h2: { fontSize: 17, bold: true, color: text },
     h3: { fontSize: 14, bold: true, color: text },
     headerMeta: { fontSize: 9, color: meta },
     headerTitle: { fontSize: 15, bold: true, color: text, lineHeight: 1.1 },
-    inlineCode: { background: code },
+    inlineCode: { font: CODE_FONT, background: code },
     inlineLink: { color: text, decoration: 'underline' },
     mediaCaption: { fontSize: 9, color: meta, italics: true },
     math: { fontSize: 10.5, italics: true, color: text },

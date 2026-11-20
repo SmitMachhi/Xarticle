@@ -2,6 +2,7 @@ import type { Content, CustomTableLayout } from 'pdfmake/interfaces'
 
 import type { ArticleBlock } from '../../types/article'
 import {
+  CODE_BLOCK_PADDING,
   DIVIDER_LINE_WIDTH,
   IMAGE_LIMITS,
   MARGIN_BLOCK,
@@ -14,9 +15,10 @@ import {
   MARGIN_SMALL,
   QUOTE_BAR_WIDTH,
   QUOTE_PADDING_LEFT,
+  TABLE_RULE_WIDTH,
   VIDEO_LINK_LABEL,
 } from './constants'
-import { pdfSafeText } from './glyphs'
+import { codeSafeText, pdfSafeText } from './glyphs'
 import { fitImage } from './image/sizing'
 import { inlineText } from './inline'
 import type { PdfPalette } from './styles'
@@ -50,6 +52,25 @@ const quoteContent = (block: Extract<ArticleBlock, { type: 'quote' }>, palette: 
   table: { widths: ['*'], body: [[{ text: inlineText(block.text, block.marks), style: 'quote' }]] },
   layout: quoteLayout(palette),
   margin: [MARGIN_INLINE_NONE, MARGIN_SMALL, MARGIN_INLINE_NONE, MARGIN_LARGE],
+})
+
+// One filled box per block: per-line text backgrounds would cover the underscores of the line above.
+const codeLayout = (palette: PdfPalette): CustomTableLayout => ({
+  hLineWidth: () => TABLE_RULE_WIDTH,
+  vLineWidth: () => TABLE_RULE_WIDTH,
+  hLineColor: () => palette.rule,
+  vLineColor: () => palette.rule,
+  fillColor: () => palette.code,
+  paddingLeft: () => CODE_BLOCK_PADDING,
+  paddingRight: () => CODE_BLOCK_PADDING,
+  paddingTop: () => CODE_BLOCK_PADDING,
+  paddingBottom: () => CODE_BLOCK_PADDING,
+})
+
+const codeContent = (block: Extract<ArticleBlock, { type: 'code' }>, palette: PdfPalette): Content => ({
+  table: { widths: ['*'], body: [[{ text: codeSafeText(block.code), style: 'codeBlock' }]] },
+  layout: codeLayout(palette),
+  margin: [MARGIN_INLINE_NONE, MARGIN_SMALL, MARGIN_INLINE_NONE, MARGIN_CODE_BLOCK],
 })
 
 export const dividerContent = (palette: PdfPalette): Content => ({
@@ -88,7 +109,7 @@ const contentForBlock = async (block: ArticleBlock, imageResolver: ImageResolver
   if (block.type === 'heading') return [headingContent(block)]
   if (block.type === 'paragraph') return [{ text: inlineText(block.text, block.marks), style: 'paragraph', margin: BLOCK_MARGIN }]
   if (block.type === 'quote') return [quoteContent(block, palette)]
-  if (block.type === 'code') return [{ text: pdfSafeText(block.code), style: 'codeBlock', margin: [MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_INLINE_NONE, MARGIN_CODE_BLOCK] }]
+  if (block.type === 'code') return [codeContent(block, palette)]
   if (block.type === 'list') return [listContent(block)]
   if (block.type === 'media') return await mediaContent(block, imageResolver)
   if (block.type === 'embed') return [embedContent(block)]

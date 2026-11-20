@@ -2,6 +2,7 @@ import type { ContentTable } from 'pdfmake/interfaces'
 import { describe, expect, it } from 'vitest'
 
 import { parseMarkdownBlocks } from '../markdownBlocks'
+import { codeSafeText } from '../pdf-export/glyphs'
 import { fileNameForPdf } from '../pdf-export/naming'
 import { paletteForTheme, stylesForTheme } from '../pdf-export/styles'
 import { tableContent } from '../pdf-export/table'
@@ -19,8 +20,15 @@ describe('tableContent', () => {
 })
 
 describe('stylesForTheme', () => {
-  it('keeps code indentation, which pdfmake strips by default', () => {
-    expect(stylesForTheme('color').codeBlock).toMatchObject({ preserveLeadingSpaces: true })
+  it('prints code in Courier and keeps its indentation, which pdfmake strips by default', () => {
+    expect(stylesForTheme('color').codeBlock).toMatchObject({ font: 'Courier', preserveLeadingSpaces: true })
+  })
+})
+
+describe('codeSafeText', () => {
+  it('turns tree drawings into ASCII and other non-WinAnsi glyphs into ?', () => {
+    expect(codeSafeText('├── src\n│   └── a.ts ┬')).toBe('|-- src\n|   `-- a.ts +')
+    expect(codeSafeText('“q” — é € 中 x → y')).toBe('“q” — é € ? x -> y')
   })
 })
 

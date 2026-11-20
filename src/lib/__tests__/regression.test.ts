@@ -152,7 +152,7 @@ describe('pdf definition regression', () => {
       async () => null,
     )
 
-    const content = doc.content as Array<{ text?: unknown; style?: string; ul?: unknown[] }>
+    const content = doc.content as Array<{ text?: unknown; style?: string; table?: { body: unknown[][] }; ul?: unknown[] }>
     const paragraph = content.find((item) => item.style === 'paragraph' && Array.isArray(item.text))
     expect(paragraph).toBeDefined()
     expect(paragraph?.text).toEqual(
@@ -171,9 +171,8 @@ describe('pdf definition regression', () => {
       ]),
     )
 
-    const codeBlock = content.find((item) => item.style === 'codeBlock')
-    expect(codeBlock).toBeDefined()
-    expect(codeBlock?.text).toBe('const answer = 42')
+    const codeCells = content.flatMap((item) => item.table?.body.flat() ?? [])
+    expect(codeCells).toContainEqual({ text: 'const answer = 42', style: 'codeBlock' })
 
     const footerText = typeof doc.footer === 'function' ? collectTexts(doc.footer(2, 4, {} as never)) : []
     expect(footerText).toContain('Xarticle.co')

@@ -1,5 +1,5 @@
 import type { InlineMark } from '../../types/article'
-import { pdfSafeText } from './glyphs'
+import { codeSafeText, pdfSafeText } from './glyphs'
 
 type PdfTextFragment = string | {
   text: string
@@ -24,7 +24,7 @@ const withMark = (fragment: Exclude<PdfTextFragment, string>, mark: InlineMark):
   if (mark.type === 'italic') return { ...fragment, italics: true }
   if (mark.type === 'underline') return { ...fragment, decoration: 'underline' }
   if (mark.type === 'strikethrough') return { ...fragment, decoration: 'lineThrough' }
-  if (mark.type === 'code') return { ...fragment, style: 'inlineCode' }
+  if (mark.type === 'code') return { ...fragment, text: codeSafeText(fragment.text), style: 'inlineCode' }
   if (mark.type === 'link' && mark.url) return { ...fragment, link: mark.url, decoration: 'underline', style: 'inlineLink' }
   return fragment
 }
