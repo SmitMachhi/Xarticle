@@ -1,4 +1,5 @@
 import type { InlineMark } from '../../types/article'
+import { trimCode } from '../article-parser/text'
 
 export const normalizeText = (value: string): string => value.replace(/\s+/g, ' ').trim()
 
@@ -52,5 +53,5 @@ export const parseFencedCode = (value: string): { code: string; language?: strin
   if (!match) {
     return null
   }
-  return { code: match[2].trim(), language: match[1] || undefined }
+  return { code: trimCode(match[2]), language: match[1] || undefined }
 }
