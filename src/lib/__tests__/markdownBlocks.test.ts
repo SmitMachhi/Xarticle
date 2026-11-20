@@ -48,4 +48,8 @@ describe('parseMarkdownBlocks structure', () => {
     expect(blocks[2]).toMatchObject({ ordered: true, items: [{ text: 'first' }] })
     expect(blocks[6]).toEqual({ type: 'code', code: 'npm i', language: 'bash' })
   })
+
+  it('keeps the indent of the first fenced line', () => {
+    expect(parseMarkdownBlocks('```py\n\n  if x:\n    run()\n```')).toEqual([{ type: 'code', code: '  if x:\n    run()', language: 'py' }])
+  })
 })

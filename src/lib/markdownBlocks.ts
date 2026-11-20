@@ -7,7 +7,7 @@
 
 import type { ArticleBlock, HeadingLevel, InlineMark, RichText, TableBlock } from '../types/article'
 import { HEADING_LEVEL_ONE, HEADING_LEVEL_THREE, HEADING_LEVEL_TWO } from './article-parser/constants'
-import { normalizeText } from './article-parser/text'
+import { normalizeText, trimCode } from './article-parser/text'
 
 // One token per match, checked in priority order: code spans first so their contents stay literal.
 // Group names match mark types; only http(s) links become links.
@@ -40,7 +40,7 @@ const parseInline = (raw: string): RichText => {
 
 const DELIMITER_CELL = /^:?-+:?$/
 const ESCAPED_PIPE = '\\|'
-const PIPE_PLACEHOLDER = ''
+const PIPE_PLACEHOLDER = '\uE000'
 
 const splitRow = (line: string): string[] | null => {
   const safe = line.trim().replaceAll(ESCAPED_PIPE, PIPE_PLACEHOLDER)
@@ -111,7 +111,7 @@ const pushBlock = (state: ParseState, block: ArticleBlock): true => {
 }
 
 const closeFence = (state: ParseState): void => {
-  const code = state.code?.lines.join('\n').trim()
+  const code = trimCode(state.code?.lines.join('\n') ?? '')
   if (code) state.blocks.push({ type: 'code', code, language: state.code?.language })
   state.code = undefined
 }

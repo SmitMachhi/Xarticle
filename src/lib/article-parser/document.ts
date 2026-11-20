@@ -5,7 +5,7 @@ import {
   HEADING_LEVEL_TWO,
   MIN_PARAGRAPH_LENGTH,
 } from './constants'
-import { normalizeText } from './text'
+import { normalizeText, trimCode } from './text'
 
 const captureMeta = (doc: Document, key: string, attr: 'name' | 'property' = 'property'): string | undefined => {
   const node = doc.querySelector<HTMLMetaElement>(`meta[${attr}="${key}"]`)
@@ -31,7 +31,7 @@ const parseList = (node: HTMLUListElement | HTMLOListElement): ArticleBlock | nu
 }
 
 const parseCode = (node: HTMLPreElement): ArticleBlock | null => {
-  const code = (node.textContent || '').replace(/\r\n/g, '\n').trim()
+  const code = trimCode((node.textContent || '').replace(/\r\n/g, '\n'))
   if (!code) return null
   const languageMatch = (node.querySelector('code')?.className || '').match(/language-([A-Za-z0-9_+-]+)/)
   return { type: 'code', code, language: languageMatch?.[1] }
