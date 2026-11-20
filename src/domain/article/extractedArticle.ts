@@ -15,7 +15,6 @@ export interface ExtractedArticle {
   metricNotes?: Partial<Record<MetricKey, string>>
   blocks: ArticleBlock[]
   warnings: string[]
-  extractedAt: string
   mode: ExtractionMode
   providerUsed: ExtractionProvider
   providerAttempts: ProviderAttempt[]

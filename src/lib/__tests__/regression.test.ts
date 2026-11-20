@@ -138,7 +138,6 @@ describe('pdf definition regression', () => {
         { type: 'code', code: 'const answer = 42', language: 'ts' },
       ],
       warnings: [],
-      extractedAt: '2026-03-18T09:08:53.000Z',
       mode: 'fallback',
       providerUsed: 'threadloom',
       providerAttempts: [],

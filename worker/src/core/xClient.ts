@@ -16,27 +16,21 @@ import {
   TWITTER_API_ROOT,
   X_API_ROOT,
 } from './constants'
-import {
-  clearDurableGuestToken,
-  readDurableGuestToken,
-  readDurableQueryState,
-  writeDurableGuestToken,
-  writeDurableQueryState,
-} from './durableState'
+import { clearDurableGuestToken, readDurableGuestToken, writeDurableGuestToken } from './durableState'
 import { withTimeout } from './http'
-import { clearGuestToken, state } from './state'
+import type { XSession } from './session'
 import { computeTransactionId, graphqlHeaders, guestActivateHeaders } from './xHeaders'
 import { readBearerToken, readMainScriptUrl, readQueryId, readTransactionKey } from './xParsing'
 
 const STALE_QUERY_STATUSES = new Set([HTTP_BAD_REQUEST, HTTP_FORBIDDEN, HTTP_NOT_FOUND, HTTP_UNAUTHORIZED])
 const GRAPHQL_ROOTS = [TWITTER_API_ROOT, X_API_ROOT] as const
+const FALLBACK_QUERY: Pick<XSession, 'bearerToken' | 'queryId'> = { bearerToken: DEFAULT_BEARER_TOKEN, queryId: DEFAULT_TWEET_RESULT_QUERY_ID }
 
-interface QueryState {
-  bearerToken: string
-  queryId: string
+interface GraphqlRequest {
+  guestToken: string
+  session: XSession
+  statusId: string
 }
-
-const FALLBACK_QUERY_STATE: QueryState = { bearerToken: DEFAULT_BEARER_TOKEN, queryId: DEFAULT_TWEET_RESULT_QUERY_ID }
 
 interface GraphqlAttempt {
   error?: string
@@ -44,16 +38,10 @@ interface GraphqlAttempt {
   root: string
 }
 
-const hasGuestToken = (now: number): boolean => Boolean(state.guestToken && now < state.guestTokenExpiresAt)
 const wait = async (durationMs: number): Promise<void> => {
   await new Promise((resolve) => setTimeout(resolve, durationMs))
 }
 const toErrorMessage = (error: unknown): string => (error instanceof Error ? error.message : 'unknown upstream failure')
-const setQueryState = (queryId: string, bearerToken: string, resolvedAt: number): void => {
-  state.tweetResultQueryId = queryId
-  state.bearerToken = bearerToken
-  state.queryResolvedAt = resolvedAt
-}
 
 const fetchText = async (url: string, accept: string): Promise<string> => {
   const response = await withTimeout(url, { headers: { accept } }, STATUS_TIMEOUT_MS)
@@ -61,57 +49,45 @@ const fetchText = async (url: string, accept: string): Promise<string> => {
   return await response.text()
 }
 
-const resolveFromMainScript = async (): Promise<QueryState | null> => {
+const resolveFromMainScript = async (): Promise<Pick<XSession, 'bearerToken' | 'queryId' | 'transactionKey'> | null> => {
   const mainScriptUrl = readMainScriptUrl(await fetchText(MAIN_SCRIPT_URL, 'text/html,application/xhtml+xml'))
   if (!mainScriptUrl) return null
   const scriptText = await fetchText(mainScriptUrl, '*/*')
   const queryId = readQueryId(scriptText)
   if (!queryId) return null
-  state.transactionKey = readTransactionKey(scriptText)
-  return { bearerToken: readBearerToken(scriptText), queryId }
+  return { bearerToken: readBearerToken(scriptText), queryId, transactionKey: readTransactionKey(scriptText) }
 }
 
 // The x-web bundle has no compatible operation, so fall back to the known-good id instead of failing.
-const refreshQueryAndBearer = async (): Promise<QueryState> => {
-  const now = Date.now()
+export const refreshQuery = async (session: XSession): Promise<void> => {
   const resolved = await resolveFromMainScript().catch(() => null)
-  const { bearerToken, queryId } = resolved ?? FALLBACK_QUERY_STATE
-  setQueryState(queryId, bearerToken, now)
-  if (resolved) await writeDurableQueryState(bearerToken, queryId, now)
-  return { bearerToken, queryId }
+  Object.assign(session, resolved ?? FALLBACK_QUERY)
 }
 
-export const resolveQueryAndBearer = async (forceRefresh = false): Promise<QueryState> => {
-  if (!forceRefresh && state.tweetResultQueryId && state.bearerToken) {
-    return { queryId: state.tweetResultQueryId!, bearerToken: state.bearerToken! }
-  }
-  if (!forceRefresh) {
-    const durableState = await readDurableQueryState()
-    if (durableState) {
-      setQueryState(durableState.queryId, durableState.bearerToken, durableState.resolvedAt)
-      return { bearerToken: durableState.bearerToken, queryId: durableState.queryId }
-    }
-  }
-  return await refreshQueryAndBearer()
+const keepGuestToken = (session: XSession, guestToken: string, expiresAt: number): string => {
+  session.guestToken = guestToken
+  session.guestTokenExpiresAt = expiresAt
+  return guestToken
 }
 
-export const activateGuestToken = async (bearerToken: string): Promise<string> => {
+const activateGuestToken = async (session: XSession): Promise<string> => {
   const now = Date.now()
-  if (hasGuestToken(now)) return state.guestToken!
-  const durableGuestToken = await readDurableGuestToken()
-  if (durableGuestToken) {
-    state.guestToken = durableGuestToken.guestToken
-    state.guestTokenExpiresAt = durableGuestToken.expiresAt
-    return state.guestToken
-  }
-  const response = await withTimeout(`${TWITTER_API_ROOT}/1.1/guest/activate.json`, { method: 'POST', headers: guestActivateHeaders(bearerToken), body: '' }, STATUS_TIMEOUT_MS)
+  if (session.guestToken && now < session.guestTokenExpiresAt) return session.guestToken
+  const durable = await readDurableGuestToken()
+  if (durable) return keepGuestToken(session, durable.guestToken, durable.expiresAt)
+  const response = await withTimeout(`${TWITTER_API_ROOT}/1.1/guest/activate.json`, { method: 'POST', headers: guestActivateHeaders(session.bearerToken), body: '' }, STATUS_TIMEOUT_MS)
   if (!response.ok) throw new Error(`Guest token activation failed (HTTP ${response.status}).`)
   const payload = (await response.json()) as { guest_token?: unknown }
   if (typeof payload.guest_token !== 'string') throw new Error('Guest token activation returned an invalid payload.')
-  state.guestToken = payload.guest_token
-  state.guestTokenExpiresAt = now + GUEST_TOKEN_TTL_MS
-  await writeDurableGuestToken(state.guestToken, state.guestTokenExpiresAt)
-  return state.guestToken
+  const expiresAt = now + GUEST_TOKEN_TTL_MS
+  await writeDurableGuestToken(payload.guest_token, expiresAt)
+  return keepGuestToken(session, payload.guest_token, expiresAt)
+}
+
+export const resetGuestToken = async (session: XSession): Promise<void> => {
+  session.guestToken = null
+  session.guestTokenExpiresAt = 0
+  await clearDurableGuestToken()
 }
 
 const graphqlUrl = (root: string, statusId: string, queryId: string): string => {
@@ -122,44 +98,25 @@ const graphqlUrl = (root: string, statusId: string, queryId: string): string => 
   return `${query}?variables=${variables}&features=${features}&fieldToggles=${toggles}`
 }
 
-const fetchGraphql = async (root: string, statusId: string, queryId: string, bearerToken: string, guestToken: string): Promise<Response> => {
-  const path = `/graphql/${queryId}/TweetResultByRestId`
-  const txId = await computeTransactionId(state.transactionKey, 'GET', path)
-  return await withTimeout(graphqlUrl(root, statusId, queryId), { headers: graphqlHeaders(bearerToken, guestToken, txId) }, STATUS_TIMEOUT_MS)
+const fetchGraphql = async (root: string, { guestToken, session, statusId }: GraphqlRequest): Promise<Response> => {
+  const txId = await computeTransactionId(session.transactionKey, 'GET', `/graphql/${session.queryId}/TweetResultByRestId`)
+  return await withTimeout(graphqlUrl(root, statusId, session.queryId), { headers: graphqlHeaders(session.bearerToken, guestToken, txId) }, STATUS_TIMEOUT_MS)
 }
 
-const fetchGraphqlAttempt = async (
-  root: string,
-  statusId: string,
-  queryId: string,
-  bearerToken: string,
-  guestToken: string,
-): Promise<GraphqlAttempt> => {
+const fetchGraphqlAttempt = async (root: string, request: GraphqlRequest): Promise<GraphqlAttempt> => {
   try {
-    return {
-      root,
-      response: await fetchGraphql(root, statusId, queryId, bearerToken, guestToken),
-    }
+    return { root, response: await fetchGraphql(root, request) }
   } catch (error) {
-    return {
-      root,
-      error: toErrorMessage(error),
-    }
+    return { root, error: toErrorMessage(error) }
   }
 }
 
-const fetchDelayedGraphqlAttempt = async (
-  root: string,
-  statusId: string,
-  queryId: string,
-  bearerToken: string,
-  guestToken: string,
-): Promise<GraphqlAttempt> => {
+const fetchDelayedGraphqlAttempt = async (root: string, request: GraphqlRequest): Promise<GraphqlAttempt> => {
   await wait(GRAPHQL_HEDGE_DELAY_MS)
-  return await fetchGraphqlAttempt(root, statusId, queryId, bearerToken, guestToken)
+  return await fetchGraphqlAttempt(root, request)
 }
 
-const attemptPayload = async (attempts: GraphqlAttempt[]): Promise<unknown> => {
+const attemptPayload = async (session: XSession, attempts: GraphqlAttempt[]): Promise<unknown> => {
   const errors: string[] = []
   const statuses: number[] = []
   for (const attempt of attempts) {
@@ -169,8 +126,7 @@ const attemptPayload = async (attempts: GraphqlAttempt[]): Promise<unknown> => {
     }
     statuses.push(attempt.response.status)
     if (attempt.response.status === HTTP_TOO_MANY_REQUESTS) {
-      clearGuestToken()
-      await clearDurableGuestToken()
+      await resetGuestToken(session)
       errors.push(`rate limited at ${attempt.root}`)
       continue
     }
@@ -186,30 +142,14 @@ const attemptPayload = async (attempts: GraphqlAttempt[]): Promise<unknown> => {
   throw new Error(`Tweet query failed. ${errors.join(' | ')}`)
 }
 
-export const graphqlFetchTweetById = async (
-  statusId: string,
-  queryId: string,
-  bearerToken: string,
-  guestToken: string,
-): Promise<unknown> => {
+// Races both API roots, the second after a short delay, and returns the first good payload.
+export const graphqlFetchTweetById = async (session: XSession, statusId: string): Promise<unknown> => {
+  const request: GraphqlRequest = { guestToken: await activateGuestToken(session), session, statusId }
   const [primaryRoot, secondaryRoot] = GRAPHQL_ROOTS
-  const primaryAttempt = fetchGraphqlAttempt(primaryRoot, statusId, queryId, bearerToken, guestToken)
-  const secondaryAttempt = fetchDelayedGraphqlAttempt(
-    secondaryRoot,
-    statusId,
-    queryId,
-    bearerToken,
-    guestToken,
-  )
+  const primaryAttempt = fetchGraphqlAttempt(primaryRoot, request)
+  const secondaryAttempt = fetchDelayedGraphqlAttempt(secondaryRoot, request)
   const firstAttempt = await Promise.race([primaryAttempt, secondaryAttempt])
-  if (firstAttempt.response?.ok) {
-    return await firstAttempt.response.json()
-  }
+  if (firstAttempt.response?.ok) return await firstAttempt.response.json()
   const secondAttempt = firstAttempt.root === primaryRoot ? await secondaryAttempt : await primaryAttempt
-  return await attemptPayload([firstAttempt, secondAttempt])
-}
-
-export const resetGuestToken = async (): Promise<void> => {
-  clearGuestToken()
-  await clearDurableGuestToken()
+  return await attemptPayload(session, [firstAttempt, secondAttempt])
 }

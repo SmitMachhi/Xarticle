@@ -35,7 +35,6 @@ export const parseJinaMarkdown = (raw: string, sourceUrl: string): ExtractedArti
     },
     blocks,
     warnings: ['Fallback extraction mode used. Some metrics or embeds may be missing.'],
-    extractedAt: new Date().toISOString(),
     mode: 'fallback',
     providerUsed: 'jina',
     providerAttempts: [],

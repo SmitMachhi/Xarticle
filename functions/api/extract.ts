@@ -1,4 +1,8 @@
+import { createXSession } from '../../worker/src/core/session'
 import { handleExtract } from '../../worker/src/routes/extract'
+
+// One X session per isolate, created at startup and handed to every request.
+const session = createXSession()
 
 export const onRequestOptions = (): Response =>
   new Response(null, {
@@ -10,4 +14,4 @@ export const onRequestOptions = (): Response =>
     },
   })
 
-export const onRequestPost: PagesFunction = async ({ request }) => handleExtract(request)
+export const onRequestPost: PagesFunction = async ({ request }) => handleExtract(request, session)

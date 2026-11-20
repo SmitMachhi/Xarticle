@@ -6,14 +6,10 @@ import {
 } from '../core/constants'
 import { readExtractCache, writeExtractCache } from '../core/extractCache'
 import { jsonResponse, withTimeout } from '../core/http'
+import type { XSession } from '../core/session'
 import { toTweetPayload } from '../core/tweetMapper'
 import { extractArticleId, extractStatusId, isXDomain, normalizeStatusId, parseInputUrl } from '../core/url'
-import {
-  activateGuestToken,
-  graphqlFetchTweetById,
-  resetGuestToken,
-  resolveQueryAndBearer,
-} from '../core/xClient'
+import { graphqlFetchTweetById, refreshQuery, resetGuestToken } from '../core/xClient'
 import { unwrapTweetResult } from '../core/xParsing'
 
 const toError = (error: unknown): Error => (error instanceof Error ? error : new Error('Extraction failed.'))
@@ -22,40 +18,23 @@ const isStaleQueryFailure = (error: unknown): boolean =>
 const isCacheablePayload = (payload: unknown): boolean =>
   Boolean(payload && typeof payload === 'object' && 'kind' in (payload as Record<string, unknown>))
 
-const fetchRawTweet = async (
-  normalizedStatusId: string,
-): Promise<unknown> => {
-  const fast = await resolveQueryAndBearer()
-  const fastGuestToken = await activateGuestToken(fast.bearerToken)
+const fetchRawTweet = async (session: XSession, statusId: string): Promise<unknown> => {
   try {
-    return await graphqlFetchTweetById(
-      normalizedStatusId,
-      fast.queryId,
-      fast.bearerToken,
-      fastGuestToken,
-    )
+    return await graphqlFetchTweetById(session, statusId)
   } catch (error) {
-    if (!isStaleQueryFailure(error)) {
-      throw error
-    }
-    await resetGuestToken()
-    const refreshed = await resolveQueryAndBearer(true)
-    const refreshGuestToken = await activateGuestToken(refreshed.bearerToken)
-    return await graphqlFetchTweetById(
-      normalizedStatusId,
-      refreshed.queryId,
-      refreshed.bearerToken,
-      refreshGuestToken,
-    )
+    if (!isStaleQueryFailure(error)) throw error
+    await resetGuestToken(session)
+    await refreshQuery(session)
+    return await graphqlFetchTweetById(session, statusId)
   }
 }
 
-const fetchStatusPayload = async (statusId: string): Promise<Record<string, unknown>> => {
+const fetchStatusPayload = async (session: XSession, statusId: string): Promise<Record<string, unknown>> => {
   const normalizedStatusId = normalizeStatusId(statusId)
   if (!normalizedStatusId) {
     throw new Error('Invalid status id.')
   }
-  const raw = await fetchRawTweet(normalizedStatusId)
+  const raw = await fetchRawTweet(session, normalizedStatusId)
   const tweetNode = unwrapTweetResult(raw)
   if (!tweetNode || !(tweetNode as { legacy?: unknown }).legacy) {
     throw new Error('This status was not found.')
@@ -73,19 +52,19 @@ const fetchArticleHtml = async (parsedUrl: URL): Promise<Response> => {
 
 type StatusTweet = { article?: unknown; quoted_status_id?: string | null } | undefined
 
-const extractStatus = async (statusId: string): Promise<Response> => {
-  const payload = await fetchStatusPayload(statusId)
+const extractStatus = async (session: XSession, statusId: string): Promise<Response> => {
+  const payload = await fetchStatusPayload(session, statusId)
   const tweet = payload.tweet as StatusTweet
   if (tweet?.article) return jsonResponse({ kind: 'status', payloads: [payload], warnings: [] })
   const quotedId = tweet?.quoted_status_id
-  const quoted = quotedId ? await fetchStatusPayload(quotedId) : null
+  const quoted = quotedId ? await fetchStatusPayload(session, quotedId) : null
   if (!(quoted?.tweet as StatusTweet)?.article) throw new Error('This status does not include an X Article.')
   return jsonResponse({ kind: 'status', payloads: [quoted], warnings: ['Opened the article quoted by this post.'] })
 }
 
-const extractByUrl = async (parsedUrl: URL): Promise<Response> => {
+const extractByUrl = async (session: XSession, parsedUrl: URL): Promise<Response> => {
   const statusId = extractStatusId(parsedUrl)
-  if (statusId) return await extractStatus(statusId)
+  if (statusId) return await extractStatus(session, statusId)
   const articleId = extractArticleId(parsedUrl)
   if (!articleId) {
     return jsonResponse({ error: 'This URL does not point to a supported status or article.' }, HTTP_BAD_REQUEST)
@@ -126,7 +105,7 @@ const writeCacheableResponse = async (sourceUrl: string, response: Response): Pr
   await writeExtractCache(sourceUrl, response.status, payload)
 }
 
-export const handleExtract = async (request: Request): Promise<Response> => {
+export const handleExtract = async (request: Request, session: XSession): Promise<Response> => {
   try {
     const body = (await request.json().catch(() => null)) as { url?: unknown } | null
     const parsedUrl = parseInputUrl(body?.url)
@@ -138,7 +117,7 @@ export const handleExtract = async (request: Request): Promise<Response> => {
     if (cachedResponse) {
       return cachedResponse
     }
-    const response = await extractByUrl(parsedUrl)
+    const response = await extractByUrl(session, parsedUrl)
     await writeCacheableResponse(sourceUrl, response)
     return response
   } catch (error) {

@@ -25,7 +25,6 @@ const toArticle = (tweet: ThreadloomTweet, sourceUrl: string, blocks: ExtractedA
     metrics: metricSnapshot(tweet),
     blocks,
     warnings: ['Extracted via public status parser.'],
-    extractedAt: new Date().toISOString(),
     mode: 'fallback',
     providerUsed: 'threadloom',
     providerAttempts: [],
