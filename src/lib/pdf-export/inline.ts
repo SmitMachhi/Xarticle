@@ -5,7 +5,7 @@ type PdfTextFragment = string | {
   text: string
   bold?: boolean
   italics?: boolean
-  decoration?: 'underline'
+  decoration?: 'underline' | 'lineThrough'
   link?: string
   style?: string
 }
@@ -23,6 +23,7 @@ const withMark = (fragment: Exclude<PdfTextFragment, string>, mark: InlineMark):
   if (mark.type === 'bold') return { ...fragment, bold: true }
   if (mark.type === 'italic') return { ...fragment, italics: true }
   if (mark.type === 'underline') return { ...fragment, decoration: 'underline' }
+  if (mark.type === 'strikethrough') return { ...fragment, decoration: 'lineThrough' }
   if (mark.type === 'code') return { ...fragment, style: 'inlineCode' }
   if (mark.type === 'link' && mark.url) return { ...fragment, link: mark.url, decoration: 'underline', style: 'inlineLink' }
   return fragment

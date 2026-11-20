@@ -87,7 +87,7 @@ const contentForBlock = async (block: ArticleBlock, imageResolver: ImageResolver
   if (block.type === 'embed') return [embedContent(block)]
   if (block.type === 'divider') return [dividerContent(palette)]
   if (block.type === 'table') return [tableContent(block, palette)]
-  return []
+  return [{ text: pdfSafeText(block.text), style: 'math', alignment: 'center', margin: [MARGIN_INLINE_NONE, MARGIN_SMALL, MARGIN_INLINE_NONE, MARGIN_LARGE] }]
 }
 
 export const blocksToContent = async (blocks: ArticleBlock[], imageResolver: ImageResolver, palette: PdfPalette): Promise<Content[]> => {

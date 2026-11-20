@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { codeOrTableBlock, parseMarkdownTable } from '../markdownTable'
+import { codeOrTableBlock, parseMarkdownTable } from '../markdown/table'
 import { fileNameForPdf } from '../pdf-export/naming'
 import { tableColumnWidths } from '../pdf-export/table'
 

@@ -15,6 +15,7 @@ export type {
   ListBlock,
   ListItem,
   MarginPreset,
+  MathBlock,
   MediaBlock,
   MetricKey,
   PaperSize,

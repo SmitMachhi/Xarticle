@@ -1,9 +1,9 @@
-import type { ArticleBlock, InlineMark, TableBlock, TableCell } from '../types/article'
+import type { ArticleBlock, TableBlock, TableCell } from '../../types/article'
+import { parseInline } from './inline'
 
 const DELIMITER_CELL = /^:?-+:?$/
-const INLINE_TOKEN = /`([^`]+)`|\*\*([^*]+)\*\*/g
 const ESCAPED_PIPE = '\\|'
-const PIPE_PLACEHOLDER = '\uE000'
+const PIPE_PLACEHOLDER = ''
 
 const splitRow = (line: string): string[] | null => {
   const safe = line.trim().replaceAll(ESCAPED_PIPE, PIPE_PLACEHOLDER)
@@ -13,23 +13,7 @@ const splitRow = (line: string): string[] | null => {
 
 const isRow = (row: string[] | null): row is string[] => row !== null
 
-// Turns `code` and **bold** spans into marks so cells render like the rest of the article.
-const toCell = (raw: string): TableCell => {
-  const marks: InlineMark[] = []
-  let text = ''
-  let cursor = 0
-  for (const match of raw.matchAll(INLINE_TOKEN)) {
-    const content = match[1] ?? match[2]
-    text += raw.slice(cursor, match.index)
-    marks.push({ offset: text.length, length: content.length, type: match[1] === undefined ? 'bold' : 'code' })
-    text += content
-    cursor = match.index + match[0].length
-  }
-  text += raw.slice(cursor)
-  return marks.length > 0 ? { text, marks } : { text }
-}
-
-const fitRow = (row: string[], columns: number): TableCell[] => Array.from({ length: columns }, (_, index) => toCell(row[index] ?? ''))
+const fitRow = (row: string[], columns: number): TableCell[] => Array.from({ length: columns }, (_, index) => parseInline(row[index] ?? ''))
 
 export const parseMarkdownTable = (source: string): TableBlock | null => {
   const [headerLine = '', delimiterLine = '', ...bodyLines] = source.trim().split('\n')

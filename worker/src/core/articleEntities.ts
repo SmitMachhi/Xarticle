@@ -50,12 +50,13 @@ export const toCoverImageUrl = (rawArticle: UnknownMap): string | null => {
   return normalizeImageUrl(firstString(mediaInfo.original_img_url, coverMedia.media_url_https, coverMedia.media_url, asMap(coverMedia.original_info).url))
 }
 
-export const resolveMediaRef = (entity: UnknownMap, mediaIdMap: Map<string, MediaRef>): MediaRef | null => {
+// One MEDIA entity can hold a whole gallery, so every item resolves to its own ref.
+export const resolveMediaRefs = (entity: UnknownMap, mediaIdMap: Map<string, MediaRef>): MediaRef[] => {
   const data = asMap(entity.data)
   const directUrl = normalizeImageUrl(firstString(data.src, data.url, data.media_url_https))
-  if (directUrl) return { url: directUrl }
-  const mediaId = firstString(asMap(asArray(data.mediaItems)[0]).mediaId)
-  return mediaId ? (mediaIdMap.get(mediaId) ?? null) : null
+  if (directUrl) return [{ url: directUrl }]
+  return asArray(data.mediaItems ?? data.media_items).flatMap((item) => {
+    const ref = mediaIdMap.get(firstString(asMap(item).mediaId, asMap(item).media_id) || '')
+    return ref ? [ref] : []
+  })
 }
-
-export const stripMarkdownFence = (markdown: string): string => markdown.replace(/^```[A-Za-z]*\n?/, '').replace(/\n?```$/, '').trim()
