@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { DEFAULT_BEARER_TOKEN, DEFAULT_TWEET_RESULT_QUERY_ID } from '../constants'
-import { resolveQueryAndBearer } from '../xClient'
+import { createXSession } from '../session'
+import { refreshQuery } from '../xClient'
 import { readBearerToken, readMainScriptUrl, readQueryId } from '../xParsing'
 
 const MAIN_SCRIPT = 'https://abs.twimg.com/responsive-web/client-web/main.abc123.js'
@@ -39,25 +40,25 @@ describe('X script parsing', () => {
   })
 })
 
-describe('resolveQueryAndBearer', () => {
+const refreshed = async () => {
+  const session = createXSession()
+  await refreshQuery(session)
+  return { bearerToken: session.bearerToken, queryId: session.queryId }
+}
+
+describe('refreshQuery', () => {
   it('resolves from the legacy main script', async () => {
     stubFetch({ 'https://x.com': LEGACY_HTML, [MAIN_SCRIPT]: LEGACY_SCRIPT })
-    await expect(resolveQueryAndBearer(true)).resolves.toEqual({ bearerToken: BEARER, queryId: 'legacyId123' })
+    await expect(refreshed()).resolves.toEqual({ bearerToken: BEARER, queryId: 'legacyId123' })
   })
 
   it('falls back to the known-good query on the x-web layout', async () => {
     stubFetch({ 'https://x.com': XWEB_HTML })
-    await expect(resolveQueryAndBearer(true)).resolves.toEqual({
-      bearerToken: DEFAULT_BEARER_TOKEN,
-      queryId: DEFAULT_TWEET_RESULT_QUERY_ID,
-    })
+    await expect(refreshed()).resolves.toEqual({ bearerToken: DEFAULT_BEARER_TOKEN, queryId: DEFAULT_TWEET_RESULT_QUERY_ID })
   })
 
   it('falls back instead of throwing when X is unreachable', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => Promise.reject(new Error('offline'))))
-    await expect(resolveQueryAndBearer(true)).resolves.toEqual({
-      bearerToken: DEFAULT_BEARER_TOKEN,
-      queryId: DEFAULT_TWEET_RESULT_QUERY_ID,
-    })
+    await expect(refreshed()).resolves.toEqual({ bearerToken: DEFAULT_BEARER_TOKEN, queryId: DEFAULT_TWEET_RESULT_QUERY_ID })
   })
 })

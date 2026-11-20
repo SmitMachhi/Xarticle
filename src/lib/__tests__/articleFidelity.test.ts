@@ -57,7 +57,6 @@ describe('pdf rendering fidelity', () => {
       { type: 'divider' },
     ],
     warnings: [],
-    extractedAt: '2026-01-01T00:00:00.000Z',
     mode: 'fallback',
     providerUsed: 'threadloom',
     providerAttempts: [],

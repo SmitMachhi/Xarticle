@@ -38,7 +38,6 @@ export const parseXHtmlDocument = (html: string, sourceUrl: string): ExtractedAr
     metricNotes: { bookmarks: 'best effort from public page data' },
     blocks: resolvedBlocks,
     warnings: [],
-    extractedAt: new Date().toISOString(),
     mode: 'companion',
     providerUsed: 'companion',
     providerAttempts: [],

@@ -33,10 +33,6 @@ const fixtureForE2E = {
 }
 
 test('status url renders preview and downloads pdf', async ({ page }) => {
-  await page.addInitScript(() => {
-    ;(window as unknown as { __xapDownloads: string[] }).__xapDownloads = []
-  })
-
   await page.route('**/api/extract', async (route) => {
     await route.fulfill({
       status: 200,
@@ -76,8 +72,6 @@ test('status url renders preview and downloads pdf', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Copy text' })).toBeEnabled()
   await expect(page.getByRole('button', { name: 'Markdown' })).toHaveCount(0)
 
-  await pdfButton.click()
-
-  const requestedDownloads = await page.evaluate(() => (window as unknown as { __xapDownloads: string[] }).__xapDownloads)
-  expect(requestedDownloads.some((name) => name.endsWith('.pdf'))).toBe(true)
+  const [download] = await Promise.all([page.waitForEvent('download'), pdfButton.click()])
+  expect(download.suggestedFilename()).toBe('OpenClaw + Codex ClaudeCode Agent Swarm The One-Person Dev Team [Full Setup].pdf')
 })

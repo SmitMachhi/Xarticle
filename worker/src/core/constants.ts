@@ -1,6 +1,5 @@
 export const ARTICLE_TIMEOUT_MS = 20_000
 export const STATUS_TIMEOUT_MS = 15_000
-export const QUERY_CACHE_TTL_MS = 21_600_000
 export const GUEST_TOKEN_TTL_MS = 7_200_000
 export const EXTRACT_CACHE_TTL_MS = 300_000
 export const GRAPHQL_HEDGE_DELAY_MS = 350
@@ -12,7 +11,6 @@ export const TWITTER_API_ROOT = 'https://api.twitter.com'
 export const MAIN_SCRIPT_URL = 'https://x.com'
 export const WORKER_CACHE_ROOT = 'https://worker-cache.internal'
 export const EXTRACT_CACHE_KEY_PREFIX = 'extract-response'
-export const QUERY_STATE_CACHE_KEY = 'x-query-state'
 export const GUEST_TOKEN_CACHE_KEY = 'x-guest-token'
 
 export const USER_AGENT =

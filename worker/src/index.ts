@@ -1,11 +1,12 @@
 import { CORS_HEADERS, HTTP_NOT_FOUND } from './core/constants'
 import { jsonResponse } from './core/http'
+import { createXSession, type XSession } from './core/session'
 import { handleExtract } from './routes/extract'
 import { handleImage } from './routes/image'
 
 const notFound = (): Response => jsonResponse({ error: 'Not found.' }, HTTP_NOT_FOUND)
 
-const routeRequest = async (request: Request): Promise<Response> => {
+const routeRequest = async (request: Request, session: XSession): Promise<Response> => {
   const url = new URL(request.url)
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: CORS_HEADERS })
@@ -17,11 +18,14 @@ const routeRequest = async (request: Request): Promise<Response> => {
     return await handleImage(request)
   }
   if (request.method === 'POST' && url.pathname === '/api/extract') {
-    return await handleExtract(request)
+    return await handleExtract(request, session)
   }
   return notFound()
 }
 
+// One X session per isolate, created at startup and handed to every request.
+const session = createXSession()
+
 export default {
-  fetch: async (request: Request): Promise<Response> => await routeRequest(request),
+  fetch: async (request: Request): Promise<Response> => await routeRequest(request, session),
 }
