@@ -2,7 +2,6 @@ import { BILLION, MILLION, THOUSAND } from './constants'
 
 export const normalizeText = (value: string): string => value.replace(/\s+/g, ' ').trim()
 
-// Drops blank lines around code but keeps the first line's indent, so relative indentation survives.
 export const trimCode = (value: string): string => value.replace(/^(?:[ \t]*\r?\n)+/, '').trimEnd()
 
 export const parseCount = (raw: string): number | null => {

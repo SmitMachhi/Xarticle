@@ -6,7 +6,6 @@ import type { ExtractedArticle } from '../../../types/article'
 
 type DownloadState = 'idle' | 'pdf' | 'print'
 
-// One print-friendly layout: US Letter, narrow margins.
 const PDF_OPTIONS: PdfExportOptions = { paperSize: 'LETTER', marginPreset: 'minimum', themeMode: 'color', coverMetaStyle: 'full', coverPageMode: 'always' }
 
 interface ExportState {

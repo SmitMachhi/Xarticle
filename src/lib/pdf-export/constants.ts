@@ -2,7 +2,6 @@ import type { MarginPreset } from '../../types/article'
 import type { ImageLimits } from './image/sizing'
 
 export const COVER_IMAGE_CAPTION = 'cover image'
-// Compact print layout: every image (cover included) targets the area of a ~280x210pt 4:3 image.
 export const IMAGE_LIMITS: ImageLimits = { area: 60_000, maxWidth: 460, maxHeight: 240 }
 
 export const HEADER_THUMB = { width: 190, height: 107 }

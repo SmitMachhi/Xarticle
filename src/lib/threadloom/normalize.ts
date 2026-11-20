@@ -10,7 +10,6 @@ const collapseRun = (run: string): string => {
   return breaks === 1 ? '\n' : PARAGRAPH_BREAK
 }
 
-// Collapses whitespace but keeps line/paragraph breaks; positions[i] is where source index i lands.
 const collapseWhitespace = (value: string): { text: string; positions: number[] } => {
   const positions: number[] = []
   let text = ''

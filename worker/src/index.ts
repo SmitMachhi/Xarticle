@@ -23,7 +23,6 @@ const routeRequest = async (request: Request, session: XSession): Promise<Respon
   return notFound()
 }
 
-// One X session per isolate, created at startup and handed to every request.
 const session = createXSession()
 
 export default {

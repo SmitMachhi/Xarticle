@@ -22,7 +22,6 @@ import { paletteForTheme, stylesForTheme } from './styles'
 
 type ImageResolver = (url: string) => Promise<string | null>
 
-// Only the three stats readers care about, to keep the header to one short line.
 const metricRows = [
   { key: 'likes', label: 'likes' },
   { key: 'views', label: 'views' },
@@ -31,7 +30,6 @@ const metricRows = [
 
 const formatDate = (value: string | Date): string => new Date(value).toLocaleDateString(DATE_LOCALE, DATE_FORMAT)
 
-// Footer nodes are reported with their own (smaller) top, so only nodes below the heading count as body content.
 const keepHeadingWithNext = (node: Node, queries: NodeQueries): boolean => {
   if (!node.headlineLevel) return false
   return !queries.getFollowingNodesOnPage().some((next) => next.startPosition.top > node.startPosition.top)
@@ -66,7 +64,6 @@ const headerText = (article: ExtractedArticle, metaStyle: PdfExportOptions['cove
   }
 }
 
-// Cover thumbnail beside the title keeps the whole header under ~90pt, so page 1 is mostly article.
 const articleHeader = (article: ExtractedArticle, coverUrl: string | null, metaStyle: PdfExportOptions['coverMetaStyle']): Content => {
   const thumbnail: Column[] = coverUrl ? [{ image: coverUrl, fit: [HEADER_THUMB.width, HEADER_THUMB.height], width: HEADER_THUMB.width }] : []
   return { columns: [...thumbnail, headerText(article, metaStyle)], columnGap: HEADER_COLUMN_GAP }
@@ -81,7 +78,6 @@ export const buildPdfDefinition = async (
   const palette = paletteForTheme(opts.themeMode)
   const bodyContent = await blocksToContent(bodyBlocks, imageResolver, palette)
   const coverMedia = coverMediaUrl ? await imageResolver(coverMediaUrl) : null
-  // The header shares page 1 with the article to save paper; a rule separates the two.
   const content: Content[] = [articleHeader(article, coverMedia, opts.coverMetaStyle), dividerContent(palette), ...bodyContent]
 
   return {

@@ -10,7 +10,6 @@ const u32 = (value: number): number[] => [...u16(Math.floor(value / 65536)), ...
 const png = (width: number, height: number): string =>
   toDataUrl([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52, ...u32(width), ...u32(height), 8, 6, 0, 0, 0], 'image/png')
 
-// SOI, an APP0 segment to skip, then a progressive SOF2 frame header.
 const jpeg = (width: number, height: number): string =>
   toDataUrl([0xff, 0xd8, 0xff, 0xe0, ...u16(16), ...Array<number>(14).fill(0), 0xff, 0xc2, ...u16(17), 8, ...u16(height), ...u16(width), 3, 0, 0, 0, 0], 'image/jpeg')
 

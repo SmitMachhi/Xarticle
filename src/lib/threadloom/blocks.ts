@@ -45,7 +45,6 @@ const mergeAdjacentLists = (blocks: ArticleBlock[]): ArticleBlock[] => {
 
 const isCodeLine = (block: ThreadloomArticleBlock): boolean => CODE_LINE_TYPES.has(block.type || '')
 
-// X stores a code panel as one block per line; rejoin each run so separate panels stay separate.
 const joinCodeLines = (blocks: ThreadloomArticleBlock[]): ThreadloomArticleBlock[] => {
   const joined: ThreadloomArticleBlock[] = []
   for (const block of blocks) {

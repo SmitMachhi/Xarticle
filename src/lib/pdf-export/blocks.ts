@@ -54,7 +54,6 @@ const quoteContent = (block: Extract<ArticleBlock, { type: 'quote' }>, palette: 
   margin: [MARGIN_INLINE_NONE, MARGIN_SMALL, MARGIN_INLINE_NONE, MARGIN_LARGE],
 })
 
-// One filled box per block: per-line text backgrounds would cover the underscores of the line above.
 const codeLayout = (palette: PdfPalette): CustomTableLayout => ({
   hLineWidth: () => TABLE_RULE_WIDTH,
   vLineWidth: () => TABLE_RULE_WIDTH,

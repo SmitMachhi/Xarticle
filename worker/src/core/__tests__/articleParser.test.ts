@@ -11,7 +11,6 @@ const media = (mediaId: string, mediaCategory: string, caption?: string) => ({
   data: { caption, mediaItems: [{ mediaId, mediaCategory }] },
 })
 
-// X sends entityMap as an array whose `key` field does not match the array index.
 const rawArticleNode = {
   article: {
     article_results: {

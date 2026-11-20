@@ -8,7 +8,6 @@ import type { PdfPalette } from './styles'
 const PERCENT = 100
 const PERCENT_DECIMALS = 2
 
-// Columns share the page by how much text they hold, clamped so labels stay readable and prose wraps.
 const columnWeight = (cells: RichText[]): number => {
   const longest = Math.max(...cells.map((cell) => cell.text.length))
   return Math.min(Math.max(longest, TABLE_COLUMN_CHARS.min), TABLE_COLUMN_CHARS.max)

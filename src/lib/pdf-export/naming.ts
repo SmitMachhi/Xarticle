@@ -1,6 +1,5 @@
 import { FILENAME_FALLBACK, FILENAME_TITLE_LIMIT } from './constants'
 
-// Characters Windows, macOS and Linux refuse in file names, plus control characters.
 const ILLEGAL_FILENAME_CHARS = /[<>:"/\\|?*\p{Cc}]/gu
 
 export const fileNameForPdf = (title: string): string => {

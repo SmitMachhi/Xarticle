@@ -1,16 +1,7 @@
-// Turns the markdown X stores in an article's MARKDOWN blocks (and Jina's fallback text) into article blocks.
-// Supports: # headings (levels past 3 become 3), - * + and 1. lists, - [ ] checklists (kept as "[ ] "/"[x] " text),
-// > quotes, ```fenced code, ![images](url), | pipe | tables |, and inline `code`, **bold**, *italic*,
-// ~~strike~~ and [links](https://...).
-// Does not promise: nested lists (flattened), nested inline marks, _underscore_ italics, setext headings,
-// horizontal rules, tables without outer pipes, table column alignment, or HTML. Pipe rows that are not a valid table stay plain text.
-
 import type { ArticleBlock, HeadingLevel, InlineMark, RichText, TableBlock } from '../types/article'
 import { HEADING_LEVEL_ONE, HEADING_LEVEL_THREE, HEADING_LEVEL_TWO } from './article-parser/constants'
 import { normalizeText, trimCode } from './article-parser/text'
 
-// One token per match, checked in priority order: code spans first so their contents stay literal.
-// Group names match mark types; only http(s) links become links.
 const INLINE_TOKEN = /`(?<code>[^`]+)`|\[(?<link>[^\]]+)\]\((?<url>https?:\/\/[^)\s]+)\)|\*\*(?<bold>[^*]+)\*\*|~~(?<strikethrough>[^~]+)~~|\*(?<italic>[^*\s][^*]*)\*/g
 const MARK_TYPES: readonly InlineMark['type'][] = ['code', 'link', 'bold', 'strikethrough', 'italic']
 
@@ -90,7 +81,6 @@ const flushList = (state: ParseState): void => {
   state.list = undefined
 }
 
-// Rows that do not form a valid table stay readable as plain text.
 const flushTable = (state: ParseState): void => {
   if (state.table.length === 0) return
   const source = state.table.join('\n')

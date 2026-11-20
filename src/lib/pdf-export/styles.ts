@@ -2,7 +2,6 @@ import type { StyleDictionary } from 'pdfmake/interfaces'
 
 import type { ThemeMode } from '../../types/article'
 
-// pdfmake's built-in monospace font, registered in runtime.ts.
 const CODE_FONT = 'Courier'
 
 export interface PdfPalette {

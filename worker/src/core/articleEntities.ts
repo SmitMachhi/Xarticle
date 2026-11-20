@@ -50,7 +50,6 @@ export const toCoverImageUrl = (rawArticle: UnknownMap): string | null => {
   return normalizeImageUrl(firstString(mediaInfo.original_img_url, coverMedia.media_url_https, coverMedia.media_url, asMap(coverMedia.original_info).url))
 }
 
-// One MEDIA entity can hold a whole gallery, so every item resolves to its own ref.
 export const resolveMediaRefs = (entity: UnknownMap, mediaIdMap: Map<string, MediaRef>): MediaRef[] => {
   const data = asMap(entity.data)
   const directUrl = normalizeImageUrl(firstString(data.src, data.url, data.media_url_https))

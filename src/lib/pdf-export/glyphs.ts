@@ -1,4 +1,3 @@
-// Roboto (the bundled PDF font) has no arrows, check marks, dingbats or emoji; they render as empty boxes.
 const GLYPH_FALLBACKS: Record<string, string> = {
   '→': '->',
   '⇒': '=>',
@@ -19,7 +18,6 @@ const GLYPH_FALLBACKS: Record<string, string> = {
 }
 
 const FALLBACK_PATTERN = new RegExp(`[${Object.keys(GLYPH_FALLBACKS).join('')}]\\uFE0F?`, 'gu')
-// Pictographs below U+2190 (©, ®, ™, ‼) exist in Roboto, so only strip from the arrows block upward.
 const UNSUPPORTED_PATTERN = /(?:(?=\p{Extended_Pictographic})[^ -↏]|[←-⇿⌀-⏿①-⓿□-◉◐-➿⬀-⯿])[️‍]* ?/gu
 const KEYCAP_PATTERN = /[️⃣‍]/gu
 
@@ -30,8 +28,6 @@ export const pdfSafeText = (value: string): string => {
     .replace(KEYCAP_PATTERN, '')
 }
 
-// Courier (the code font) only has WinAnsi glyphs and prints garbage for anything else. Tree drawings
-// become ASCII, like `tree --charset=ascii`; any other character outside WinAnsi becomes "?".
 const BOX_FALLBACKS: Record<string, string> = { '─': '-', '━': '-', '═': '=', '│': '|', '┃': '|', '║': '|', '├': '|', '┤': '|', '└': '`' }
 const BOX_PATTERN = /[─-╿]/gu
 const BOX_JOINT = '+'

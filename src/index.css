@@ -6,7 +6,6 @@
   --font-serif: 'Instrument Serif', ui-serif, Georgia, serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  /* Magic UI keyframes (aurora-text, shimmer-button) */
   --animate-aurora: aurora 8s ease-in-out infinite alternate;
   --animate-shimmer-slide: shimmer-slide var(--speed) ease-in-out infinite alternate;
   --animate-spin-around: spin-around calc(var(--speed) * 2) infinite linear;
@@ -32,7 +31,6 @@
 }
 
 @layer base {
-  /* Warm paper with a faint SVG noise grain, so the page reads like the print it produces. */
   html {
     background-color: #f7f4ee;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
@@ -56,8 +54,6 @@
     outline-offset: 2px;
   }
 }
-
-/* ---------- article preview prose ---------- */
 
 @layer components {
   .article-body {

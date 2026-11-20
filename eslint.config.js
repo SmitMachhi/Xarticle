@@ -138,7 +138,6 @@ export default defineConfig([
     },
   },
   {
-    // Vendored Magic UI components (magicui.design), kept close to upstream so they can be re-pulled.
     files: ['src/components/magicui/**/*.tsx'],
     rules: {
       'no-magic-numbers': 'off',

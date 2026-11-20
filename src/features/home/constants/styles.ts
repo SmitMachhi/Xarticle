@@ -1,4 +1,3 @@
-// Shared Tailwind class strings so every button and card in the app reads the same.
 export const PRIMARY_BUTTON = 'inline-flex h-9 items-center justify-center rounded-full bg-neutral-900 px-4 text-sm font-medium text-white transition-colors hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50'
 export const ICON_BUTTON = 'inline-flex size-9 shrink-0 items-center justify-center rounded-full text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-50'
 export const ICON_SIZE = 18

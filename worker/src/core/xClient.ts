@@ -26,7 +26,6 @@ const STALE_QUERY_STATUSES = new Set([HTTP_BAD_REQUEST, HTTP_FORBIDDEN, HTTP_NOT
 const GRAPHQL_ROOTS = [TWITTER_API_ROOT, X_API_ROOT] as const
 const FALLBACK_QUERY: Pick<XSession, 'bearerToken' | 'queryId'> = { bearerToken: DEFAULT_BEARER_TOKEN, queryId: DEFAULT_TWEET_RESULT_QUERY_ID }
 
-// A snapshot of the session, so a refresh running at the same time can't mix two query ids in one request.
 interface GraphqlRequest extends Pick<XSession, 'bearerToken' | 'queryId' | 'transactionKey'> {
   guestToken: string
   statusId: string
@@ -58,7 +57,6 @@ const resolveFromMainScript = async (): Promise<Pick<XSession, 'bearerToken' | '
   return { bearerToken: readBearerToken(scriptText), queryId, transactionKey: readTransactionKey(scriptText) }
 }
 
-// The x-web bundle has no compatible operation, so fall back to the known-good id instead of failing.
 export const refreshQuery = async (session: XSession): Promise<void> => {
   const resolved = await resolveFromMainScript().catch(() => null)
   Object.assign(session, resolved ?? FALLBACK_QUERY)
@@ -142,7 +140,6 @@ const attemptPayload = async (session: XSession, attempts: GraphqlAttempt[]): Pr
   throw new Error(`Tweet query failed. ${errors.join(' | ')}`)
 }
 
-// Races both API roots, the second after a short delay, and returns the first good payload.
 export const graphqlFetchTweetById = async (session: XSession, statusId: string): Promise<unknown> => {
   const { bearerToken, queryId, transactionKey } = session
   const request: GraphqlRequest = { bearerToken, guestToken: await activateGuestToken(session), queryId, statusId, transactionKey }

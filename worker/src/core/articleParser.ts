@@ -40,7 +40,6 @@ const POST_ID_PATTERN = /^\d+$/
 
 const optional = (value: string | undefined, build: (value: string) => ContentBlock): ContentBlock[] => (value ? [build(value)] : [])
 
-// X prints one caption under the whole gallery, so it goes on the last image.
 const mediaBlocks = ({ data, entity, mediaIdMap }: AtomicContext): ContentBlock[] => {
   const refs = resolveMediaRefs(entity, mediaIdMap)
   const caption = firstString(data.caption)
@@ -110,7 +109,6 @@ const extractAttachedMarkdown = (block: UnknownMap, entities: EntityLookup): Con
 }
 
 const toTextBlocks = (typed: UnknownMap, blockType: string, entities: EntityLookup): ContentBlock[] => {
-  // Untrimmed, so code keeps its indentation and style offsets still line up.
   const text = typeof typed.text === 'string' ? typed.text : ''
   if (!text.trim()) return []
   const marks = [...styleMarks(typed), ...linkMarks(typed, entities)]
