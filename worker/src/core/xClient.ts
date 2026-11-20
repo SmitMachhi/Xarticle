@@ -26,9 +26,9 @@ const STALE_QUERY_STATUSES = new Set([HTTP_BAD_REQUEST, HTTP_FORBIDDEN, HTTP_NOT
 const GRAPHQL_ROOTS = [TWITTER_API_ROOT, X_API_ROOT] as const
 const FALLBACK_QUERY: Pick<XSession, 'bearerToken' | 'queryId'> = { bearerToken: DEFAULT_BEARER_TOKEN, queryId: DEFAULT_TWEET_RESULT_QUERY_ID }
 
-interface GraphqlRequest {
+// A snapshot of the session, so a refresh running at the same time can't mix two query ids in one request.
+interface GraphqlRequest extends Pick<XSession, 'bearerToken' | 'queryId' | 'transactionKey'> {
   guestToken: string
-  session: XSession
   statusId: string
 }
 
@@ -98,9 +98,9 @@ const graphqlUrl = (root: string, statusId: string, queryId: string): string => 
   return `${query}?variables=${variables}&features=${features}&fieldToggles=${toggles}`
 }
 
-const fetchGraphql = async (root: string, { guestToken, session, statusId }: GraphqlRequest): Promise<Response> => {
-  const txId = await computeTransactionId(session.transactionKey, 'GET', `/graphql/${session.queryId}/TweetResultByRestId`)
-  return await withTimeout(graphqlUrl(root, statusId, session.queryId), { headers: graphqlHeaders(session.bearerToken, guestToken, txId) }, STATUS_TIMEOUT_MS)
+const fetchGraphql = async (root: string, { bearerToken, guestToken, queryId, statusId, transactionKey }: GraphqlRequest): Promise<Response> => {
+  const txId = await computeTransactionId(transactionKey, 'GET', `/graphql/${queryId}/TweetResultByRestId`)
+  return await withTimeout(graphqlUrl(root, statusId, queryId), { headers: graphqlHeaders(bearerToken, guestToken, txId) }, STATUS_TIMEOUT_MS)
 }
 
 const fetchGraphqlAttempt = async (root: string, request: GraphqlRequest): Promise<GraphqlAttempt> => {
@@ -144,7 +144,8 @@ const attemptPayload = async (session: XSession, attempts: GraphqlAttempt[]): Pr
 
 // Races both API roots, the second after a short delay, and returns the first good payload.
 export const graphqlFetchTweetById = async (session: XSession, statusId: string): Promise<unknown> => {
-  const request: GraphqlRequest = { guestToken: await activateGuestToken(session), session, statusId }
+  const { bearerToken, queryId, transactionKey } = session
+  const request: GraphqlRequest = { bearerToken, guestToken: await activateGuestToken(session), queryId, statusId, transactionKey }
   const [primaryRoot, secondaryRoot] = GRAPHQL_ROOTS
   const primaryAttempt = fetchGraphqlAttempt(primaryRoot, request)
   const secondaryAttempt = fetchDelayedGraphqlAttempt(secondaryRoot, request)

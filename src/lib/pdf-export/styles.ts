@@ -18,7 +18,7 @@ export const paletteForTheme = (themeMode: ThemeMode): PdfPalette => {
 export const stylesForTheme = (themeMode: ThemeMode): StyleDictionary => {
   const { code, meta, text } = paletteForTheme(themeMode)
   return {
-    codeBlock: { fontSize: 10, color: text, background: code },
+    codeBlock: { fontSize: 10, color: text, background: code, preserveLeadingSpaces: true },
     embed: { fontSize: 10, color: text, decoration: 'underline' },
     h1: { fontSize: 21, bold: true, color: text },
     h2: { fontSize: 17, bold: true, color: text },

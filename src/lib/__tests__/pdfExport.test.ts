@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 import { parseMarkdownBlocks } from '../markdownBlocks'
 import { fileNameForPdf } from '../pdf-export/naming'
-import { paletteForTheme } from '../pdf-export/styles'
+import { paletteForTheme, stylesForTheme } from '../pdf-export/styles'
 import { tableContent } from '../pdf-export/table'
 
 describe('tableContent', () => {
@@ -15,6 +15,12 @@ describe('tableContent', () => {
     expect(widths[1]).toBeGreaterThan(widths[0])
     expect(widths.reduce((sum, width) => sum + width, 0)).toBeCloseTo(100, 1)
     expect(content.table.headerRows).toBe(1)
+  })
+})
+
+describe('stylesForTheme', () => {
+  it('keeps code indentation, which pdfmake strips by default', () => {
+    expect(stylesForTheme('color').codeBlock).toMatchObject({ preserveLeadingSpaces: true })
   })
 })
 

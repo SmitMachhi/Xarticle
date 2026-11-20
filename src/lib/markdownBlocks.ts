@@ -3,7 +3,7 @@
 // > quotes, ```fenced code, ![images](url), | pipe | tables |, and inline `code`, **bold**, *italic*,
 // ~~strike~~ and [links](https://...).
 // Does not promise: nested lists (flattened), nested inline marks, _underscore_ italics, setext headings,
-// horizontal rules, table column alignment, or HTML. Pipe rows that are not a valid table stay plain text.
+// horizontal rules, tables without outer pipes, table column alignment, or HTML. Pipe rows that are not a valid table stay plain text.
 
 import type { ArticleBlock, HeadingLevel, InlineMark, RichText, TableBlock } from '../types/article'
 import { HEADING_LEVEL_ONE, HEADING_LEVEL_THREE, HEADING_LEVEL_TWO } from './article-parser/constants'
