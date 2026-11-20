@@ -24,7 +24,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "5.20261106.1",
     "@eslint/js": "^9.39.1",
-    "@playwright/test": "^1.58.2",
+    "@playwright/test": "^1.65.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.10.1",
     "@types/pdfmake": "^0.3.1",
