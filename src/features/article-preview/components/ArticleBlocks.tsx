@@ -48,7 +48,7 @@ const renderBlock = (block: ArticleBlock, key: string) => {
   if (block.type === 'media') return renderMedia(block, key)
   if (block.type === 'divider') return <hr key={key} />
   if (block.type === 'embed') return renderEmbed(block, key)
-  return null
+  return <p className="math-block" key={key}>{block.text}</p>
 }
 
 export const ArticleBlocks = ({ blocks }: { blocks: ArticleBlock[] }) => {

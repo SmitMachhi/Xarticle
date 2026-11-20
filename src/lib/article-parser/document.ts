@@ -1,5 +1,5 @@
 import type { ArticleBlock } from '../../types/article'
-import { codeOrTableBlock } from '../markdownTable'
+import { codeOrTableBlock } from '../markdown/table'
 import {
   HEADING_LEVEL_ONE,
   HEADING_LEVEL_THREE,

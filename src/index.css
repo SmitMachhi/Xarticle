@@ -148,6 +148,12 @@
     overflow-wrap: anywhere;
   }
 
+  .article-body .math-block {
+    text-align: center;
+    font-style: italic;
+    overflow-wrap: anywhere;
+  }
+
   .article-body .table-wrap {
     margin: 0.5rem 0 1.25rem;
     overflow-x: auto;

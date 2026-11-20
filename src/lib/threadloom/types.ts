@@ -7,7 +7,7 @@ export interface ThreadloomTweetAuthor {
 export interface ThreadloomInlineMark {
   offset: number
   length: number
-  type: 'bold' | 'italic' | 'underline' | 'code' | 'link'
+  type: 'bold' | 'italic' | 'underline' | 'strikethrough' | 'code' | 'link'
   url?: string
 }
 

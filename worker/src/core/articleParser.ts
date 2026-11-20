@@ -1,4 +1,4 @@
-import { buildEntityLookup, buildMediaIdMap, type MediaRef, resolveMediaRef, stripMarkdownFence, toCoverImageUrl } from './articleEntities'
+import { buildEntityLookup, buildMediaIdMap, type MediaRef, resolveMediaRefs, toCoverImageUrl } from './articleEntities'
 import { asArray, asMap, chunkParagraphs, firstString, type UnknownMap } from './primitives'
 
 type EntityLookup = Map<string, UnknownMap>
@@ -6,7 +6,7 @@ type EntityLookup = Map<string, UnknownMap>
 interface InlineMark {
   offset: number
   length: number
-  type: 'bold' | 'italic' | 'underline' | 'code' | 'link'
+  type: 'bold' | 'italic' | 'underline' | 'strikethrough' | 'code' | 'link'
   url?: string
 }
 
@@ -28,30 +28,51 @@ const toMediaBlock = (ref: MediaRef, caption: string | undefined): ContentBlock 
   return block
 }
 
-const resolveAtomicBlock = (entities: EntityLookup, block: UnknownMap, mediaIdMap: Map<string, MediaRef>): ContentBlock | null => {
+interface AtomicContext {
+  block: UnknownMap
+  data: UnknownMap
+  entity: UnknownMap
+  mediaIdMap: Map<string, MediaRef>
+}
+
+const POST_URL_BASE = 'https://x.com/i/status/'
+const POST_ID_PATTERN = /^\d+$/
+
+const optional = (value: string | undefined, build: (value: string) => ContentBlock): ContentBlock[] => (value ? [build(value)] : [])
+
+// X prints one caption under the whole gallery, so it goes on the last image.
+const mediaBlocks = ({ data, entity, mediaIdMap }: AtomicContext): ContentBlock[] => {
+  const refs = resolveMediaRefs(entity, mediaIdMap)
+  const caption = firstString(data.caption)
+  return refs.map((ref, index) => toMediaBlock(ref, index === refs.length - 1 ? caption : undefined))
+}
+
+const postBlock = ({ data }: AtomicContext): ContentBlock[] => {
+  const postId = firstString(data.tweetId, data.tweet_id)
+  return optional(postId && POST_ID_PATTERN.test(postId) ? `${POST_URL_BASE}${postId}` : undefined, (url) => ({ type: 'embed', text: url, url }))
+}
+
+const ATOMIC_HANDLERS = new Map<string, (context: AtomicContext) => ContentBlock[]>([
+  ['MEDIA', mediaBlocks],
+  ['IMAGE', mediaBlocks],
+  ['TWEET', postBlock],
+  ['DIVIDER', () => [{ type: 'divider', text: '' }]],
+  ['MARKDOWN', ({ data }) => optional(firstString(data.markdown), (text) => ({ type: 'markdown', text }))],
+  ['LATEX', ({ block }) => optional(firstString(block.text), (text) => ({ type: 'latex', text }))],
+  ['LINK', ({ data }) => optional(firstString(data.url), (url) => ({ type: 'embed', text: url, url }))],
+])
+
+const resolveAtomicBlock = (entities: EntityLookup, block: UnknownMap, mediaIdMap: Map<string, MediaRef>): ContentBlock[] => {
   const entity = entityFor(entities, asArray(block.entityRanges)[0])
-  const entityType = firstString(entity.type)
-  const data = asMap(entity.data)
-  if (entityType === 'MEDIA' || entityType === 'IMAGE') {
-    const ref = resolveMediaRef(entity, mediaIdMap)
-    return ref ? toMediaBlock(ref, firstString(data.caption)) : null
-  }
-  if (entityType === 'DIVIDER') return { type: 'divider', text: '' }
-  if (entityType === 'MARKDOWN') {
-    const code = stripMarkdownFence(firstString(data.markdown) || '')
-    return code ? { type: 'code-block', text: code } : null
-  }
-  if (entityType === 'LINK') {
-    const url = firstString(data.url)
-    return url ? { type: 'embed', text: url, url } : null
-  }
-  return null
+  const handler = ATOMIC_HANDLERS.get(firstString(entity.type) || '')
+  return handler ? handler({ block, data: asMap(entity.data), entity, mediaIdMap }) : []
 }
 
 const STYLE_MAP: Record<string, InlineMark['type']> = {
   BOLD: 'bold',
   ITALIC: 'italic',
   UNDERLINE: 'underline',
+  STRIKETHROUGH: 'strikethrough',
   CODE: 'code',
 }
 
@@ -84,14 +105,14 @@ const extractAttachedMarkdown = (block: UnknownMap, entities: EntityLookup): Con
   return asArray(block.entityRanges).flatMap((range) => {
     const entity = entityFor(entities, range)
     if (firstString(entity.type) !== 'MARKDOWN') return []
-    const code = stripMarkdownFence(firstString(asMap(entity.data).markdown) || '')
-    return code ? [{ type: 'code-block', text: code }] : []
+    return optional(firstString(asMap(entity.data).markdown), (text) => ({ type: 'markdown', text }))
   })
 }
 
 const toTextBlocks = (typed: UnknownMap, blockType: string, entities: EntityLookup): ContentBlock[] => {
-  const text = firstString(typed.text)
-  if (!text) return []
+  // Untrimmed, so code keeps its indentation and style offsets still line up.
+  const text = typeof typed.text === 'string' ? typed.text : ''
+  if (!text.trim()) return []
   const marks = [...styleMarks(typed), ...linkMarks(typed, entities)]
   const primary: ContentBlock = marks.length > 0 ? { type: blockType, text, marks } : { type: blockType, text }
   return [primary, ...extractAttachedMarkdown(typed, entities)]
@@ -105,8 +126,7 @@ const toArticleBlocksFromState = (rawArticle: UnknownMap): ContentBlock[] => {
     const typed = asMap(block)
     const blockType = firstString(typed.type) || 'unstyled'
     if (blockType !== 'atomic') return toTextBlocks(typed, blockType, entities)
-    const resolved = resolveAtomicBlock(entities, typed, mediaIdMap)
-    return resolved ? [resolved] : []
+    return resolveAtomicBlock(entities, typed, mediaIdMap)
   })
 }
 

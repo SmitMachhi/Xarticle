@@ -1,5 +1,6 @@
 import type { ArticleBlock, HeadingLevel, InlineMark, ListItem } from '../../types/article'
-import { codeOrTableBlock } from '../markdownTable'
+import { parseMarkdownBlocks } from '../markdown/blocks'
+import { codeOrTableBlock } from '../markdown/table'
 import { normalizeRichText, normalizeText, parseFencedCode } from './normalize'
 import type { ThreadloomArticleBlock, ThreadloomMediaItem, ThreadloomTweet } from './types'
 
@@ -8,6 +9,7 @@ const OVERLAP_THRESHOLD = 48
 
 const HEADING_TYPES = ['header-one', 'header-two', 'header-three']
 const LIST_TYPES: Record<string, boolean> = { 'ordered-list-item': true, 'unordered-list-item': false }
+const CODE_LINE_TYPES = new Set(['code-block', 'code'])
 
 const toMarks = (block: ThreadloomArticleBlock): InlineMark[] | undefined => {
   if (!block.marks || block.marks.length === 0) return undefined
@@ -18,7 +20,7 @@ const toListItem = (text: string, marks?: InlineMark[]): ListItem => (marks ? { 
 
 const convertBlockType = (block: ThreadloomArticleBlock, rawText: string): ArticleBlock => {
   const fencedCode = parseFencedCode(rawText.trim())
-  if (fencedCode) return { type: 'code', code: fencedCode.code, language: fencedCode.language }
+  if (fencedCode) return codeOrTableBlock(fencedCode.code, fencedCode.language)
   const { text, marks } = normalizeRichText(rawText, toMarks(block))
   const type = block.type || ''
   const headingIndex = HEADING_TYPES.indexOf(type)
@@ -28,7 +30,7 @@ const convertBlockType = (block: ThreadloomArticleBlock, rawText: string): Artic
   return { type: 'paragraph', text, marks }
 }
 
-const mergeAdjacentBlocks = (blocks: ArticleBlock[]): ArticleBlock[] => {
+const mergeAdjacentLists = (blocks: ArticleBlock[]): ArticleBlock[] => {
   const merged: ArticleBlock[] = []
   for (const block of blocks) {
     const previous = merged[merged.length - 1]
@@ -36,18 +38,22 @@ const mergeAdjacentBlocks = (blocks: ArticleBlock[]): ArticleBlock[] => {
       previous.items.push(...block.items)
       continue
     }
-    if (block.type === 'code' && previous?.type === 'code') {
-      previous.code += '\n' + block.code
-      continue
-    }
     merged.push(block)
   }
   return merged
 }
 
-const toCodeBlock = (block: ThreadloomArticleBlock): ArticleBlock | null => {
-  const code = (block.text || '').trim()
-  return code ? { type: 'code', code, language: undefined } : null
+const isCodeLine = (block: ThreadloomArticleBlock): boolean => CODE_LINE_TYPES.has(block.type || '')
+
+// X stores a code panel as one block per line; rejoin each run so separate panels stay separate.
+const joinCodeLines = (blocks: ThreadloomArticleBlock[]): ThreadloomArticleBlock[] => {
+  const joined: ThreadloomArticleBlock[] = []
+  for (const block of blocks) {
+    const previous = joined[joined.length - 1]
+    if (previous && isCodeLine(block) && isCodeLine(previous)) joined[joined.length - 1] = { ...previous, text: `${previous.text || ''}\n${block.text || ''}` }
+    else joined.push(block)
+  }
+  return joined
 }
 
 const toMediaBlock = (block: ThreadloomArticleBlock & { url: string }): ArticleBlock => {
@@ -58,19 +64,22 @@ const toMediaBlock = (block: ThreadloomArticleBlock & { url: string }): ArticleB
 const toContentBlock = (block: ThreadloomArticleBlock): ArticleBlock | null => {
   if (block.type === 'atomic' && block.url) return toMediaBlock({ ...block, url: block.url })
   if (block.type === 'divider') return { type: 'divider' }
-  if (block.type === 'code-block') return toCodeBlock(block)
-  if (block.type === 'embed' && block.url) {
-    return { type: 'embed', text: block.text || block.url, url: block.url }
-  }
+  if (block.type === 'embed' && block.url) return { type: 'embed', text: block.text || block.url, url: block.url }
   const rawText = block.text || ''
   return rawText.trim() ? convertBlockType(block, rawText) : null
 }
 
+const toContentBlocks = (block: ThreadloomArticleBlock): ArticleBlock[] => {
+  const text = (block.text || '').trim()
+  if (block.type === 'markdown') return parseMarkdownBlocks(text)
+  if (isCodeLine(block)) return text ? [codeOrTableBlock(text)] : []
+  if (block.type === 'latex') return text ? [{ type: 'math', text }] : []
+  const single = toContentBlock(block)
+  return single ? [single] : []
+}
+
 const parseArticleContentBlocks = (tweet: ThreadloomTweet): ArticleBlock[] => {
-  const parsed = (tweet.article?.content?.blocks || [])
-    .map(toContentBlock)
-    .filter((block): block is ArticleBlock => block !== null)
-  return mergeAdjacentBlocks(parsed).map((block) => (block.type === 'code' ? codeOrTableBlock(block.code, block.language) : block))
+  return mergeAdjacentLists(joinCodeLines(tweet.article?.content?.blocks || []).flatMap(toContentBlocks))
 }
 
 const pushUrl = (urls: Set<string>, value: string | undefined): void => {

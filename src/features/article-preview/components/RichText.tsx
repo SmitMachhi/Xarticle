@@ -12,6 +12,7 @@ const wrapWithMark = (children: ReactNode, mark: InlineMark, key: string): React
   if (mark.type === 'bold') return <strong key={key}>{children}</strong>
   if (mark.type === 'italic') return <em key={key}>{children}</em>
   if (mark.type === 'underline') return <u key={key}>{children}</u>
+  if (mark.type === 'strikethrough') return <s key={key}>{children}</s>
   if (mark.type === 'code') return <code key={key}>{children}</code>
   if (mark.type === 'link' && mark.url) {
     return <a href={mark.url} key={key} rel="noreferrer" target="_blank">{children}</a>

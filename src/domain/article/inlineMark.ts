@@ -1,7 +1,7 @@
 export interface InlineMark {
   offset: number
   length: number
-  type: 'bold' | 'italic' | 'underline' | 'code' | 'link'
+  type: 'bold' | 'italic' | 'underline' | 'strikethrough' | 'code' | 'link'
   url?: string
 }
 
