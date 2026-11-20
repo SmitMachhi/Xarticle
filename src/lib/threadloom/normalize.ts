@@ -1,8 +1,6 @@
 import type { InlineMark } from '../../types/article'
 import { trimCode } from '../article-parser/text'
 
-export const normalizeText = (value: string): string => value.replace(/\s+/g, ' ').trim()
-
 const WHITESPACE_SPLIT = /(\s+)/
 const PARAGRAPH_BREAK = '\n\n'
 

@@ -1,7 +1,7 @@
 import type { ArticleBlock, HeadingLevel, InlineMark, RichText } from '../../types/article'
-import { trimCode } from '../article-parser/text'
+import { normalizeText, trimCode } from '../article-parser/text'
 import { parseMarkdownBlocks } from '../markdownBlocks'
-import { normalizeRichText, normalizeText, parseFencedCode } from './normalize'
+import { normalizeRichText, parseFencedCode } from './normalize'
 import type { ThreadloomArticleBlock, ThreadloomMediaItem, ThreadloomTweet } from './types'
 
 const COVER_CAPTION = 'Cover image'
