@@ -1,6 +1,5 @@
-import type { ArticleBlock, HeadingLevel, InlineMark, ListItem } from '../../types/article'
-import { parseMarkdownBlocks } from '../markdown/blocks'
-import { codeOrTableBlock } from '../markdown/table'
+import type { ArticleBlock, HeadingLevel, InlineMark, RichText } from '../../types/article'
+import { parseMarkdownBlocks } from '../markdownBlocks'
 import { normalizeRichText, normalizeText, parseFencedCode } from './normalize'
 import type { ThreadloomArticleBlock, ThreadloomMediaItem, ThreadloomTweet } from './types'
 
@@ -16,16 +15,16 @@ const toMarks = (block: ThreadloomArticleBlock): InlineMark[] | undefined => {
   return block.marks.map((m) => (m.url ? { offset: m.offset, length: m.length, type: m.type, url: m.url } : { offset: m.offset, length: m.length, type: m.type }))
 }
 
-const toListItem = (text: string, marks?: InlineMark[]): ListItem => (marks ? { text, marks } : { text })
+const toRichText = (text: string, marks?: InlineMark[]): RichText => (marks ? { text, marks } : { text })
 
 const convertBlockType = (block: ThreadloomArticleBlock, rawText: string): ArticleBlock => {
   const fencedCode = parseFencedCode(rawText.trim())
-  if (fencedCode) return codeOrTableBlock(fencedCode.code, fencedCode.language)
+  if (fencedCode) return { type: 'code', code: fencedCode.code, language: fencedCode.language }
   const { text, marks } = normalizeRichText(rawText, toMarks(block))
   const type = block.type || ''
   const headingIndex = HEADING_TYPES.indexOf(type)
   if (headingIndex >= 0) return { type: 'heading', level: (headingIndex + 1) as HeadingLevel, text, marks }
-  if (type in LIST_TYPES) return { type: 'list', ordered: LIST_TYPES[type], items: [toListItem(text, marks)] }
+  if (type in LIST_TYPES) return { type: 'list', ordered: LIST_TYPES[type], items: [toRichText(text, marks)] }
   if (type === 'blockquote') return { type: 'quote', text, marks }
   return { type: 'paragraph', text, marks }
 }
@@ -61,7 +60,7 @@ const toMediaBlock = (block: ThreadloomArticleBlock & { url: string }): ArticleB
   return block.video ? { ...media, link: block.video } : media
 }
 
-const toContentBlock = (block: ThreadloomArticleBlock): ArticleBlock | null => {
+const toSimpleBlock = (block: ThreadloomArticleBlock): ArticleBlock | null => {
   if (block.type === 'atomic' && block.url) return toMediaBlock({ ...block, url: block.url })
   if (block.type === 'divider') return { type: 'divider' }
   if (block.type === 'embed' && block.url) return { type: 'embed', text: block.text || block.url, url: block.url }
@@ -72,9 +71,9 @@ const toContentBlock = (block: ThreadloomArticleBlock): ArticleBlock | null => {
 const toContentBlocks = (block: ThreadloomArticleBlock): ArticleBlock[] => {
   const text = (block.text || '').trim()
   if (block.type === 'markdown') return parseMarkdownBlocks(text)
-  if (isCodeLine(block)) return text ? [codeOrTableBlock(text)] : []
+  if (isCodeLine(block)) return text ? [{ type: 'code', code: text }] : []
   if (block.type === 'latex') return text ? [{ type: 'math', text }] : []
-  const single = toContentBlock(block)
+  const single = toSimpleBlock(block)
   return single ? [single] : []
 }
 

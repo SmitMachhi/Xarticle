@@ -20,13 +20,17 @@ const fixtureForE2E = {
       cover_media: undefined,
       content: {
         ...fixture.tweet.article.content,
-        blocks: fixture.tweet.article.content.blocks.map((block: { text?: string; type: string }) => {
-          if (block.type !== 'unstyled' || !block.text?.startsWith('```bash')) return block
-          return {
-            ...block,
-            text: `\`\`\`bash\n${'codex'.repeat(220)}\n\`\`\``,
-          }
-        }),
+        blocks: [
+          ...fixture.tweet.article.content.blocks.map((block: { text?: string; type: string }) => {
+            if (block.type !== 'unstyled' || !block.text?.startsWith('```bash')) return block
+            return {
+              ...block,
+              text: `\`\`\`bash\n${'codex'.repeat(220)}\n\`\`\``,
+            }
+          }),
+          { type: 'markdown', text: '| Part | Lesson |\n| --- | --- |\n| Loop | `agent.py` |' },
+          { type: 'unstyled', text: 'old price', marks: [{ offset: 0, length: 3, type: 'strikethrough' }] },
+        ],
       },
     },
   },
@@ -63,6 +67,8 @@ test('status url renders preview and downloads pdf', async ({ page }) => {
 
   const codeBlock = page.locator('.article-body pre.code-block')
   await expect(codeBlock).toHaveCount(1)
+  await expect(page.locator('.article-body table th')).toHaveText(['Part', 'Lesson'])
+  await expect(page.locator('.article-body s')).toHaveText('old')
 
   const pdfButton = page.getByRole('button', { name: 'Download PDF' })
   const printButton = page.getByRole('button', { name: 'Print' })
