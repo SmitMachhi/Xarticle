@@ -1,6 +1,6 @@
 import type { Content, CustomTableLayout } from 'pdfmake/interfaces'
 
-import type { TableBlock, TableCell } from '../../types/article'
+import type { RichText, TableBlock } from '../../types/article'
 import { MARGIN_INLINE_NONE, MARGIN_LARGE, MARGIN_SMALL, TABLE_COLUMN_CHARS, TABLE_PADDING, TABLE_RULE_WIDTH } from './constants'
 import { inlineText } from './inline'
 import type { PdfPalette } from './styles'
@@ -9,12 +9,12 @@ const PERCENT = 100
 const PERCENT_DECIMALS = 2
 
 // Columns share the page by how much text they hold, clamped so labels stay readable and prose wraps.
-const columnWeight = (cells: TableCell[]): number => {
+const columnWeight = (cells: RichText[]): number => {
   const longest = Math.max(...cells.map((cell) => cell.text.length))
   return Math.min(Math.max(longest, TABLE_COLUMN_CHARS.min), TABLE_COLUMN_CHARS.max)
 }
 
-export const tableColumnWidths = (block: TableBlock): string[] => {
+const tableColumnWidths = (block: TableBlock): string[] => {
   const weights = block.header.map((_, column) => columnWeight([block.header[column], ...block.rows.map((row) => row[column])]))
   const total = weights.reduce((sum, weight) => sum + weight, 0)
   return weights.map((weight) => `${((weight / total) * PERCENT).toFixed(PERCENT_DECIMALS)}%`)
@@ -31,7 +31,7 @@ const tableLayout = (palette: PdfPalette): CustomTableLayout => ({
   paddingBottom: () => TABLE_PADDING.y,
 })
 
-const toRow = (cells: TableCell[], style: string): Content[] => cells.map((cell) => ({ text: inlineText(cell.text, cell.marks), style }))
+const toRow = (cells: RichText[], style: string): Content[] => cells.map((cell) => ({ text: inlineText(cell.text, cell.marks), style }))
 
 export const tableContent = (block: TableBlock, palette: PdfPalette): Content => ({
   table: {

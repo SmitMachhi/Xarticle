@@ -1,5 +1,4 @@
 import type { ArticleBlock } from '../../types/article'
-import { codeOrTableBlock } from '../markdown/table'
 import {
   HEADING_LEVEL_ONE,
   HEADING_LEVEL_THREE,
@@ -35,7 +34,7 @@ const parseCode = (node: HTMLPreElement): ArticleBlock | null => {
   const code = (node.textContent || '').replace(/\r\n/g, '\n').trim()
   if (!code) return null
   const languageMatch = (node.querySelector('code')?.className || '').match(/language-([A-Za-z0-9_+-]+)/)
-  return codeOrTableBlock(code, languageMatch?.[1])
+  return { type: 'code', code, language: languageMatch?.[1] }
 }
 
 const parseImage = (node: HTMLImageElement): ArticleBlock | null => {

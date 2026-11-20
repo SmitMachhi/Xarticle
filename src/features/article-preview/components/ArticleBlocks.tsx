@@ -38,6 +38,8 @@ const renderEmbed = (block: Extract<ArticleBlock, { type: 'embed' }>, key: strin
   <p className="embed-line" key={key}>{block.url ? <a href={block.url} rel="noreferrer" target="_blank">{block.text}</a> : block.text}</p>
 )
 
+const renderMath = (block: Extract<ArticleBlock, { type: 'math' }>, key: string) => <p className="math-block" key={key}>{block.text}</p>
+
 const renderBlock = (block: ArticleBlock, key: string) => {
   if (block.type === 'heading') return renderHeading(block, key)
   if (block.type === 'paragraph') return <p key={key}><RichText marks={block.marks} text={block.text} /></p>
@@ -48,7 +50,7 @@ const renderBlock = (block: ArticleBlock, key: string) => {
   if (block.type === 'media') return renderMedia(block, key)
   if (block.type === 'divider') return <hr key={key} />
   if (block.type === 'embed') return renderEmbed(block, key)
-  return <p className="math-block" key={key}>{block.text}</p>
+  return renderMath(block, key)
 }
 
 export const ArticleBlocks = ({ blocks }: { blocks: ArticleBlock[] }) => {

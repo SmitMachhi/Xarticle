@@ -1,7 +1,7 @@
-import type { ListItem } from './inlineMark'
+import type { RichText } from './inlineMark'
 
 export interface ListBlock {
   type: 'list'
   ordered?: boolean
-  items: ListItem[]
+  items: RichText[]
 }

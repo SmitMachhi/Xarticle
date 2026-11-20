@@ -21,7 +21,7 @@ const BLOCKS = [
   text('unstyled', 'keep struck', [{ style: 'Strikethrough', offset: 5, length: 6 }]),
   text('code-block', 'if x:'),
   text('code', '    run()'),
-  atomic(0), atomic(1), atomic(2, 'E = mc^2'), atomic(3), atomic(4), atomic(5),
+  atomic(0), atomic(1), atomic(2, 'E = \\frac{m}{c^2}'), atomic(3), atomic(4), atomic(5),
 ]
 
 const parse = () => {
@@ -46,7 +46,7 @@ describe('X article formats', () => {
     expect(blocks.slice(2).map((block) => block.type)).toEqual(['media', 'media', 'embed', 'math', 'code', 'table'])
     expect(blocks[3]).toMatchObject({ url: expect.stringContaining('m2'), caption: 'gallery' })
     expect(blocks[4]).toEqual({ type: 'embed', text: 'https://x.com/i/status/20', url: 'https://x.com/i/status/20' })
-    expect(blocks[5]).toEqual({ type: 'math', text: 'E = mc^2' })
+    expect(blocks[5]).toEqual({ type: 'math', text: 'E = \\frac{m}{c^2}' })
     expect(blocks[6]).toEqual({ type: 'code', code: 'const x = 1', language: 'ts' })
   })
 })

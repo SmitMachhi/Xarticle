@@ -1,5 +1,5 @@
 import type { ArticleBlock, ExtractedArticle } from '../../types/article'
-import { parseMarkdownBlocks } from '../markdown/blocks'
+import { parseMarkdownBlocks } from '../markdownBlocks'
 import { getHandleFromUrl, normalizeInputUrl } from '../xUrl'
 import { parseMetricsFromText } from './metrics'
 

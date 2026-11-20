@@ -1,9 +1,7 @@
-import type { ListItem } from './inlineMark'
-
-export type TableCell = ListItem
+import type { RichText } from './inlineMark'
 
 export interface TableBlock {
   type: 'table'
-  header: TableCell[]
-  rows: TableCell[][]
+  header: RichText[]
+  rows: RichText[][]
 }

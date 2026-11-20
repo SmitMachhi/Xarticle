@@ -5,7 +5,8 @@ export interface InlineMark {
   url?: string
 }
 
-export interface ListItem {
+// Text plus its inline marks: one list item, table cell or parsed markdown span.
+export interface RichText {
   text: string
   marks?: InlineMark[]
 }

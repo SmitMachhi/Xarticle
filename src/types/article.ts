@@ -13,7 +13,6 @@ export type {
   HeadingLevel,
   InlineMark,
   ListBlock,
-  ListItem,
   MarginPreset,
   MathBlock,
   MediaBlock,
@@ -22,7 +21,7 @@ export type {
   ParagraphBlock,
   ProviderAttempt,
   QuoteBlock,
+  RichText,
   TableBlock,
-  TableCell,
   ThemeMode,
 } from '../domain/article'

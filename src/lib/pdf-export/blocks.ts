@@ -77,6 +77,13 @@ const embedContent = (block: Extract<ArticleBlock, { type: 'embed' }>): Content 
   return { text: pdfSafeText(block.text), link: block.url, style: 'embed', margin: [MARGIN_INLINE_NONE, 2, MARGIN_INLINE_NONE, MARGIN_MEDIUM] }
 }
 
+const mathContent = (block: Extract<ArticleBlock, { type: 'math' }>): Content => ({
+  text: pdfSafeText(block.text),
+  style: 'math',
+  alignment: 'center',
+  margin: [MARGIN_INLINE_NONE, MARGIN_SMALL, MARGIN_INLINE_NONE, MARGIN_LARGE],
+})
+
 const contentForBlock = async (block: ArticleBlock, imageResolver: ImageResolver, palette: PdfPalette): Promise<Content[]> => {
   if (block.type === 'heading') return [headingContent(block)]
   if (block.type === 'paragraph') return [{ text: inlineText(block.text, block.marks), style: 'paragraph', margin: BLOCK_MARGIN }]
@@ -87,7 +94,7 @@ const contentForBlock = async (block: ArticleBlock, imageResolver: ImageResolver
   if (block.type === 'embed') return [embedContent(block)]
   if (block.type === 'divider') return [dividerContent(palette)]
   if (block.type === 'table') return [tableContent(block, palette)]
-  return [{ text: pdfSafeText(block.text), style: 'math', alignment: 'center', margin: [MARGIN_INLINE_NONE, MARGIN_SMALL, MARGIN_INLINE_NONE, MARGIN_LARGE] }]
+  return [mathContent(block)]
 }
 
 export const blocksToContent = async (blocks: ArticleBlock[], imageResolver: ImageResolver, palette: PdfPalette): Promise<Content[]> => {
